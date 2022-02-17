@@ -19,7 +19,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-#[[find_package(GTest REQUIRED)]]
+find_package(GTest REQUIRED)
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${NAOBI_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
