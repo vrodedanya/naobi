@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(naobi)
+set(naobi)
+
+project(${CMAKE_PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
 
-set(NAOBI_TEST_SOURCES test/test.cpp)
+set(NAOBI_SOURCES source/compiler/compiler.cpp)
+set(NAOBI_TEST_SOURCES test/compiler_test.cpp)
 
 FetchContent_Declare(
         googletest
@@ -18,7 +21,10 @@ FetchContent_MakeAvailable(googletest)
 
 find_package(GTest REQUIRED)
 
+add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${NAOBI_SOURCES})
+target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-add_executable(naobi_test ${NAOBI_TEST_SOURCES})
-target_include_directories(naobi_test PUBLIC ${GTEST_INCLUDE_DIRS})
-target_link_libraries(naobi_test gtest gtest_main pthread)
+add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
+target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
+target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gtest_main pthread ${CMAKE_PROJECT_NAME}_lib)
