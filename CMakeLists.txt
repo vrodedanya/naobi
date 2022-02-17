@@ -25,4 +25,4 @@ target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/incl
 add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gtest_main pthread ${CMAKE_PROJECT_NAME})
+target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread ${CMAKE_PROJECT_NAME})
