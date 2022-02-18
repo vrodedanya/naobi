@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
 
-set(NAOBI_SOURCES source/compiler/compiler.cpp)
-set(NAOBI_TEST_SOURCES test/compiler_test.cpp)
+set(NAOBI_SOURCES source/compiler/compiler.cpp source/parser/parser.cpp)
+set(NAOBI_TEST_SOURCES test/compiler_test.cpp test/parser_test.cpp)
 
 FetchContent_Declare(
         googletest
