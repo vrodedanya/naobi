@@ -6,20 +6,36 @@
 TEST(parser, split)
 {
 	std::string test = "test";
-	auto buffer = naobi::parser::split(test, ";", true);
+	auto buffer = naobi::parser::split(test, ";", naobi::parser::split_mods::SAVE_SPLITTER);
 	ASSERT_THAT(buffer, testing::ElementsAre("test"));
 
 	test = "test;check;  keks;\n tatata     cool; tatat";
-	buffer = naobi::parser::split(test, ";", true);
+	buffer = naobi::parser::split(test, ";", naobi::parser::split_mods::SAVE_SPLITTER);
 	ASSERT_THAT(buffer, testing::ElementsAre("test;", "check;", "  keks;", "\n tatata     cool;", " tatat"));
 
 	test = "t;g;f;s;;df;sdfsdf;rwer;fscv;";
-	buffer = naobi::parser::split(test, ";", true);
+	buffer = naobi::parser::split(test, ";", naobi::parser::split_mods::SAVE_SPLITTER);
 	ASSERT_THAT(buffer, testing::ElementsAre("t;", "g;", "f;", "s;","df;","sdfsdf;","rwer;", "fscv;"));
 
 	test = "abc test   track  test";
-	buffer = naobi::parser::split(test, " ", true);
+	buffer = naobi::parser::split(test, " ", naobi::parser::split_mods::SAVE_SPLITTER);
 	ASSERT_THAT(buffer, testing::ElementsAre("abc ", "test ", "track ", "test"));
+
+	test = "abc test   track  test";
+	buffer = naobi::parser::split(test, " ");
+	ASSERT_THAT(buffer, testing::ElementsAre("abc", "test", "track", "test"));
+
+	test = "some string";
+	buffer = naobi::parser::split(test, "");
+	ASSERT_THAT(buffer, testing::ElementsAre());
+
+	test = R"(some string "text test txt" str " ")";
+	buffer = naobi::parser::split(test, " ", naobi::parser::split_mods::SAVE_BLOCKS);
+	ASSERT_THAT(buffer, testing::ElementsAre("some", "string", "\"text test txt\"", "str", "\" \""));
+
+	test = R"(some string "text test txt" str " )";
+	buffer = naobi::parser::split(test, " ", naobi::parser::split_mods::SAVE_BLOCKS);
+	ASSERT_THAT(buffer, testing::ElementsAre("some", "string", "\"text test txt\"", "str", "\""));
 }
 
 TEST(parser, removeExtraSpaces)

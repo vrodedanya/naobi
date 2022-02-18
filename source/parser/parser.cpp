@@ -1,13 +1,47 @@
 #include "naobi/utils/parser.hpp"
 
-std::vector<std::string> naobi::parser::split(const std::string& text, const std::string& splitter, bool saveSplitter)
+#include <iostream>
+#include <algorithm>
+
+std::vector<std::string> naobi::parser::split(const std::string& text, const std::string& splitter, int splitMods)
 {
+	if (splitter.empty()) return {};
+
 	std::size_t currentPos{}, splitterPos{};
 	std::vector<std::string> buffer;
+	std::vector<std::pair<std::size_t, std::size_t>> blocks;
+
+
+	if (splitMods & split_mods::SAVE_BLOCKS)
+	{
+		int pos{0}, prev{-1};
+		while ((pos = text.find('\"', pos)) != std::string::npos)
+		{
+			if (prev != -1)
+			{
+				blocks.emplace_back(prev, pos);
+				prev = -1;
+				pos++;
+			}
+			else prev = pos++;
+		}
+	}
 
 	while (true)
 	{
 		splitterPos = text.find(splitter, currentPos);
+
+		if (splitMods & split_mods::SAVE_BLOCKS)
+		{
+			while(std::find_if(blocks.cbegin(), blocks.cend(),
+								   [splitterPos](std::pair<std::size_t, std::size_t> pair)
+								   {
+									   return pair.first < splitterPos && pair.second > splitterPos;
+								   }) != blocks.cend())
+			{
+				splitterPos = text.find(splitter, splitterPos + 1);
+			}
+		}
 		if (splitterPos == std::string::npos)
 		{
 			if (text.size() > currentPos) buffer.emplace_back(text.substr(currentPos));
@@ -18,7 +52,7 @@ std::vector<std::string> naobi::parser::split(const std::string& text, const std
 			currentPos = splitterPos + 1;
 			continue;
 		}
-		if (saveSplitter)
+		if (splitMods & split_mods::SAVE_SPLITTER)
 		{
 			splitterPos++;
 			buffer.emplace_back(text.substr(currentPos, splitterPos - currentPos));
