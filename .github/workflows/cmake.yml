@@ -1,4 +1,4 @@
-name: CMake
+name: master
 
 on: [push, pull_request]
 
