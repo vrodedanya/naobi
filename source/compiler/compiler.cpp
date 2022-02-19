@@ -30,3 +30,38 @@ std::vector<std::string> naobi::compiler::collectModules(const std::string &file
 	return buffer;
 }
 
+std::optional<naobi::composition> naobi::compiler::compile(const std::string &fileName)
+{
+	naobi::composition composition;
+	auto moduleOpt = compile(fileName, composition.workflows);
+	if (moduleOpt.has_value())// get some error. Todo add logging
+	{
+		composition.rootModule = moduleOpt.value();
+		return composition;
+	}
+	else return {};
+}
+
+std::optional<naobi::module*> naobi::compiler::compile(const std::string &fileName, std::vector<naobi::workflow> &workflows)
+{
+	auto fileTextOpt = compiler::loadFile(fileName);
+	if (!fileTextOpt.has_value()) return {};
+
+	auto* module = new naobi::module(fileName);
+
+	auto modulesNames = compiler::collectModules(fileTextOpt.value());
+	for (const auto& moduleName : modulesNames)
+	{
+		auto moduleOpt = compile(moduleName, workflows);
+		if (moduleOpt.has_value())
+		{
+			module->addModule(moduleOpt.value());
+		}
+		else
+		{
+			// TODO add error handling
+		}
+	}
+	return module;
+}
+

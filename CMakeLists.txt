@@ -4,9 +4,11 @@ project(naobi)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_compile_options(-Wall -Wextra -pedantic -Werror)
+
 include(FetchContent)
 
-set(NAOBI_SOURCES source/compiler/compiler.cpp source/parser/parser.cpp)
+set(NAOBI_SOURCES source/compiler/compiler.cpp source/parser/parser.cpp source/data/module.cpp)
 set(NAOBI_TEST_SOURCES test/compiler_test.cpp test/parser_test.cpp)
 
 FetchContent_Declare(
@@ -19,10 +21,14 @@ FetchContent_MakeAvailable(googletest)
 
 find_package(GTest REQUIRED)
 
-add_library(${CMAKE_PROJECT_NAME} STATIC ${NAOBI_SOURCES})
+add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${NAOBI_SOURCES})
+target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(${CMAKE_PROJECT_NAME} source/main.cpp)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_PROJECT_NAME}_lib)
 
 add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread ${CMAKE_PROJECT_NAME})
+target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread ${CMAKE_PROJECT_NAME}_lib)

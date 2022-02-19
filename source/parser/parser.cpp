@@ -1,13 +1,12 @@
 #include "naobi/utils/parser.hpp"
 
-#include <iostream>
 #include <algorithm>
 
 std::vector<std::string> naobi::parser::split(const std::string& text, const std::string& splitter, int splitMods)
 {
 	if (splitter.empty()) return {};
 
-	std::size_t currentPos{}, splitterPos{};
+	std::size_t currentPos{}, splitterPos;
 	std::vector<std::string> buffer;
 	std::vector<std::pair<std::size_t, std::size_t>> blocks;
 
@@ -15,7 +14,7 @@ std::vector<std::string> naobi::parser::split(const std::string& text, const std
 	if (splitMods & split_mods::SAVE_BLOCKS)
 	{
 		int pos{0}, prev{-1};
-		while ((pos = text.find('\"', pos)) != std::string::npos)
+		while (static_cast<std::size_t>(pos = static_cast<int>(text.find('\"', pos))) != std::string::npos)
 		{
 			if (prev != -1)
 			{
