@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-std::vector<std::string> naobi::parser::split(const std::string& text, const std::string& splitter, int splitMods)
+std::vector<std::string> naobi::parser::split(const std::string& text, const std::string& splitter, int splitMods) noexcept
 {
 	if (splitter.empty()) return {};
 
@@ -66,7 +66,7 @@ std::vector<std::string> naobi::parser::split(const std::string& text, const std
 	return buffer;
 }
 
-std::string naobi::parser::removeExtraSpaces(const std::string &str)
+std::string naobi::parser::removeExtraSpaces(const std::string &str) noexcept
 {
 	std::string tempString;
 	bool isPreviousSpace{false};
@@ -89,7 +89,7 @@ std::string naobi::parser::removeExtraSpaces(const std::string &str)
 	return tempString;
 }
 
-std::string naobi::parser::removeSym(const std::string &str, char symbolToRemove)
+std::string naobi::parser::removeSym(const std::string &str, char symbolToRemove) noexcept
 {
 	std::string buffer;
 	for (const auto& ch : str)
@@ -99,14 +99,25 @@ std::string naobi::parser::removeSym(const std::string &str, char symbolToRemove
 	return buffer;
 }
 
-std::string naobi::parser::dirName(const std::string &path)
+std::string naobi::parser::dirName(const std::string &path) noexcept
 {
 	std::size_t entry = path.find_last_of("/\\");
 	return path.substr(0, entry);
 }
 
-std::string naobi::parser::fileName(const std::string &path)
+std::string naobi::parser::fileName(const std::string &path) noexcept
 {
 	std::size_t entry = path.find_last_of("/\\");
 	return path.substr(entry + 1);
+}
+
+std::string naobi::parser::placeAfter(const std::string &str, char symbolAfter, const std::string& symbolToPlace) noexcept
+{
+	std::string buffer;
+	for (const auto& ch : str)
+	{
+		buffer += ch;
+		if (symbolAfter == ch) buffer += symbolToPlace;
+	}
+	return buffer;
 }
