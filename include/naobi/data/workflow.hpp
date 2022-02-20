@@ -11,10 +11,16 @@ namespace naobi
 	class workflow
 	{
 	public:
-		explicit workflow(module* parentModule) : _parentModule(parentModule){}
+		using uptr = std::unique_ptr<workflow>;
+		using sptr = std::shared_ptr<workflow>;
+	public:
+		explicit workflow(std::string name, module* parentModule);
+
+		[[nodiscard]] std::string name() const {return _name;}
+
 	private:
 		std::string _name;
-		module const * _parentModule;
+		naobi::module::sptr _parentModule;
 	};
 }
 

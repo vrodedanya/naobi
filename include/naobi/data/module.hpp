@@ -1,11 +1,11 @@
 #ifndef NAOBI_MODULE_HPP
 #define NAOBI_MODULE_HPP
 
-#include <optional>
 #include <utility>
 #include <vector>
 #include <string>
 #include <memory>
+#include <optional>
 
 #include <naobi/data/function.hpp>
 #include <naobi/data/variable.hpp>
@@ -15,19 +15,27 @@ namespace naobi
 	class module
 	{
 	public:
-		explicit module(std::string name) : _name(std::move(name))
-		{
-		}
-		std::optional<std::string> addFunction(naobi::function newFunction);
-		std::optional<std::string> addConst(naobi::variable newConst);
-		std::optional<std::string> addModule(naobi::module* newModule);
+		using uptr = std::unique_ptr<module>;
+		using sptr = std::shared_ptr<module>;
+	public:
+		explicit module(std::string name);
+
+		bool addFunction(const naobi::function::sptr& newFunction);
+		bool addConst(const naobi::variable::sptr& newConst);
+		bool addModule(const naobi::module::sptr& newModule);
+
+		naobi::function::sptr getFunction(const std::string& functionName);
+		naobi::variable::sptr getConst(const std::string& constName);
+		naobi::module::sptr getModule(const std::string& moduleName);
+
+		[[nodiscard]] std::string name() const {return _name;}
 
 
 	private:
 		std::string _name;
-		std::vector<naobi::function> _functions;
-		std::vector<naobi::variable> _consts;
-		std::vector<module*> _modules;
+		std::vector<naobi::function::sptr> _functions;
+		std::vector<naobi::variable::sptr> _consts;
+		std::vector<naobi::module::sptr> _modules;
 	};
 }
 

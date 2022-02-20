@@ -8,8 +8,17 @@ add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 include(FetchContent)
 
-set(NAOBI_SOURCES source/compiler/compiler.cpp source/utils/parser.cpp source/data/module.cpp)
-set(NAOBI_TEST_SOURCES test/compiler_test.cpp test/parser_test.cpp)
+set(NAOBI_SOURCES
+        source/compiler/compiler.cpp
+        source/utils/parser.cpp
+        source/data/module.cpp
+        source/data/function.cpp
+        source/data/variable.cpp
+        source/data/workflow.cpp)
+
+set(NAOBI_TEST_SOURCES
+        test/compiler_test.cpp
+        test/parser_test.cpp)
 
 FetchContent_Declare(
         googletest
