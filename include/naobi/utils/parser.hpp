@@ -1,5 +1,5 @@
-#ifndef NAOBI_LOGGER_HPP
-#define NAOBI_LOGGER_HPP
+#ifndef NAOBI_PARSER_HPP
+#define NAOBI_PARSER_HPP
 
 #include <vector>
 #include <string>
@@ -24,4 +24,4 @@ namespace naobi
 	};
 }
 
-#endif //NAOBI_LOGGER_HPP
+#endif //NAOBI_PARSER_HPP

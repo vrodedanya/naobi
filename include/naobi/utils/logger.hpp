@@ -5,6 +5,11 @@
 #include <iostream>
 #include <chrono>
 
+#include <naobi/utils/parser.hpp>
+
+#define LOG(addressee, level, ...) \
+	naobi::logger::log(#addressee, level, ##__VA_ARGS__)
+
 namespace naobi
 {
 	class logger
@@ -13,7 +18,7 @@ namespace naobi
 		logger() = delete;
 
 		template <typename... AArgs>
-		static void log(const std::string& addressee, int level, const AArgs&&... aargs);
+		static void log(const std::string& addressee, int level, AArgs&&... aargs);
 		static inline void setLoggingFile(const std::string& fileName);
 
 		static void enable(){_isEnabled = true;}
@@ -23,10 +28,10 @@ namespace naobi
 		static void setLevel(int level){_currentLevel = level;}
 	private:
 		template <typename T, typename... AArgs>
-		static void log_rec(const T&& type, const AArgs&&... aargs);
+		static void log_rec(T&& type, AArgs&&... aargs);
 
 		template <typename T>
-		static void log_rec(const T&& type);
+		static void log_rec(T&& type);
 
 		static inline void print(const std::string& text);
 		static inline void println(const std::string& text);
@@ -45,7 +50,7 @@ namespace naobi
 	}
 
 	template <typename... AArgs>
-	void logger::log(const std::string &addressee, int level, const AArgs&&... aargs)
+	void logger::log(const std::string &addressee, int level, AArgs&&... aargs)
 	{
 		if (!_isEnabled) return;
 		if (level > _currentLevel) return;
@@ -53,23 +58,23 @@ namespace naobi
 		if (addressee != _currentAddressee)
 		{
 			println("[" + addressee + "]:");
+			_currentAddressee = addressee;
 		}
 		print("-> ");
-		print(std::ctime(&current_time));
+		print(naobi::parser::removeSym(std::ctime(&current_time), '\n'));
 		print(" ")
 ;		log_rec(std::forward<AArgs>(aargs)...);
 	}
 
 	template <typename T, typename... AArgs>
-	void logger::log_rec(const T &&type, const AArgs &&... aargs)
+	void logger::log_rec(T &&type, AArgs &&... aargs)
 	{
 		print(type);
-		print(" ");
 		log_rec(std::forward<AArgs>(aargs)...);
 	}
 
 	template <typename T>
-	void logger::log_rec(const T &&type)
+	void logger::log_rec(T &&type)
 	{
 		println(type);
 	}
