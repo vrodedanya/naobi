@@ -5,6 +5,7 @@
 #include <iostream>
 #include <chrono>
 
+#include <naobi/utils/output_type_trait.hpp>
 #include <naobi/utils/parser.hpp>
 
 #define LOG(addressee, level, ...) \
@@ -33,8 +34,10 @@ namespace naobi
 		template <typename T>
 		static void log_rec(T&& type);
 
-		static inline void print(const std::string& text);
-		static inline void println(const std::string& text);
+		template <typename T>
+		static inline void print(T&& text);
+		template <typename T>
+		static inline void println(T&& text);
 	private:
 		static inline std::string _currentAddressee;
 		static inline std::ofstream _file;
@@ -60,32 +63,35 @@ namespace naobi
 			println("[" + addressee + "]:");
 			_currentAddressee = addressee;
 		}
-		print("-> ");
-		print(naobi::parser::removeSym(std::ctime(&current_time), '\n'));
-		print(" ")
-;		log_rec(std::forward<AArgs>(aargs)...);
+		print("<" + naobi::parser::removeSym(std::ctime(&current_time) + std::string(">"), '\n'));
+		print(" (" + std::to_string(level) + ")");
+		print(" -> ");
+
+		log_rec(std::forward<AArgs>(aargs)...);
 	}
 
 	template <typename T, typename... AArgs>
 	void logger::log_rec(T &&type, AArgs &&... aargs)
 	{
-		print(type);
+		print(std::forward<T>(type));
 		log_rec(std::forward<AArgs>(aargs)...);
 	}
 
 	template <typename T>
 	void logger::log_rec(T &&type)
 	{
-		println(type);
+		println(std::forward<T>(type));
 	}
 
-	void logger::print(const std::string &text)
+	template <typename T>
+	void logger::print(T&& text)
 	{
 		if (_useStdOut) std::cout << text;
 		if (_file.is_open()) _file << text;
 	}
 
-	void logger::println(const std::string &text)
+	template <typename T>
+	void logger::println(T&& text)
 	{
 		if (_useStdOut) std::cout << text << std::endl;
 		if (_file.is_open()) _file << text << std::endl;
