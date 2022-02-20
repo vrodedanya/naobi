@@ -1,7 +1,7 @@
 #include <naobi/compiler/compiler.hpp>
 
 #include <fstream>
-#include <sstream>
+#include <filesystem>
 
 #include <naobi/utils/parser.hpp>
 
@@ -33,7 +33,10 @@ std::vector<std::string> naobi::compiler::collectModules(const std::string &file
 std::optional<naobi::composition> naobi::compiler::compile(const std::string &fileName)
 {
 	naobi::composition composition;
-	auto moduleOpt = compile(fileName, composition.workflows);
+
+	std::filesystem::path path(naobi::parser::dirName(fileName));
+	std::filesystem::current_path(path);
+	auto moduleOpt = compile(naobi::parser::fileName(fileName), composition.workflows);
 	if (moduleOpt.has_value())// get some error. Todo add logging
 	{
 		composition.rootModule = moduleOpt.value();
