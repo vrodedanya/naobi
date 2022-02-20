@@ -19,9 +19,7 @@ namespace naobi
 
 		static std::optional<composition> compile(const std::string& fileName);
 	private:
-		static std::optional<naobi::module*> compile(const std::string& fileName, std::vector<naobi::workflow>& workflows);
-
-
+		static std::optional<naobi::module::sptr> compile(const std::string& fileName, std::vector<naobi::workflow>& workflows);
 	};
 }
 

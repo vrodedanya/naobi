@@ -9,7 +9,7 @@ namespace naobi
 	struct composition
 	{
 		std::vector<naobi::workflow> workflows;
-		naobi::module* rootModule;
+		naobi::module::sptr rootModule;
 	};
 }
 
