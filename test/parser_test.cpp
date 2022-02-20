@@ -45,17 +45,22 @@ TEST(parser, removeExtraSpaces)
 
 	test = "\ttest\t\ttest\t\t\ttest";
 	EXPECT_EQ(naobi::parser::removeExtraSpaces(test), "\ttest\ttest\ttest");
+
+	EXPECT_EQ(naobi::parser::removeExtraSpaces("test    sub   \"file test   test  xur\""), "test sub \"file test   test  xur\"");
+	EXPECT_EQ(naobi::parser::removeExtraSpaces("test    sub   \"file test\t   test  xur\""), "test sub \"file test\t   test  xur\"");
 }
 
 TEST(parser, removeSym)
 {
 	std::string test = "some message for   testing ";
 	EXPECT_EQ(naobi::parser::removeSym(test, ' '), "somemessagefortesting");
+	EXPECT_EQ(naobi::parser::removeSym("some\nmessage\n\"\n text \n text \n\"", '\n'), "somemessage\"\n text \n text \n\"");
 }
 
 TEST(parser, placeAfter)
 {
 	EXPECT_EQ(naobi::parser::placeAfter("check\ntest\nkek\n", '\n', " -> "), "check\n -> test\n -> kek\n -> ");
+	EXPECT_EQ(naobi::parser::placeAfter("check\ntest\ntest\"\ntest\n\"", '\n', ";"), "check\n;test\n;test\"\ntest\n\"");
 }
 
 TEST(parser, dirName)

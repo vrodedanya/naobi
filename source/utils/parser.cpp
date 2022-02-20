@@ -70,15 +70,21 @@ std::string naobi::parser::removeExtraSpaces(const std::string &str) noexcept
 {
 	std::string tempString;
 	bool isPreviousSpace{false};
+	bool isQuote{false};
 	for (const auto& ch : str)
 	{
 		if (std::isspace(ch))
 		{
-			if (!isPreviousSpace)
+			if (!isPreviousSpace || isQuote)
 			{
 				tempString += ch;
 			}
 			isPreviousSpace = true;
+		}
+		else if (ch == '\"')
+		{
+			isQuote = !isQuote;
+			tempString += ch;
 		}
 		else
 		{
@@ -92,9 +98,41 @@ std::string naobi::parser::removeExtraSpaces(const std::string &str) noexcept
 std::string naobi::parser::removeSym(const std::string &str, char symbolToRemove) noexcept
 {
 	std::string buffer;
+	bool isQuote{false};
+
 	for (const auto& ch : str)
 	{
-		if (ch != symbolToRemove) buffer += ch;
+		if (ch == '\"')
+		{
+			isQuote = !isQuote;
+			buffer += ch;
+		}
+		else if (ch != symbolToRemove || isQuote) buffer += ch;
+	}
+	return buffer;
+}
+
+std::string naobi::parser::placeAfter(const std::string &str, char symbolAfter, const std::string& symbolToPlace) noexcept
+{
+	std::string buffer;
+	bool isQuote{false};
+
+	for (const auto& ch : str)
+	{
+		if (ch == '\"') isQuote = !isQuote;
+		buffer += ch;
+		if (symbolAfter == ch && !isQuote) buffer += symbolToPlace;
+	}
+	return buffer;
+}
+
+std::string naobi::parser::replaceSym(const std::string &str, char symbolToReplace, char replacementCharacter) noexcept
+{
+	std::string buffer;
+	for (const auto& ch : str)
+	{
+		if (ch != symbolToReplace) buffer += ch;
+		else buffer += replacementCharacter;
 	}
 	return buffer;
 }
@@ -109,15 +147,4 @@ std::string naobi::parser::fileName(const std::string &path) noexcept
 {
 	std::size_t entry = path.find_last_of("/\\");
 	return path.substr(entry + 1);
-}
-
-std::string naobi::parser::placeAfter(const std::string &str, char symbolAfter, const std::string& symbolToPlace) noexcept
-{
-	std::string buffer;
-	for (const auto& ch : str)
-	{
-		buffer += ch;
-		if (symbolAfter == ch) buffer += symbolToPlace;
-	}
-	return buffer;
 }
