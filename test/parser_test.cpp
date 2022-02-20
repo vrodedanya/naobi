@@ -53,6 +53,11 @@ TEST(parser, removeSym)
 	EXPECT_EQ(naobi::parser::removeSym(test, ' '), "somemessagefortesting");
 }
 
+TEST(parser, placeAfter)
+{
+	EXPECT_EQ(naobi::parser::placeAfter("check\ntest\nkek\n", '\n', " -> "), "check\n -> test\n -> kek\n -> ");
+}
+
 TEST(parser, dirName)
 {
 	EXPECT_EQ(naobi::parser::dirName("test/file/name.txt"), "test/file");
