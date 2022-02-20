@@ -52,3 +52,19 @@ TEST(parser, removeSym)
 	std::string test = "some message for   testing ";
 	EXPECT_EQ(naobi::parser::removeSym(test, ' '), "somemessagefortesting");
 }
+
+TEST(parser, dirName)
+{
+	EXPECT_EQ(naobi::parser::dirName("test/file/name.txt"), "test/file");
+	EXPECT_EQ(naobi::parser::dirName("test\\file\\name.txt"), "test\\file");
+	EXPECT_EQ(naobi::parser::dirName("../test/check/name.txt"), "../test/check");
+	EXPECT_EQ(naobi::parser::dirName("../keep/get/check/"), "../keep/get/check");
+}
+
+TEST(parser, fileName)
+{
+	EXPECT_EQ(naobi::parser::fileName("test/file/name.txt"), "name.txt");
+	EXPECT_EQ(naobi::parser::fileName("test\\file\\name.txt"), "name.txt");
+	EXPECT_EQ(naobi::parser::fileName("../test/check/name.txt"), "name.txt");
+	EXPECT_EQ(naobi::parser::fileName("../keep/get/check/"), "");
+}

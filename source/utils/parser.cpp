@@ -98,3 +98,15 @@ std::string naobi::parser::removeSym(const std::string &str, char symbolToRemove
 	}
 	return buffer;
 }
+
+std::string naobi::parser::dirName(const std::string &path)
+{
+	std::size_t entry = path.find_last_of("/\\");
+	return path.substr(0, entry);
+}
+
+std::string naobi::parser::fileName(const std::string &path)
+{
+	std::size_t entry = path.find_last_of("/\\");
+	return path.substr(entry + 1);
+}

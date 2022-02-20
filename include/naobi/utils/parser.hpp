@@ -1,5 +1,5 @@
-#ifndef NAOBI_PARSER_HPP
-#define NAOBI_PARSER_HPP
+#ifndef NAOBI_LOGGER_HPP
+#define NAOBI_LOGGER_HPP
 
 #include <vector>
 #include <string>
@@ -19,7 +19,9 @@ namespace naobi
 		static std::vector<std::string> split(const std::string& text, const std::string& splitter, int splitMods = 0);
 		static std::string removeExtraSpaces(const std::string& str);
 		static std::string removeSym(const std::string& str, char symbolToRemove);
+		static std::string dirName(const std::string& path);
+		static std::string fileName(const std::string& path);
 	};
 }
 
-#endif //NAOBI_PARSER_HPP
+#endif //NAOBI_LOGGER_HPP
