@@ -7,15 +7,16 @@ int main(int argc, char* argv[])
 	{
 		naobi::logger::enable();
 		naobi::logger::enableLoggingToStdOut();
-		naobi::logger::setLevel(1);
+		naobi::logger::setLevel(naobi::logger::SUCCESS);
 		naobi::logger::setLoggingFile("log.txt");
-		LOG(main, 5, "begin main");
+		naobi::logger::enableDate();
+		naobi::logger::enableLevel();
+		LOG(main, naobi::logger::LOW, "begin main");
 
-		auto compositionOpt = naobi::compiler::compile(argv[1]);
-		if (compositionOpt.has_value())
-		{
-
-		}
+		naobi::compiler compiler;
+		compiler.compile(argv[1]);
+		auto composition = compiler.getComposition();
+		std::cout<<std::endl;
 	}
 	return EXIT_SUCCESS;
 }

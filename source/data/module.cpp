@@ -58,3 +58,15 @@ naobi::module::sptr	 naobi::module::getModule(const std::string& moduleName)
 	if (it == _modules.cend()) return nullptr;
 	return *it;
 }
+
+naobi::module::sptr naobi::module::findModule(const std::string& moduleName)
+{
+	auto module_ptr = getModule(moduleName);
+	if (module_ptr != nullptr) return module_ptr;
+	for (const auto& module : _modules)
+	{
+		auto ptr = module->findModule(moduleName);
+		if (ptr != nullptr) return ptr;
+	}
+	return nullptr;
+}

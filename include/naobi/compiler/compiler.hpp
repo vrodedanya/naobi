@@ -15,11 +15,19 @@ namespace naobi
 	{
 	public:
 		static std::optional<std::string> loadFile(const std::string& fileName);
-		static std::vector<std::string> collectModules(const std::string& fileText);
+		static std::vector<std::string> collectModules(const std::vector<std::string>& lines);
 
-		static std::optional<composition> compile(const std::string& fileName);
+		void compile(const std::string& fileName);
+
+		[[nodiscard]] naobi::composition getComposition() const noexcept {return _composition;}
 	private:
-		static std::optional<naobi::module::sptr> compile(const std::string& fileName, std::vector<naobi::workflow>& workflows);
+		void compile(const std::string& fileName, const naobi::module::sptr& parent);
+
+		std::string processFileName(const std::string& fileName);
+		void processModules(const std::vector<std::string>& lines, const naobi::module::sptr& module);
+
+	private:
+		naobi::composition _composition;
 	};
 }
 

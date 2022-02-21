@@ -1,6 +1,7 @@
 #include <naobi/compiler/compiler.hpp>
 
 #include <filesystem>
+#include <algorithm>
 
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/logger.hpp>
@@ -17,13 +18,10 @@ std::optional<std::string> naobi::compiler::loadFile(const std::string &fileName
 	return temp;
 }
 
-std::vector<std::string> naobi::compiler::collectModules(const std::string &fileText)
+std::vector<std::string> naobi::compiler::collectModules(const std::vector<std::string>& lines)
 {
-	LOG(compiler.collectModules, logger::LOW, "begin collectModules from\n", naobi::parser::placeAfter('\n' + fileText, '\n', " | "));
+	LOG(compiler.collectModules, logger::LOW, "begin collectModules");
 	std::vector<std::string> buffer;
-	auto temp = parser::removeSym(parser::removeExtraSpaces(fileText), '\n');
-	auto lines = parser::split(temp, ";", false);
-	LOG(compiler.collectModules, logger::LOW, "lines:\n", lines);
 	for (const auto& line : lines)
 	{
 		auto arguments = parser::split(line, " ");
@@ -36,32 +34,51 @@ std::vector<std::string> naobi::compiler::collectModules(const std::string &file
 	return buffer;
 }
 
-std::optional<naobi::composition> naobi::compiler::compile(const std::string &fileName)
+void naobi::compiler::compile(const std::string &fileName)
 {
 	LOG(compiler.compile, logger::LOW, "begin compiling program");
-	naobi::composition composition;
 
 	std::filesystem::path path(naobi::parser::dirName(fileName));
 	std::filesystem::current_path(path);
 	LOG(compiler.compile, logger::IMPORTANT, "set current directory to ", naobi::parser::dirName(fileName));
 
-	auto moduleOpt = compile(naobi::parser::fileName(fileName), composition.workflows);
-	if (moduleOpt.has_value())
-	{
-		LOG(compiler.compile, logger::LOW, "get module ", moduleOpt.value()->name());
-		LOG(compiler.compile, logger::SUCCESS, "compiled ", moduleOpt.value()->name());
+	compile(naobi::parser::fileName(fileName), nullptr);
+}
 
-		composition.rootModule = moduleOpt.value();
-		return composition;
+void naobi::compiler::compile(const std::string &fileName, const naobi::module::sptr& parent)
+{
+	LOG(compiler.compile, logger::BASIC, "process file name");
+	std::string file = processFileName(fileName);
+
+	LOG(compiler.compile, logger::LOW, "begin compiling file ", file);
+
+	auto fileTextOpt = compiler::loadFile(file);
+	if (!fileTextOpt.has_value())
+	{
+		LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to open file '", file, "'");
+		std::exit(EXIT_FAILURE);
+	}
+
+	auto module = std::make_shared<naobi::module>(file);
+	if (parent == nullptr)
+	{
+		_composition.rootModule = module;
 	}
 	else
 	{
-		LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to compile module '", naobi::parser::fileName(fileName), "'");
-		std::exit(EXIT_FAILURE);
+		parent->addModule(module);
 	}
+
+	auto temp = parser::removeSym(parser::removeExtraSpaces(fileTextOpt.value()), '\n');
+	auto lines = parser::split(temp, ";", false);
+	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
+
+	processModules(lines, module);
+
+	LOG(compiler.compile, logger::SUCCESS, "compiled '", file, "'");
 }
 
-std::optional<naobi::module::sptr> naobi::compiler::compile(const std::string &fileName, std::vector<naobi::workflow> &workflows)
+std::string naobi::compiler::processFileName(const std::string &fileName)
 {
 	std::string file = fileName;
 	std::size_t pos = file.find_last_of('.');
@@ -69,34 +86,31 @@ std::optional<naobi::module::sptr> naobi::compiler::compile(const std::string &f
 	{
 		file += ".naobi";
 	}
-	file = naobi::parser::replaceSym(file.substr(0, file.find_last_of('.')), '.', '/') + ".naobi";
-	LOG(compiler.compile, logger::LOW, "begin compiling file ", file);
+	pos = 0;
+	if (file[0] == '.' && file[1] == '.') pos = 2;
+	else if (file[0] == '.') pos = 1;
+	file = naobi::parser::replaceSym(file.substr(pos, file.find_last_of('.') - pos), '.', '/') + ".naobi";
+	return file;
+}
 
-	auto fileTextOpt = compiler::loadFile(file);
-	if (!fileTextOpt.has_value())
-	{
-		LOG(compiler.compile, logger::CRITICAL, "failed to open file '", file, "'");
-		return {};
-	}
-
-	auto module = std::make_shared<naobi::module>(naobi::parser::fileName(file));
-
-	auto modulesNames = compiler::collectModules(fileTextOpt.value());
+void naobi::compiler::processModules(const std::vector<std::string> &lines, const naobi::module::sptr& module)
+{
+	auto modulesNames = compiler::collectModules(lines);
 	for (const auto& moduleName : modulesNames)
 	{
-		auto moduleOpt = compile(moduleName, workflows);
-		if (moduleOpt.has_value())
+		std::string file = processFileName(moduleName);
+		if (file == module->name())
 		{
-			LOG(compiler.compile, logger::LOW, "get module ", moduleOpt.value()->name());
-			LOG(compiler.compile, logger::SUCCESS, "compiled ", moduleOpt.value()->name());
-			module->addModule(moduleOpt.value());
-		}
-		else
-		{
-			LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to compile module '" + naobi::parser::fileName(moduleName), "'");
+			LOG(compiler.processModules, logger::CRITICAL, "CRITICAL module '", file, "' import itself");
 			std::exit(EXIT_FAILURE);
 		}
+		auto ptr = _composition.rootModule->findModule(file);
+		if (ptr != nullptr)
+		{
+			module->addModule(ptr);
+			continue;
+		}
+		compile(moduleName, module);
 	}
-	return module;
 }
 

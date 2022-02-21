@@ -28,6 +28,8 @@ namespace naobi
 		naobi::variable::sptr getConst(const std::string& constName);
 		naobi::module::sptr getModule(const std::string& moduleName);
 
+		naobi::module::sptr findModule(const std::string& moduleName);
+
 		[[nodiscard]] std::string name() const {return _name;}
 
 
