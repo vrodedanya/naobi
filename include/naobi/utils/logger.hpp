@@ -76,9 +76,9 @@ namespace naobi
 		if (level > _currentLevel) return;
 		std::time_t current_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
-		_currentColor.color = color::BOLDCYAN;
 		if (addressee != _currentAddressee)
 		{
+			_currentColor.color = color::BOLDCYAN;
 			println("[" + addressee + "]:");
 			_currentAddressee = addressee;
 		}
@@ -91,8 +91,8 @@ namespace naobi
 		{
 			_currentColor.color = color::YELLOW;
 			print(" (" + std::to_string(level) + ")");
-			_currentColor.color = color::RESET;
 		}
+		_currentColor.color = color::RESET;
 		print(" -> ");
 
 		switch(level)
