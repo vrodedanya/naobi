@@ -14,7 +14,7 @@ namespace naobi
 		using uptr = std::unique_ptr<workflow>;
 		using sptr = std::shared_ptr<workflow>;
 	public:
-		explicit workflow(std::string name, module* parentModule);
+		explicit workflow(std::string name, module::sptr parentModule);
 
 		[[nodiscard]] std::string name() const {return _name;}
 

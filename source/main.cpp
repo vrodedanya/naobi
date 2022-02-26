@@ -24,7 +24,6 @@ int main(int argc, char* argv[])
 		naobi::compiler compiler;
 		compiler.compile(argv[argc - 1]);
 		auto composition = compiler.getComposition();
-		std::cout<<std::endl;
 	}
 	return EXIT_SUCCESS;
 }

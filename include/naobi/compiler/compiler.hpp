@@ -8,12 +8,15 @@
 #include <naobi/data/workflow.hpp>
 #include <naobi/data/module.hpp>
 #include <naobi/compiler/composition.hpp>
+#include <naobi/compiler/rule.hpp>
 
 namespace naobi
 {
 	class compiler
 	{
 	public:
+		compiler();
+
 		void compile(const std::string& fileName);
 
 		[[nodiscard]] naobi::composition getComposition() const noexcept {return _composition;}
@@ -22,11 +25,17 @@ namespace naobi
 
 		std::string processFileName(const std::string& fileName);
 		void processModules(const std::vector<std::string>& lines, const naobi::module::sptr& module);
+		void processModule(const std::vector<std::string>& lines, const naobi::module::sptr& module);
+
 
 		std::optional<std::string> loadFile(const std::string& fileName);
 		std::vector<std::string> collectModules(const std::vector<std::string>& lines);
 
 	private:
+		using compilerRule = naobi::rule<std::function<bool(const std::vector<std::string>& line)>,
+		        std::function<void(const std::vector<std::string>& line, const naobi::module::sptr& module)>>;
+		std::vector<compilerRule> _rules;
+
 		naobi::composition _composition;
 	};
 }

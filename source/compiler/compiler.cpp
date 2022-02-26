@@ -46,11 +46,13 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 		parent->addModule(module);
 	}
 
-	auto temp = parser::removeSym(parser::removeExtraSpaces(fileTextOpt.value()), '\n');
+	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileTextOpt.value()), '\n', ' ');
 	auto lines = parser::split(temp, ";", false);
 	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
 	processModules(lines, module);
+
+	processModule(lines, module);
 
 	LOG(compiler.compile, logger::SUCCESS, "compiled '", file, "'");
 }
@@ -91,6 +93,23 @@ void naobi::compiler::processModules(const std::vector<std::string> &lines, cons
 	}
 }
 
+void naobi::compiler::processModule(const std::vector<std::string> &lines, const naobi::module::sptr& module)
+{
+	for (const auto& line : lines)
+	{
+		LOG(compiler.processModule, logger::LOW, "process line '",line,"'");
+
+		auto words = naobi::parser::split(line, " ", naobi::parser::split_mods::SAVE_BLOCKS);
+		LOG(compiler.processModule, logger::LOW, "words:\n", words);
+
+		for (const auto& rule : _rules)
+		{
+			rule.checkLineAndRun(words, module);
+		}
+
+	}
+}
+
 std::optional<std::string> naobi::compiler::loadFile(const std::string &fileName)
 {
 	LOG(compiler.loadFile, logger::LOW, "begin loading file ", fileName);
@@ -118,3 +137,55 @@ std::vector<std::string> naobi::compiler::collectModules(const std::vector<std::
 	LOG(compiler.collectModules, logger::IMPORTANT, "collected modules\n", buffer);
 	return buffer;
 }
+
+static std::string getParamValue(const std::vector<std::string>& line, const std::string& name)
+{
+	auto it = std::find(line.begin(), line.end(), name);
+	if (it == line.cend() || it + 1 == line.cend()) return "";
+	else return *(it + 1);
+}
+
+naobi::compiler::compiler() :
+_rules({
+			   {[](const std::vector<std::string> &line) -> bool
+				{
+					return line[0] == "workflow";
+				},
+				[this](const std::vector<std::string> &line, const naobi::module::sptr &module)
+				{
+				   std::string name;
+				   std::string target;
+				   int invoke = -1;
+
+				   name = getParamValue(line, "workflow");
+				   if (name.empty())
+				   {
+					   LOG(workflow.rule, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find workflow name");
+					   std::exit(1);
+				   }
+				   target = getParamValue(line, "target");
+				   if (target.empty())
+				   {
+					   LOG(workflow.rule, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find target");
+					   std::exit(1);
+				   }
+				   auto temp = getParamValue(line, "invoke");
+				   if (temp == "always")
+				   {
+					   invoke = -1;
+				   }
+				   else if (temp == "once")
+				   {
+					   invoke = 1;
+				   }
+				   else if (!temp.empty())
+				   {
+					   invoke = std::stoi(temp);
+				   }
+
+				   LOG(workflow.rule, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
+				   this->_composition.workflows.emplace_back(name, module);
+				},
+			   },
+	   })
+{}
