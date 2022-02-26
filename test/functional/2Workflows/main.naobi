@@ -1,0 +1,7 @@
+
+workflow test
+target onBegin()
+invoke always
+{
+
+}

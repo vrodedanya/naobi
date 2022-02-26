@@ -30,7 +30,8 @@ if __name__ == "__main__":
     for directory in directories:
         print(bcolors.OKCYAN + bcolors.BOLD + "Run " + directory + bcolors.ENDC)
         args.append(directory + "/main.naobi")
-        result = subprocess.run(args)
+        result = subprocess.run(args, stdout=subprocess.PIPE)
+        print(result.stdout)
 
         if result.returncode != 0:
             print(bcolors.FAIL + bcolors.BOLD + "Test " + directory + " failed!" + bcolors.ENDC)
