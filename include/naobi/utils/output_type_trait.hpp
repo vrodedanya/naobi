@@ -17,7 +17,7 @@ namespace naobi
 		for (auto it = vec.cbegin(); it != vec.cend(); it++)
 		{
 			os << *it;
-			if (it != (vec.cend() - 1)) os << ", ";
+			if (it != (vec.cend() - 1)) os << "|";
 		}
 		os << "]";
 		return os;

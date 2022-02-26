@@ -1,4 +1,0 @@
-printer() -> void
-{
-    print("Hello");
-}
