@@ -17,8 +17,7 @@ set(NAOBI_SOURCES
         source/data/workflow.cpp)
 
 set(NAOBI_TEST_SOURCES
-        test/compiler_test.cpp
-        test/parser_test.cpp)
+        test/module/parser_test.cpp)
 
 FetchContent_Declare(
         googletest
