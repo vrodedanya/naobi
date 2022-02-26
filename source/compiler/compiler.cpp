@@ -6,34 +6,6 @@
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/logger.hpp>
 
-std::optional<std::string> naobi::compiler::loadFile(const std::string &fileName)
-{
-	LOG(compiler.loadFile, logger::LOW, "begin loading file ", fileName);
-	std::ifstream inputStream(fileName);
-	if (!inputStream.is_open()) return {};
-	std::stringstream buffer;
-	buffer << inputStream.rdbuf();
-	std::string temp = buffer.str();
-	LOG(compiler.loadFile, logger::BASIC, "file content:\n", naobi::parser::placeAfter('\n' + temp, '\n', " | "));
-	return temp;
-}
-
-std::vector<std::string> naobi::compiler::collectModules(const std::vector<std::string>& lines)
-{
-	LOG(compiler.collectModules, logger::LOW, "begin collectModules");
-	std::vector<std::string> buffer;
-	for (const auto& line : lines)
-	{
-		auto arguments = parser::split(line, " ");
-		if (arguments.size() == 2 && arguments[0] == "import")
-		{
-			buffer.emplace_back(arguments[1]);
-		}
-	}
-	LOG(compiler.collectModules, logger::IMPORTANT, "collected modules\n", buffer);
-	return buffer;
-}
-
 void naobi::compiler::compile(const std::string &fileName)
 {
 	LOG(compiler.compile, logger::LOW, "begin compiling program");
@@ -114,3 +86,30 @@ void naobi::compiler::processModules(const std::vector<std::string> &lines, cons
 	}
 }
 
+std::optional<std::string> naobi::compiler::loadFile(const std::string &fileName)
+{
+	LOG(compiler.loadFile, logger::LOW, "begin loading file ", fileName);
+	std::ifstream inputStream(fileName);
+	if (!inputStream.is_open()) return {};
+	std::stringstream buffer;
+	buffer << inputStream.rdbuf();
+	std::string temp = buffer.str();
+	LOG(compiler.loadFile, logger::BASIC, "file content:\n", naobi::parser::placeAfter('\n' + temp, '\n', " | "));
+	return temp;
+}
+
+std::vector<std::string> naobi::compiler::collectModules(const std::vector<std::string>& lines)
+{
+	LOG(compiler.collectModules, logger::LOW, "begin collectModules");
+	std::vector<std::string> buffer;
+	for (const auto& line : lines)
+	{
+		auto arguments = parser::split(line, " ");
+		if (arguments.size() == 2 && arguments[0] == "import")
+		{
+			buffer.emplace_back(arguments[1]);
+		}
+	}
+	LOG(compiler.collectModules, logger::IMPORTANT, "collected modules\n", buffer);
+	return buffer;
+}

@@ -1,11 +1,9 @@
 #ifndef NAOBI_MODULE_HPP
 #define NAOBI_MODULE_HPP
 
-#include <utility>
 #include <vector>
 #include <string>
 #include <memory>
-#include <optional>
 
 #include <naobi/data/function.hpp>
 #include <naobi/data/variable.hpp>

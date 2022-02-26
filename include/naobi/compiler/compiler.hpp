@@ -14,9 +14,6 @@ namespace naobi
 	class compiler
 	{
 	public:
-		static std::optional<std::string> loadFile(const std::string& fileName);
-		static std::vector<std::string> collectModules(const std::vector<std::string>& lines);
-
 		void compile(const std::string& fileName);
 
 		[[nodiscard]] naobi::composition getComposition() const noexcept {return _composition;}
@@ -25,6 +22,9 @@ namespace naobi
 
 		std::string processFileName(const std::string& fileName);
 		void processModules(const std::vector<std::string>& lines, const naobi::module::sptr& module);
+
+		std::optional<std::string> loadFile(const std::string& fileName);
+		std::vector<std::string> collectModules(const std::vector<std::string>& lines);
 
 	private:
 		naobi::composition _composition;
