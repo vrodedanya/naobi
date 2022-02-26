@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 
 class bcolors:
@@ -21,6 +22,7 @@ def is_exist(path: str):
 if __name__ == "__main__":
     print(bcolors.HEADER + bcolors.BOLD + "Begin functional tests" + bcolors.ENDC)
     directories = next(os.walk("."))[1]
+    directories.reverse()
     args = ["--enable-logger"]
     if is_exist("../../cmake-build-debug/naobi"):
         args.insert(0, "../../cmake-build-debug/./naobi")
@@ -28,14 +30,12 @@ if __name__ == "__main__":
         args.insert(0, "../../build/./naobi")
 
     for directory in directories:
-        print(bcolors.OKCYAN + bcolors.BOLD + "Run " + directory + bcolors.ENDC)
         args.append(directory + "/main.naobi")
         result = subprocess.run(args, stdout=subprocess.PIPE)
-        print(result.stdout)
-
         if result.returncode != 0:
             print(bcolors.FAIL + bcolors.BOLD + "Test " + directory + " failed!" + bcolors.ENDC)
             exit(1)
         else:
             print(bcolors.OKGREEN + bcolors.BOLD + "Test " + directory + " passed!" + bcolors.ENDC)
+    print()
     print(bcolors.OKGREEN + bcolors.BOLD + "All tests passed!" + bcolors.ENDC)
