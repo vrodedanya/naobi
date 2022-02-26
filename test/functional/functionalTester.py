@@ -1,9 +1,8 @@
 import os
 import subprocess
-import sys
 
 
-class bcolors:
+class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
@@ -20,7 +19,7 @@ def is_exist(path: str):
 
 
 if __name__ == "__main__":
-    print(bcolors.HEADER + bcolors.BOLD + "Begin functional tests" + bcolors.ENDC)
+    print(Colors.HEADER + Colors.BOLD + "Begin functional tests" + Colors.ENDC)
     directories = next(os.walk("."))[1]
     directories.reverse()
     args = ["--enable-logger"]
@@ -33,9 +32,9 @@ if __name__ == "__main__":
         args.append(directory + "/main.naobi")
         result = subprocess.run(args, stdout=subprocess.PIPE)
         if result.returncode != 0:
-            print(bcolors.FAIL + bcolors.BOLD + "Test " + directory + " failed!" + bcolors.ENDC)
+            print(Colors.FAIL + Colors.BOLD + "Test " + directory + " failed!" + Colors.ENDC)
             exit(1)
         else:
-            print(bcolors.OKGREEN + bcolors.BOLD + "Test " + directory + " passed!" + bcolors.ENDC)
+            print(Colors.OKGREEN + Colors.BOLD + "Test " + directory + " passed!" + Colors.ENDC)
     print()
-    print(bcolors.OKGREEN + bcolors.BOLD + "All tests passed!" + bcolors.ENDC)
+    print(Colors.OKGREEN + Colors.BOLD + "All tests passed!" + Colors.ENDC)
