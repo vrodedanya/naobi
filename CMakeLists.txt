@@ -14,7 +14,8 @@ set(NAOBI_SOURCES
         source/data/module.cpp
         source/data/function.cpp
         source/data/variable.cpp
-        source/data/workflow.cpp)
+        source/data/workflow.cpp
+        source/utils/arguments.cpp)
 
 set(NAOBI_TEST_SOURCES
         test/module/parser_test.cpp)
