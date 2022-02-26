@@ -1,0 +1,14 @@
+import sub;
+import utils.util1;
+
+function halfOf(int number) -> double
+{
+
+}
+
+workflow main
+target onBegin
+invoke always
+{
+
+}

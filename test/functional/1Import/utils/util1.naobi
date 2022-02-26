@@ -1,0 +1,6 @@
+const double PI = 3.14;
+
+calculateAngle(double angle) -> double
+{
+    return angle;
+}
