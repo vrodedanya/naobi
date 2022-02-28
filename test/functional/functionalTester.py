@@ -33,6 +33,8 @@ if __name__ == "__main__":
         result = subprocess.run(args, stdout=subprocess.PIPE)
         if result.returncode != 0:
             print(Colors.FAIL + Colors.BOLD + "Test " + directory + " failed!" + Colors.ENDC)
+            print("stdout:")
+            print(result.stdout)
             exit(1)
         else:
             print(Colors.OKGREEN + Colors.BOLD + "Test " + directory + " passed!" + Colors.ENDC)
