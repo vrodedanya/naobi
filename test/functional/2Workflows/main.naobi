@@ -3,10 +3,33 @@ workflow testing
 target onBegin()
 invoke always
 {
+    integer variable = 5;
+    integer pow = variable * variable;
+    println(pow);
 }
 
-workflow second
+workflow invokingAlways
 target onBegin()
 invoke always
 {
+}
+
+workflow invokingOnce
+target onBegin()
+invoke once
+{
+
+}
+
+workflow invokingTwice
+target onBegin()
+invoke 2
+{
+
+}
+
+workflow invokingDefault
+target onBegin()
+{
+
 }

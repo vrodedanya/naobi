@@ -5,6 +5,7 @@
 
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/logger.hpp>
+#include <naobi/utils/keywords.hpp>
 
 void naobi::compiler::compile(const std::string &fileName)
 {
@@ -35,6 +36,7 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 		LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to open file '", file, "'");
 		std::exit(EXIT_FAILURE);
 	}
+	_compilingFileContent = fileTextOpt.value();
 
 	auto module = std::make_shared<naobi::module>(file);
 	if (parent == nullptr)
@@ -47,7 +49,7 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 	}
 
 	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileTextOpt.value()), '\n', ' ');
-	auto lines = parser::split(temp, ";", false);
+	auto lines = parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER);
 	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
 	processModules(lines, module);
@@ -59,7 +61,7 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 
 std::string naobi::compiler::processFileName(const std::string &fileName)
 {
-	std::string file = fileName;
+	std::string file = naobi::parser::removeSym(fileName, ';');
 	std::size_t pos = file.find_last_of('.');
 	if (pos == std::string::npos || file.substr(pos) != ".naobi")
 	{
@@ -81,7 +83,7 @@ void naobi::compiler::processModules(const std::vector<std::string> &lines, cons
 		if (file == module->name())
 		{
 			LOG(compiler.processModules, logger::CRITICAL, "CRITICAL module '", file, "' import itself");
-			std::exit(EXIT_FAILURE);
+			exitOn({"import", moduleName});
 		}
 		auto ptr = _composition.rootModule->findModule(file);
 		if (ptr != nullptr)
@@ -99,14 +101,13 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 	{
 		LOG(compiler.processModule, logger::LOW, "process line '",line,"'");
 
-		auto words = naobi::parser::split(line, " ", naobi::parser::split_mods::SAVE_BLOCKS);
+		auto words = naobi::parser::split(line, {" "}, {});
 		LOG(compiler.processModule, logger::LOW, "words:\n", words);
 
 		for (const auto& rule : _rules)
 		{
 			rule.checkLineAndRun(words, module);
 		}
-
 	}
 }
 
@@ -128,7 +129,7 @@ std::vector<std::string> naobi::compiler::collectModules(const std::vector<std::
 	std::vector<std::string> buffer;
 	for (const auto& line : lines)
 	{
-		auto arguments = parser::split(line, " ");
+		auto arguments = parser::split(line, {" "}, {});
 		if (arguments.size() == 2 && arguments[0] == "import")
 		{
 			buffer.emplace_back(arguments[1]);
@@ -149,7 +150,7 @@ naobi::compiler::compiler() :
 _rules({
 			   {[](const std::vector<std::string> &line) -> bool
 				{
-					return line[0] == "workflow";
+					return !line.empty() && line[0] == "workflow";
 				},
 				[this](const std::vector<std::string> &line, const naobi::module::sptr &module)
 				{
@@ -160,15 +161,25 @@ _rules({
 				   name = getParamValue(line, "workflow");
 				   if (name.empty())
 				   {
-					   LOG(workflow.rule, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find workflow name");
-					   std::exit(1);
+					   LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find workflow name");
+					   exitOn(line);
+				   }
+				   if (naobi::keywords::check(name))
+				   {
+					   LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", name, "' is keyword!");
+					   exitOn(line);
 				   }
 				   target = getParamValue(line, "target");
 				   if (target.empty())
 				   {
-					   LOG(workflow.rule, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find target");
-					   std::exit(1);
+					   LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find target");
+					   exitOn(line);
 				   }
+					if (naobi::keywords::check(target))
+					{
+						LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", target, "' is keyword!");
+						exitOn(line);
+					}
 				   auto temp = getParamValue(line, "invoke");
 				   if (temp == "always")
 				   {
@@ -183,9 +194,53 @@ _rules({
 					   invoke = std::stoi(temp);
 				   }
 
-				   LOG(workflow.rule, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
-				   this->_composition.workflows.emplace_back(name, module);
+				   LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
+
+				   auto tempWorkflow = std::make_shared<naobi::workflow>(name, module);
+				   tempWorkflow->setInvoke(invoke);
+				   this->_composition.workflows.push_back(tempWorkflow);
 				},
+			   },
+			   {
+			   [](const std::vector<std::string> &line) -> bool
+			   {
+				   return !line.empty() && line[0] == "function";
+			   },
+			   [this](const std::vector<std::string> &line, const naobi::module::sptr &module)
+			   {
+				   std::string name = getParamValue(line, "function");
+				   if (name.empty())
+				   {
+					   LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to get function name");
+					   exitOn(line);
+				   }
+				   auto function = std::make_shared<naobi::function>(name);
+				   module->addFunction(function);
+			   }
 			   },
 	   })
 {}
+
+void naobi::compiler::exitOn(const std::vector<std::string>& lineToExit)
+{
+	auto lines = naobi::parser::split(_compilingFileContent, {"\n"}, {});
+	for (std::size_t i = 0 ; i < lines.size() ; i++)
+	{
+		auto words = naobi::parser::split(naobi::parser::removeSym(lines[i], ';'), {" "}, {});
+		std::size_t wordsCount = words.size() > lineToExit.size() ? lineToExit.size() : words.size();
+		std::size_t counter = 0;
+		for (const auto& word : words)
+		{
+			if (std::find(lineToExit.begin(), lineToExit.end(), word) != lineToExit.end())
+			{
+				counter++;
+			}
+		}
+		if (static_cast<double>(counter) > static_cast<double>(wordsCount) * 0.8)
+		{
+			LOG(compiler.compile, naobi::logger::CRITICAL, i + 1, " | ", lines[i]);
+			break;
+		}
+	}
+	std::exit(EXIT_FAILURE);
+}

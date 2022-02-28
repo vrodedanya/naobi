@@ -31,12 +31,16 @@ namespace naobi
 		std::optional<std::string> loadFile(const std::string& fileName);
 		std::vector<std::string> collectModules(const std::vector<std::string>& lines);
 
+		void exitOn(const std::vector<std::string>& lineToExit);
+
 	private:
 		using compilerRule = naobi::rule<std::function<bool(const std::vector<std::string>& line)>,
 		        std::function<void(const std::vector<std::string>& line, const naobi::module::sptr& module)>>;
 		std::vector<compilerRule> _rules;
 
 		naobi::composition _composition;
+
+		std::string _compilingFileContent;
 	};
 }
 

@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
 		if (arguments.find_flag("--enable-logger"))
 		{
 			naobi::logger::enable();
-			naobi::logger::enableLoggingToStdOut();
+			naobi::logger::enableLoggingToStdErr();
 			auto tempLevel = arguments.find_int("--level");
 			if (tempLevel.has_value()) naobi::logger::setLevel(tempLevel.value());
 			else naobi::logger::setLevel(naobi::logger::CRITICAL);
