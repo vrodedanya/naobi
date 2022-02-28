@@ -5,37 +5,23 @@
 
 TEST(parser, split)
 {
-	std::string test = "test";
-	auto buffer = naobi::parser::split(test, ";", naobi::parser::split_mods::SAVE_SPLITTER);
-	ASSERT_THAT(buffer, testing::ElementsAre("test"));
-
-	test = "test;check;  keks;\n tatata     cool; tatat";
-	buffer = naobi::parser::split(test, ";", naobi::parser::split_mods::SAVE_SPLITTER);
-	ASSERT_THAT(buffer, testing::ElementsAre("test;", "check;", "  keks;", "\n tatata     cool;", " tatat"));
-
-	test = "t;g;f;s;;df;sdfsdf;rwer;fscv;";
-	buffer = naobi::parser::split(test, ";", naobi::parser::split_mods::SAVE_SPLITTER);
-	ASSERT_THAT(buffer, testing::ElementsAre("t;", "g;", "f;", "s;","df;","sdfsdf;","rwer;", "fscv;"));
-
-	test = "abc test   track  test";
-	buffer = naobi::parser::split(test, " ", naobi::parser::split_mods::SAVE_SPLITTER);
-	ASSERT_THAT(buffer, testing::ElementsAre("abc ", "test ", "track ", "test"));
-
-	test = "abc test   track  test";
-	buffer = naobi::parser::split(test, " ");
-	ASSERT_THAT(buffer, testing::ElementsAre("abc", "test", "track", "test"));
-
-	test = "some string";
-	buffer = naobi::parser::split(test, "");
-	ASSERT_THAT(buffer, testing::ElementsAre());
-
-	test = R"(some string "text test txt" str " ")";
-	buffer = naobi::parser::split(test, " ", naobi::parser::split_mods::SAVE_BLOCKS);
-	ASSERT_THAT(buffer, testing::ElementsAre("some", "string", "\"text test txt\"", "str", "\" \""));
-
-	test = R"(some string "text test txt" str " )";
-	buffer = naobi::parser::split(test, " ", naobi::parser::split_mods::SAVE_BLOCKS);
-	ASSERT_THAT(buffer, testing::ElementsAre("some", "string", "\"text test txt\"", "str", "\""));
+	ASSERT_THAT(naobi::parser::split("a;b;c;d", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
+	ASSERT_THAT(naobi::parser::split("a;b;c;d;", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
+	ASSERT_THAT(naobi::parser::split("a;;b;c;d;", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
+	ASSERT_THAT(naobi::parser::split("a + b = c", {}, {"+", "="}),
+				testing::ElementsAre("a ", "+", " b ", "=", " c"));
+	ASSERT_THAT(naobi::parser::split("a + \"c+d\" = c", {" "}, {}),
+				testing::ElementsAre("a", "+", "\"c+d\"", "=", "c"));
+	ASSERT_THAT(naobi::parser::split("a + \"c+d\" = c", {""}, {"+", "="}),
+				testing::ElementsAre("a ", "+", " \"c+d\" ", "=", " c"));
+	ASSERT_THAT(naobi::parser::split("a+\"c+d\"+\"test\"= c", {""}, {"+", "="}),
+				testing::ElementsAre("a", "+", "\"c+d\"", "+", "\"test\"", "=", " c"));
+	ASSERT_THAT(naobi::parser::split("c\"test\"", {}, {}),
+				testing::ElementsAre("c\"test\""));
+	ASSERT_THAT(naobi::parser::split("workflow test {int d=a+b+c;}", {" "}, {}),
+				testing::ElementsAre("workflow", "test", "{int d=a+b+c;}"));
+	ASSERT_THAT(naobi::parser::split("workflow test{int d=a+b+c;} workflow test2{}", {";", "}"}, {}, naobi::parser::SPLIT_AFTER),
+				testing::ElementsAre("workflow test{int d=a+b+c;}", " workflow test2{}"));
 }
 
 TEST(parser, removeExtraSpaces)
@@ -77,4 +63,9 @@ TEST(parser, fileName)
 	EXPECT_EQ(naobi::parser::fileName("test\\file\\name.txt"), "name.txt");
 	EXPECT_EQ(naobi::parser::fileName("../test/check/name.txt"), "name.txt");
 	EXPECT_EQ(naobi::parser::fileName("../keep/get/check/"), "");
+}
+
+TEST(parser, join)
+{
+	EXPECT_EQ(naobi::parser::join({"test","kek","alololo","hmm"}, " "), "test kek alololo hmm");
 }

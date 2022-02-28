@@ -2,70 +2,6 @@
 
 #include <algorithm>
 
-std::vector<std::string> naobi::parser::split(const std::string& text, const std::string& splitter, int splitMods) noexcept
-{
-	if (splitter.empty()) return {};
-
-	std::size_t currentPos{}, splitterPos;
-	std::vector<std::string> buffer;
-	std::vector<std::pair<std::size_t, std::size_t>> blocks;
-
-
-	if (splitMods & split_mods::SAVE_BLOCKS)
-	{
-		int pos{0}, prev{-1};
-		while (static_cast<std::size_t>(pos = static_cast<int>(text.find('\"', pos))) != std::string::npos)
-		{
-			if (prev != -1)
-			{
-				blocks.emplace_back(prev, pos);
-				prev = -1;
-				pos++;
-			}
-			else prev = pos++;
-		}
-	}
-
-	while (true)
-	{
-		splitterPos = text.find(splitter, currentPos);
-
-		if (splitMods & split_mods::SAVE_BLOCKS)
-		{
-			while(std::find_if(blocks.cbegin(), blocks.cend(),
-								   [splitterPos](std::pair<std::size_t, std::size_t> pair)
-								   {
-									   return pair.first < splitterPos && pair.second > splitterPos;
-								   }) != blocks.cend())
-			{
-				splitterPos = text.find(splitter, splitterPos + 1);
-			}
-		}
-		if (splitterPos == std::string::npos)
-		{
-			if (text.size() > currentPos) buffer.emplace_back(text.substr(currentPos));
-			break;
-		}
-		if (currentPos == splitterPos)
-		{
-			currentPos = splitterPos + 1;
-			continue;
-		}
-		if (splitMods & split_mods::SAVE_SPLITTER)
-		{
-			splitterPos++;
-			buffer.emplace_back(text.substr(currentPos, splitterPos - currentPos));
-		}
-		else
-		{
-			buffer.emplace_back(text.substr(currentPos, splitterPos - currentPos));
-			splitterPos++;
-		}
-		currentPos = splitterPos;
-	}
-	return buffer;
-}
-
 std::string naobi::parser::removeExtraSpaces(const std::string &str) noexcept
 {
 	std::string tempString;
@@ -147,4 +83,74 @@ std::string naobi::parser::fileName(const std::string &path) noexcept
 {
 	std::size_t entry = path.find_last_of("/\\");
 	return path.substr(entry + 1);
+}
+
+std::string naobi::parser::join(const std::vector<std::string> &strings, const std::string &delimiter) noexcept
+{
+	std::string temp;
+
+	for(auto it = strings.cbegin() ; it != strings.cend() ; it++)
+	{
+		temp += *it;
+		if ((it + 1) != strings.cend()) temp += delimiter;
+	}
+
+	return temp;
+}
+
+std::vector<std::string> naobi::parser::split(const std::string &text, const std::vector<std::string> &splitters,
+											  const std::vector<std::string> &single, int mods)
+{
+	std::vector<std::string> buffer;
+	std::string tempString;
+	bool isQuote = false;
+	int brackets{};
+	for (auto sym : text)
+	{
+		if (brackets == 0 && sym == '\"')
+		{
+			isQuote = !isQuote;
+		}
+		if (sym == '{')
+		{
+			brackets++;
+		}
+		else if (sym == '}')
+		{
+			brackets--;
+		}
+		if (brackets == 0 && !isQuote && std::find(single.cbegin(), single.cend(), std::string(1, sym)) != single.cend())
+		{
+			if (!tempString.empty())
+			{
+				buffer.push_back(tempString);
+				tempString.clear();
+			}
+			buffer.emplace_back(1, sym);
+		}
+		else if (brackets == 0 && !isQuote && std::find(splitters.cbegin(), splitters.cend(), std::string(1, sym)) != splitters.cend())
+		{
+			if (!tempString.empty())
+			{
+				if (mods & SPLIT_AFTER)
+				{
+					tempString += sym;
+					buffer.push_back(tempString);
+					tempString.clear();
+					continue;
+				}
+				else
+				{
+					buffer.push_back(tempString);
+					tempString.clear();
+				}
+			}
+		}
+		else
+		{
+			tempString += sym;
+		}
+	}
+	if (!tempString.empty()) buffer.push_back(tempString);
+	return buffer;
 }

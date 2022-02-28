@@ -1,7 +1,12 @@
 
-workflow test
+workflow testing
 target onBegin()
 invoke always
 {
+}
 
+workflow second
+target onBegin()
+invoke always
+{
 }

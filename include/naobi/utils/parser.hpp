@@ -11,12 +11,20 @@ namespace naobi
 	public:
 		enum split_mods
 		{
-			SAVE_SPLITTER = 1,
-			SAVE_BLOCKS = 2,
+			SPLIT_AFTER = 1,
 		};
 	public:
 		parser() = delete;
-		static std::vector<std::string> split(const std::string& text, const std::string& splitter, int splitMods = 0) noexcept;
+
+		/**
+		 * @param text - text to parse
+		 * @param splitters - splitters to remove
+		 * @param single - single symbols
+		 * @return
+		 */
+		static std::vector<std::string> split(const std::string& text, const std::vector<std::string>& splitters,
+											  const std::vector<std::string>& single, int mods = 0);
+		static std::string join(const std::vector<std::string>& strings, const std::string& delimiter) noexcept;
 		static std::string removeExtraSpaces(const std::string& str) noexcept;
 		static std::string removeSym(const std::string& str, char symbolToRemove) noexcept;
 		static std::string replaceSym(const std::string& str, char symbolToReplace, char replacementCharacter) noexcept;
