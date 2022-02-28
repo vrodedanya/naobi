@@ -18,9 +18,13 @@ namespace naobi
 
 		[[nodiscard]] std::string name() const {return _name;}
 
+		[[nodiscard]] int invoke() const {return _invoke;}
+		void setInvoke(int invoke) {_invoke = invoke;}
+
 	private:
 		std::string _name;
 		naobi::module::sptr _parentModule;
+		int _invoke{-1};
 	};
 }
 
