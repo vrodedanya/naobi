@@ -34,8 +34,8 @@ namespace naobi
 
 		static void enable(){_isEnabled = true;}
 		static void disable(){_isEnabled = false;}
-		static void enableLoggingToStdOut(){_useStdOut = true;}
-		static void disableLoggingToStdOut(){_useStdOut = false;}
+		static void enableLoggingToStdErr(){ _useStdErr = true;}
+		static void disableLoggingToStdErr(){ _useStdErr = false;}
 		static void enableDate(){_printDate = true;}
 		static void disableDate(){_printDate = false;}
 		static void enableLevel(){_printLevel = true;}
@@ -57,7 +57,7 @@ namespace naobi
 		static inline std::ofstream _file;
 		static inline color _currentColor;
 		static inline bool _isEnabled{};
-		static inline bool _useStdOut{};
+		static inline bool _useStdErr{};
 		static inline int _currentLevel{};
 		static inline bool _printDate{};
 		static inline bool _printLevel{};
@@ -123,14 +123,14 @@ namespace naobi
 	template <typename T>
 	void logger::print(T&& text)
 	{
-		if (_useStdOut) std::cout << _currentColor.color << text << color::RESET;
+		if (_useStdErr) std::cerr << _currentColor.color << text << color::RESET;
 		if (_file.is_open()) _file << text;
 	}
 
 	template <typename T>
 	void logger::println(T&& text)
 	{
-		if (_useStdOut) std::cout << _currentColor.color << text << color::RESET << std::endl;
+		if (_useStdErr) std::cerr << _currentColor.color << text << color::RESET << std::endl;
 		if (_file.is_open()) _file << text << std::endl;
 	}
 }
