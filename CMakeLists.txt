@@ -10,6 +10,8 @@ include(FetchContent)
 
 set(NAOBI_SOURCES
         source/compiler/compiler.cpp
+        source/compiler/code_generator.cpp
+        source/interpreter/handler.cpp
         source/utils/parser.cpp
         source/data/module.cpp
         source/data/function.cpp

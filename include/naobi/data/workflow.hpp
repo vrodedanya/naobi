@@ -5,6 +5,7 @@
 #include <string>
 
 #include <naobi/data/module.hpp>
+#include <naobi/compiler/code_generator.hpp>
 
 namespace naobi
 {
@@ -21,9 +22,13 @@ namespace naobi
 		[[nodiscard]] int invoke() const {return _invoke;}
 		void setInvoke(int invoke) {_invoke = invoke;}
 
+		[[nodiscard]] const std::vector<naobi::commandImpl>& commands() const {return _commands;}
+		void setCommands(const std::vector<naobi::commandImpl>& commands){_commands = commands;}
+
 	private:
 		std::string _name;
 		naobi::module::sptr _parentModule;
+		std::vector<naobi::commandImpl> _commands;
 		int _invoke{-1};
 	};
 }
