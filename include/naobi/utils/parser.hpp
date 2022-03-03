@@ -26,6 +26,7 @@ namespace naobi
 											  const std::vector<std::string>& single, int mods = 0);
 		static std::string join(const std::vector<std::string>& strings, const std::string& delimiter) noexcept;
 		static std::string removeExtraSpaces(const std::string& str) noexcept;
+		static std::string removeFirstSym(const std::string& str, char sym) noexcept;
 		static std::string removeSym(const std::string& str, char symbolToRemove) noexcept;
 		static std::string replaceSym(const std::string& str, char symbolToReplace, char replacementCharacter) noexcept;
 		static std::string placeAfter(const std::string& str, char symbolAfter, const std::string& symbolToPlace) noexcept;

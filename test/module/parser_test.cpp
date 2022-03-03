@@ -7,7 +7,7 @@ TEST(parser, split)
 {
 	ASSERT_THAT(naobi::parser::split("a;b;c;d", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
 	ASSERT_THAT(naobi::parser::split("a;b;c;d;", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
-	ASSERT_THAT(naobi::parser::split("a;;b;c;d;", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
+	ASSERT_THAT(naobi::parser::split("a;;b;c;d;", {";"}, {}), testing::ElementsAre("a", "", "b", "c", "d"));
 	ASSERT_THAT(naobi::parser::split("a + b = c", {}, {"+", "="}),
 				testing::ElementsAre("a ", "+", " b ", "=", " c"));
 	ASSERT_THAT(naobi::parser::split("a + \"c+d\" = c", {" "}, {}),
@@ -20,8 +20,11 @@ TEST(parser, split)
 				testing::ElementsAre("c\"test\""));
 	ASSERT_THAT(naobi::parser::split("workflow test {int d=a+b+c;}", {" "}, {}),
 				testing::ElementsAre("workflow", "test", "{int d=a+b+c;}"));
-	ASSERT_THAT(naobi::parser::split("workflow test{int d=a+b+c;} workflow test2{}", {";", "}"}, {}, naobi::parser::SPLIT_AFTER),
+	ASSERT_THAT(naobi::parser::split("workflow test{int d=a+b+c;} workflow test2{}", {";", "}"}, {},
+									 naobi::parser::SPLIT_AFTER),
 				testing::ElementsAre("workflow test{int d=a+b+c;}", " workflow test2{}"));
+	ASSERT_THAT(naobi::parser::split("\nworkflow test\n{int d=a+b+c;}\nworkflow test2\n{}\n", {"\n"}, {}),
+				testing::ElementsAre("", "workflow test", "{int d=a+b+c;}", "workflow test2", "{}"));
 }
 
 TEST(parser, removeExtraSpaces)
@@ -68,4 +71,9 @@ TEST(parser, fileName)
 TEST(parser, join)
 {
 	EXPECT_EQ(naobi::parser::join({"test","kek","alololo","hmm"}, " "), "test kek alololo hmm");
+}
+
+TEST(parser, removeFirstSym)
+{
+	EXPECT_EQ(naobi::parser::removeFirstSym(" testing", ' '), "testing");
 }

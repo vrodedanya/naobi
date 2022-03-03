@@ -130,20 +130,17 @@ std::vector<std::string> naobi::parser::split(const std::string &text, const std
 		}
 		else if (brackets == 0 && !isQuote && std::find(splitters.cbegin(), splitters.cend(), std::string(1, sym)) != splitters.cend())
 		{
-			if (!tempString.empty())
+			if (mods & SPLIT_AFTER)
 			{
-				if (mods & SPLIT_AFTER)
-				{
-					tempString += sym;
-					buffer.push_back(tempString);
-					tempString.clear();
-					continue;
-				}
-				else
-				{
-					buffer.push_back(tempString);
-					tempString.clear();
-				}
+				tempString += sym;
+				buffer.push_back(tempString);
+				tempString.clear();
+				continue;
+			}
+			else
+			{
+				buffer.push_back(tempString);
+				tempString.clear();
 			}
 		}
 		else
@@ -153,4 +150,9 @@ std::vector<std::string> naobi::parser::split(const std::string &text, const std
 	}
 	if (!tempString.empty()) buffer.push_back(tempString);
 	return buffer;
+}
+
+std::string naobi::parser::removeFirstSym(const std::string &str, char sym) noexcept
+{
+	return !str.empty() && str[0] == sym ? str.substr(1) : str;
 }
