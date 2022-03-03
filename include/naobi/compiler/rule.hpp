@@ -12,7 +12,9 @@ namespace naobi
 	{
 	public:
 		rule(CHECKER checker, ACTION action);
-		void checkLineAndRun(const std::vector<std::string>& line, const naobi::module::sptr&) const;
+
+		template <typename CHECKING_VALUE, typename... AArgs>
+		void checkLineAndRun(const CHECKING_VALUE& line, AArgs... aargs) const;
 
 	private:
 		CHECKER _checker;
@@ -20,19 +22,20 @@ namespace naobi
 	};
 
 	template <typename CHECKER, typename ACTION>
-	void rule<CHECKER, ACTION>::checkLineAndRun(const std::vector<std::string>& line, const naobi::module::sptr& module) const
-	{
-		if (_checker(line))
-		{
-			_action(line, module);
-		}
-	}
-
-	template <typename CHECKER, typename ACTION>
 	rule<CHECKER, ACTION>::rule(CHECKER checker, ACTION action) :
 		_checker(checker),
 		_action(action)
 	{
+	}
+
+	template <typename CHECKER, typename ACTION>
+	template <typename CHECKING_VALUE, typename... AArgs>
+	void rule<CHECKER, ACTION>::checkLineAndRun(const CHECKING_VALUE &line, AArgs... aargs) const
+	{
+		if (_checker(line))
+		{
+			_action(line, aargs...);
+		}
 	}
 }
 
