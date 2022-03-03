@@ -1,6 +1,7 @@
 #include <naobi/compiler/compiler.hpp>
 #include <naobi/utils/logger.hpp>
 #include <naobi/utils/arguments.hpp>
+#include <naobi/interpreter/handler.hpp>
 
 int main(int argc, char* argv[])
 {
@@ -24,6 +25,9 @@ int main(int argc, char* argv[])
 		naobi::compiler compiler;
 		compiler.compile(argv[argc - 1]);
 		auto composition = compiler.getComposition();
+
+		naobi::handler handler(composition);
+		handler.execute();
 	}
 	return EXIT_SUCCESS;
 }

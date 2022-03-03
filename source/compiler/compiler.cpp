@@ -6,6 +6,7 @@
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/logger.hpp>
 #include <naobi/utils/keywords.hpp>
+#include "naobi/compiler/code_generator.hpp"
 
 void naobi::compiler::compile(const std::string &fileName)
 {
@@ -101,7 +102,7 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 	{
 		LOG(compiler.processModule, logger::LOW, "process line '",line,"'");
 
-		auto words = naobi::parser::split(line, {" "}, {});
+		auto words = naobi::parser::split(naobi::parser::removeFirstSym(line, ' '), {" "}, {});
 		LOG(compiler.processModule, logger::LOW, "words:\n", words);
 
 		for (const auto& rule : _rules)
@@ -194,10 +195,15 @@ _rules({
 					   invoke = std::stoi(temp);
 				   }
 
-				   LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
 
 				   auto tempWorkflow = std::make_shared<naobi::workflow>(name, module);
 				   tempWorkflow->setInvoke(invoke);
+				   naobi::code_generator generator;
+				   generator.generate(naobi::parser::split(line.back().substr(1, line.back().size() - 2), {";"}, {},
+														   naobi::parser::split_mods::SPLIT_AFTER));
+
+				   LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
+
 				   this->_composition.workflows.push_back(tempWorkflow);
 				},
 			   },
@@ -223,24 +229,6 @@ _rules({
 
 void naobi::compiler::exitOn(const std::vector<std::string>& lineToExit)
 {
-	auto lines = naobi::parser::split(_compilingFileContent, {"\n"}, {});
-	for (std::size_t i = 0 ; i < lines.size() ; i++)
-	{
-		auto words = naobi::parser::split(naobi::parser::removeSym(lines[i], ';'), {" "}, {});
-		std::size_t wordsCount = words.size() > lineToExit.size() ? lineToExit.size() : words.size();
-		std::size_t counter = 0;
-		for (const auto& word : words)
-		{
-			if (std::find(lineToExit.begin(), lineToExit.end(), word) != lineToExit.end())
-			{
-				counter++;
-			}
-		}
-		if (static_cast<double>(counter) > static_cast<double>(wordsCount) * 0.8)
-		{
-			LOG(compiler.compile, naobi::logger::CRITICAL, i + 1, " | ", lines[i]);
-			break;
-		}
-	}
+	LOG(compiler.compile, naobi::logger::CRITICAL, lineToExit);
 	std::exit(EXIT_FAILURE);
 }
