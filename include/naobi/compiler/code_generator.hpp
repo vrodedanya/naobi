@@ -7,23 +7,20 @@
 #include <memory>
 #include <functional>
 
+#include <naobi/interpreter/command.hpp>
+
 namespace naobi
 {
-	struct workflow_context;
-	using commandImpl = std::function<void(std::shared_ptr<workflow_context> ptr)>;
-
 	class code_generator
 	{
 	public:
-		enum class commandName
-		{
-
-		};
-	public:
-		std::vector<commandImpl> generate(const std::vector<std::string>& line);
+		std::vector<naobi::command> generate(const std::vector<std::string>& line);
 
 	private:
-		static inline std::map<commandName, commandImpl> _commands;
+		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
+
+	private:
+		static std::map<command::names, command::implementation> _commands;
 	};
 }
 

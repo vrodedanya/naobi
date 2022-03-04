@@ -22,13 +22,13 @@ namespace naobi
 		[[nodiscard]] int invoke() const {return _invoke;}
 		void setInvoke(int invoke) {_invoke = invoke;}
 
-		[[nodiscard]] const std::vector<naobi::commandImpl>& commands() const {return _commands;}
-		void setCommands(const std::vector<naobi::commandImpl>& commands){_commands = commands;}
+		[[nodiscard]] const std::vector<naobi::command>& commands() const {return _commands;}
+		void setCommands(const std::vector<naobi::command>& commands){_commands = commands;}
 
 	private:
 		std::string _name;
 		naobi::module::sptr _parentModule;
-		std::vector<naobi::commandImpl> _commands;
+		std::vector<naobi::command> _commands;
 		int _invoke{-1};
 	};
 }
