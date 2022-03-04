@@ -4,8 +4,6 @@ project(naobi)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_compile_options(-Wall -Wextra -pedantic -Werror)
-
 include(FetchContent)
 
 set(NAOBI_SOURCES
@@ -34,6 +32,11 @@ find_package(GTest REQUIRED)
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${NAOBI_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_compile_options(${CMAKE_PROJECT_NAME}_lib PUBLIC -pedantic -Wall -Wextra -Wcast-align -Wcast-qual
+        -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations
+        -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow
+        -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror
+        -Wno-unused)
 
 add_executable(${CMAKE_PROJECT_NAME} source/main.cpp)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)

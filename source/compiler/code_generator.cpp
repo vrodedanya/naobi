@@ -45,11 +45,11 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 				}},
 				{naobi::command::names::LOAD, // TODO Difficult moment: variable can be load as reference or as copy
 				 [](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){ //
-					context->stack.push(context->variables[std::stoi(arguments[0])]);
+					context->stack.push(context->variables[std::stoul(arguments[0])]);
 				}},
 				{naobi::command::names::SAVE,
 				 [](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-					context->variables[std::stoi(arguments[0])] = context->stack.top();
+					context->variables[std::stoul(arguments[0])] = context->stack.top();
 					context->stack.pop();
 			 	}}
 

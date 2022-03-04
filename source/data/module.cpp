@@ -63,9 +63,9 @@ naobi::module::sptr naobi::module::findModule(const std::string& moduleName)
 {
 	auto module_ptr = getModule(moduleName);
 	if (module_ptr != nullptr) return module_ptr;
-	for (const auto& module : _modules)
+	for (const auto& element : _modules)
 	{
-		auto ptr = module->findModule(moduleName);
+		auto ptr = element->findModule(moduleName);
 		if (ptr != nullptr) return ptr;
 	}
 	return nullptr;
