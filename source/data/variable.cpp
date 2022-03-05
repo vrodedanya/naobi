@@ -1,11 +1,21 @@
 #include <utility>
 #include <naobi/data/variable.hpp>
+#include "naobi/utils/logger.hpp"
 
 naobi::variable::variable(std::string name, naobi::variable::Type type) :
 	_name(std::move(name)),
 	_type(type)
 {
-
+	switch (_type)
+	{
+		case Type::INTEGER:
+			_value = 0;
+			break;
+		case Type::UNDEFINED:
+		default:
+			LOG(varible.constructor, logger::CRITICAL, "CRITICAL VARIABLE WITH UNDEFINED TYPE");
+			std::exit(1);
+	}
 }
 
 naobi::variable::sptr naobi::operator+=(const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)

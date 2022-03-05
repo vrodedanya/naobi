@@ -17,6 +17,7 @@ namespace naobi
 
 		enum class Type
 		{
+			UNDEFINED,
 			INTEGER,
 		};
 	public:
