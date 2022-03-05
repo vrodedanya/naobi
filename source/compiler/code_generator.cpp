@@ -2,12 +2,33 @@
 
 #include <naobi/utils/logger.hpp>
 #include <naobi/interpreter/workflow_context.hpp>
+#include <naobi/utils/keywords.hpp>
 
 
 std::vector<naobi::command> naobi::code_generator::generate(const std::vector<std::string> &lines)
 {
 	LOG(code_generator, naobi::logger::BASIC, "Code lines:\n", lines);
-	return {};
+	std::vector<naobi::command> commands;
+
+	for (const auto& line : lines)
+	{
+		if (line.empty()) continue;
+		auto words = naobi::parser::removeEmpty(naobi::parser::split(line, {" "}, {"+", "-", "*", "/", "="}));
+		LOG(compiler.processModule, logger::LOW, "words:\n", words);
+		bool isCompiled = false;
+		for (const auto& rule : _generatorRules)
+		{
+			isCompiled = rule.checkLineAndRun(words, commands);
+			if (isCompiled) break;
+		}
+		if (!isCompiled)
+		{
+			LOG(compiler.processModule, logger::CRITICAL, "CRITICAL failed to identify line:\n", line);
+			std::exit(EXIT_FAILURE);
+		}
+	}
+
+	return commands;
 }
 
 naobi::command
@@ -51,6 +72,38 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 				 [](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
 					context->variables[std::stoul(arguments[0])] = context->stack.top();
 					context->stack.pop();
-			 	}}
-
+			 	}},
+				{naobi::command::names::PLACE,
+				[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+					auto type = static_cast<naobi::variable::Type>(std::stoi(arguments[0]));
+					auto var = std::make_shared<naobi::variable>("temp", type);
+					if (type == naobi::variable::Type::INTEGER) var->value() = std::stoi(arguments[1]);
+					context->stack.push(var);
+				}},
 		};
+
+std::vector<naobi::code_generator::generatorRule> naobi::code_generator::_generatorRules = {
+		{[](const std::vector<std::string>& words) -> bool{ // Create variable
+			return naobi::keywords::checkIsType(words[0]);
+		},[](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+			naobi::variable::Type type;
+			if (words[0] == "integer") type = naobi::variable::Type::INTEGER;
+			else type = naobi::variable::Type::UNDEFINED;
+			commands.emplace_back(
+					naobi::code_generator::createCommand(
+							naobi::command::names::NEW,{words[1], std::to_string(static_cast<int>(type))}));
+		}},
+		{[](const std::vector<std::string>& words) -> bool{ // Create assignment
+			return words[1] == "=";
+		},[](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+			// todo expression handler
+			naobi::variable::Type type = naobi::variable::Type::INTEGER;
+
+			commands.emplace_back(
+					naobi::code_generator::createCommand(
+							naobi::command::names::PLACE, {words[2], std::to_string(static_cast<int>(type))}));
+			commands.emplace_back(
+					naobi::code_generator::createCommand(
+								naobi::command::names::SAVE, {"0"}));
+		}},
+};

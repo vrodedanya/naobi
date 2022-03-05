@@ -16,6 +16,7 @@ namespace naobi
 			ADD, // 0
 			LOAD, // 1 - number
 			SAVE, // 1 - number
+			PLACE, // 1 - value, type
 		};
 
 		names name;

@@ -3,9 +3,9 @@ workflow testing
 target onBegin()
 invoke always
 {
-    integer variable = 5;
-    integer pow = variable * variable;
-    println(pow);
+    integer variable;
+    variable = 5;
+    println(sum);
 }
 
 workflow invokingAlways

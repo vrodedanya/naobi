@@ -105,9 +105,16 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 		auto words = naobi::parser::split(naobi::parser::removeFirstSym(line, ' '), {" "}, {});
 		LOG(compiler.processModule, logger::LOW, "words:\n", words);
 
+		bool isCompiled{};
 		for (const auto& rule : _rules)
 		{
-			rule.checkLineAndRun(words, module);
+			isCompiled = rule.checkLineAndRun(words, module);
+			if (isCompiled) break;
+		}
+		if (!isCompiled)
+		{
+			LOG(compiler.processModule, logger::CRITICAL, "CRITICAL failed to identify line:\n", line);
+			std::exit(EXIT_FAILURE);
 		}
 	}
 }
@@ -199,8 +206,10 @@ _rules({
 				   auto tempWorkflow = std::make_shared<naobi::workflow>(name, module);
 				   tempWorkflow->setInvoke(invoke);
 				   naobi::code_generator generator;
-				   generator.generate(naobi::parser::split(line.back().substr(1, line.back().size() - 2), {";"}, {},
-														   naobi::parser::split_mods::SPLIT_AFTER));
+				   std::string codeBlock = line.back().substr(1, line.back().size() - 2);
+				   codeBlock = naobi::parser::removeFirstSym(codeBlock, ' ');
+				   auto commands = generator.generate(naobi::parser::split(codeBlock, {";"}, {}));
+				   tempWorkflow->setCommands(commands);
 
 				   LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
 
