@@ -31,6 +31,8 @@ namespace naobi
 		static std::string replaceSym(const std::string& str, char symbolToReplace, char replacementCharacter) noexcept;
 		static std::string placeAfter(const std::string& str, char symbolAfter, const std::string& symbolToPlace) noexcept;
 
+		static std::vector<std::string> removeEmpty(const std::vector<std::string>& vec) noexcept;
+
 		static std::string dirName(const std::string& path) noexcept;
 		static std::string fileName(const std::string& path) noexcept;
 	};

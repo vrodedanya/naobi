@@ -156,3 +156,14 @@ std::string naobi::parser::removeFirstSym(const std::string &str, char sym) noex
 {
 	return !str.empty() && str[0] == sym ? str.substr(1) : str;
 }
+
+std::vector<std::string> naobi::parser::removeEmpty(const std::vector<std::string> &vec) noexcept
+{
+	std::vector<std::string> buffer;
+	buffer.reserve(vec.size());
+	for (const auto& string : vec)
+	{
+		if (!string.empty()) buffer.push_back(string);
+	}
+	return buffer;
+}
