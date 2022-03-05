@@ -9,7 +9,8 @@ namespace naobi
 	class keywords
 	{
 	public:
-		static bool check(const std::string& word);
+		static inline bool check(const std::string& word);
+		static inline bool checkIsType(const std::string& word);
 	private:
 		static inline std::vector<std::string> _keywords = {
 			"workflow",
@@ -18,7 +19,15 @@ namespace naobi
 			"function",
 			"const",
 		};
+		static inline std::vector<std::string> _types = {
+			"integer",
+		};
 	};
+
+	bool keywords::checkIsType(const std::string &word)
+	{
+		return std::find(_types.begin(), _types.end(), word) != _types.end();
+	}
 
 	bool keywords::check(const std::string &word)
 	{
