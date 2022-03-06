@@ -17,6 +17,8 @@ namespace naobi
 			LOAD, // 1 - number
 			SAVE, // 1 - number
 			PLACE, // 1 - value, type
+			PRINTLN,
+			PRINT,
 		};
 
 		names name;

@@ -15,8 +15,12 @@ void naobi::handler::execute()
 {
 	for (auto& context : _contexts)
 	{
-		if (context->ip != context->workflow->commands().cend())
+		while (context->ip != context->workflow->commands().cend())
+		{
 			context->ip->impl(context, context->ip->arguments);
+			context->ip++;
+		}
+
 	}
 
 }

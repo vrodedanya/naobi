@@ -5,7 +5,7 @@ invoke always
 {
     integer variable;
     variable = 5;
-    println(sum);
+    println(variable);
 }
 
 workflow invokingAlways

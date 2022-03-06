@@ -51,6 +51,7 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 
 	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileTextOpt.value()), '\n', ' ');
 	auto lines = parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER);
+	lines = parser::removeEmpty(lines);
 	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
 	processModules(lines, module);
@@ -202,13 +203,15 @@ _rules({
 					   invoke = std::stoi(temp);
 				   }
 
-
 				   auto tempWorkflow = std::make_shared<naobi::workflow>(name, module);
 				   tempWorkflow->setInvoke(invoke);
-				   naobi::code_generator generator;
+
 				   std::string codeBlock = line.back().substr(1, line.back().size() - 2);
 				   codeBlock = naobi::parser::removeFirstSym(codeBlock, ' ');
-				   auto commands = generator.generate(naobi::parser::split(codeBlock, {";"}, {}));
+				   auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
+				   std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
+				   lines = naobi::parser::removeEmpty(lines);
+				   auto commands = naobi::code_generator::generate(lines);
 				   tempWorkflow->setCommands(commands);
 
 				   LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);

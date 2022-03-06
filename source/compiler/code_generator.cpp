@@ -12,9 +12,10 @@ std::vector<naobi::command> naobi::code_generator::generate(const std::vector<st
 
 	for (const auto& line : lines)
 	{
-		if (line.empty()) continue;
-		auto words = naobi::parser::removeEmpty(naobi::parser::split(line, {" "}, {"+", "-", "*", "/", "="}));
+		auto words = naobi::parser::removeEmpty(
+				naobi::parser::split(line, {" "}, {"+", "-", "*", "/", "=", "(", ")"}));
 		LOG(compiler.processModule, logger::LOW, "words:\n", words);
+
 		bool isCompiled = false;
 		for (const auto& rule : _generatorRules)
 		{
@@ -80,6 +81,16 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 					if (type == naobi::variable::Type::INTEGER) var->value() = std::stoi(arguments[1]);
 					context->stack.push(var);
 				}},
+				{naobi::command::names::PRINTLN,
+				[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+					auto val = context->stack.top();
+					std::cout << *val << std::endl;
+				}},
+				{naobi::command::names::PRINT,
+				[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+					auto val = context->stack.top();
+					std::cout << *val;
+				}},
 		};
 
 std::vector<naobi::code_generator::generatorRule> naobi::code_generator::_generatorRules = {
@@ -101,9 +112,19 @@ std::vector<naobi::code_generator::generatorRule> naobi::code_generator::_genera
 
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
-							naobi::command::names::PLACE, {words[2], std::to_string(static_cast<int>(type))}));
+							naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), words[2]}));
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
 								naobi::command::names::SAVE, {"0"}));
+		}},
+		{[](const std::vector<std::string>& words) -> bool{ // Create printing
+			return words[0] == "println";
+		},[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+			commands.emplace_back(
+					naobi::code_generator::createCommand(
+							naobi::command::names::LOAD, {"0"}));
+			commands.emplace_back(
+					naobi::code_generator::createCommand(
+							naobi::command::names::PRINTLN, {}));
 		}},
 };
