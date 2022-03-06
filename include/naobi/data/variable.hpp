@@ -29,13 +29,19 @@ namespace naobi
 
 		variable_type& value(){return _value;}
 
+		[[nodiscard]] const variable_type& value() const {return _value;}
+
 	private:
+		friend std::ostream& operator << (std::ostream& os, const naobi::variable& var);
+
 		std::string _name;
 		variable_type _value{};
 		Type _type{Type::INTEGER};
 	};
 
 	naobi::variable::sptr operator += (const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+
+	std::ostream& operator << (std::ostream& os, const naobi::variable& var);
 
 }
 

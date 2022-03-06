@@ -1,5 +1,5 @@
-#include <utility>
 #include <naobi/data/variable.hpp>
+
 #include "naobi/utils/logger.hpp"
 
 naobi::variable::variable(std::string name, naobi::variable::Type type) :
@@ -28,4 +28,17 @@ naobi::variable::sptr naobi::operator+=(const naobi::variable::sptr& variable1, 
 		return newVariable;
 	}
 	return nullptr;
+}
+
+std::ostream& naobi::operator << (std::ostream& os, const naobi::variable& var)
+{
+	if (var._type == naobi::variable::Type::INTEGER)
+	{
+		os << std::get<int>(var._value);
+	}
+	else
+	{
+		os << "UNDEFINED VARIABLE TYPE";
+	}
+	return os;
 }
