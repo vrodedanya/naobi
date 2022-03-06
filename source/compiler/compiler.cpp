@@ -236,6 +236,16 @@ _rules({
 				   module->addFunction(function);
 			   }
 			   },
+			   {
+			   [](const std::vector<std::string> &line) -> bool
+			   {
+				   return !line.empty() && line[0] == "import";
+			   },
+			   []([[maybe_unused]]const std::vector<std::string> &line, [[maybe_unused]]const naobi::module::sptr &module) noexcept
+			   {
+
+			   }
+			   },
 	   })
 {}
 
