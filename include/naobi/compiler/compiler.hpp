@@ -31,7 +31,7 @@ namespace naobi
 		std::optional<std::string> loadFile(const std::string& fileName);
 		std::vector<std::string> collectModules(const std::vector<std::string>& lines);
 
-		void exitOn(const std::vector<std::string>& lineToExit);
+		static void exitOn(const std::vector<std::string>& lineToExit);
 
 	private:
 		using compilerRule = naobi::rule<std::function<bool(const std::vector<std::string>& line)>,

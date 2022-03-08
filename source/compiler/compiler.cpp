@@ -157,95 +157,82 @@ static std::string getParamValue(const std::vector<std::string>& line, const std
 
 naobi::compiler::compiler() :
 _rules({
-			   {[](const std::vector<std::string> &line) -> bool
+			{[](const std::vector<std::string> &line) -> bool {
+				return !line.empty() && line[0] == "workflow";
+			},[this](const std::vector<std::string> &line, const naobi::module::sptr &module){
+				std::string name;
+				std::string target;
+				int invoke = -1;
+
+				name = getParamValue(line, "workflow");
+				if (name.empty())
 				{
-					return !line.empty() && line[0] == "workflow";
-				},
-				[this](const std::vector<std::string> &line, const naobi::module::sptr &module)
+					LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find workflow name");
+					exitOn(line);
+				}
+				if (naobi::keywords::check(name))
 				{
-				   std::string name;
-				   std::string target;
-				   int invoke = -1;
+					LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", name, "' is keyword!");
+					exitOn(line);
+				}
+				target = getParamValue(line, "target");
+				if (target.empty())
+				{
+					LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find target");
+					exitOn(line);
+				}
+				if (naobi::keywords::check(target))
+				{
+					LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", target, "' is keyword!");
+					exitOn(line);
+				}
+				auto temp = getParamValue(line, "invoke");
+				if (temp == "always")
+				{
+					invoke = -1;
+				}
+				else if (temp == "once")
+				{
+					invoke = 1;
+				}
+				else if (!temp.empty())
+				{
+					invoke = std::stoi(temp);
+			 	}
 
-				   name = getParamValue(line, "workflow");
-				   if (name.empty())
-				   {
-					   LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find workflow name");
-					   exitOn(line);
-				   }
-				   if (naobi::keywords::check(name))
-				   {
-					   LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", name, "' is keyword!");
-					   exitOn(line);
-				   }
-				   target = getParamValue(line, "target");
-				   if (target.empty())
-				   {
-					   LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find target");
-					   exitOn(line);
-				   }
-					if (naobi::keywords::check(target))
-					{
-						LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", target, "' is keyword!");
-						exitOn(line);
-					}
-				   auto temp = getParamValue(line, "invoke");
-				   if (temp == "always")
-				   {
-					   invoke = -1;
-				   }
-				   else if (temp == "once")
-				   {
-					   invoke = 1;
-				   }
-				   else if (!temp.empty())
-				   {
-					   invoke = std::stoi(temp);
-				   }
+				auto tempWorkflow = std::make_shared<naobi::workflow>(name, module);
+				tempWorkflow->setInvoke(invoke);
 
-				   auto tempWorkflow = std::make_shared<naobi::workflow>(name, module);
-				   tempWorkflow->setInvoke(invoke);
+				std::string codeBlock = line.back().substr(1, line.back().size() - 2);
+				codeBlock = naobi::parser::removeFirstSym(codeBlock, ' ');
+				auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
+				std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
+				lines = naobi::parser::removeEmpty(lines);
+				auto commands = naobi::code_generator::generate(lines);
+				tempWorkflow->setCommands(commands);
 
-				   std::string codeBlock = line.back().substr(1, line.back().size() - 2);
-				   codeBlock = naobi::parser::removeFirstSym(codeBlock, ' ');
-				   auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
-				   std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
-				   lines = naobi::parser::removeEmpty(lines);
-				   auto commands = naobi::code_generator::generate(lines);
-				   tempWorkflow->setCommands(commands);
+				LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
 
-				   LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
-
-				   this->_composition.workflows.push_back(tempWorkflow);
-				},
-			   },
-			   {
-			   [](const std::vector<std::string> &line) -> bool
-			   {
-				   return !line.empty() && line[0] == "function";
-			   },
-			   [this](const std::vector<std::string> &line, const naobi::module::sptr &module)
-			   {
-				   std::string name = getParamValue(line, "function");
-				   if (name.empty())
-				   {
-					   LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to get function name");
-					   exitOn(line);
-				   }
-				   auto function = std::make_shared<naobi::function>(name);
-				   module->addFunction(function);
-			   }
-			   },
-			   {
-			   [](const std::vector<std::string> &line) -> bool
-			   {
-				   return !line.empty() && line[0] == "import";
-			   },
-			   []([[maybe_unused]]const std::vector<std::string> &line, [[maybe_unused]]const naobi::module::sptr &module) noexcept
-			   {
-
-			   }
-			   },
+				this->_composition.workflows.push_back(tempWorkflow);
+			}},
+			{[](const std::vector<std::string> &line) -> bool{
+				return !line.empty() && line[0] == "function";
+			},[](const std::vector<std::string> &line, const naobi::module::sptr &module){
+				std::string name = getParamValue(line, "function");
+				if (name.empty())
+				{
+					LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to get function name");
+					exitOn(line);
+				}
+				auto function = std::make_shared<naobi::function>(name);
+				module->addFunction(function);
+			}},
+			{[](const std::vector<std::string> &line) -> bool{
+				return !line.empty() && line[0] == "import";
+			},
+			[]([[maybe_unused]]const std::vector<std::string> &line, [[maybe_unused]]const naobi::module::sptr &module) noexcept
+			{
+			}},
 	   })
 {}
 
