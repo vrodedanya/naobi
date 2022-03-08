@@ -95,7 +95,8 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 
 std::vector<naobi::code_generator::generatorRule> naobi::code_generator::_generatorRules =
 {
-	{[](const std::vector<std::string>& words) -> bool{ // Create variable
+	// Variable creating logic
+	{[](const std::vector<std::string>& words) -> bool{
 		return naobi::keywords::checkIsType(words[0]);
 	},[](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		naobi::variable::Type type;
@@ -105,7 +106,8 @@ std::vector<naobi::code_generator::generatorRule> naobi::code_generator::_genera
 				naobi::code_generator::createCommand(
 				naobi::command::names::NEW,{words[1], std::to_string(static_cast<int>(type))}));
 	}},
-	{[](const std::vector<std::string>& words) -> bool{ // Create assignment
+	// Create assignment logic
+	{[](const std::vector<std::string>& words) -> bool{
 		return words[1] == "=";
 	},[](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		// todo expression handler
@@ -118,7 +120,8 @@ std::vector<naobi::code_generator::generatorRule> naobi::code_generator::_genera
 				naobi::code_generator::createCommand(
 							naobi::command::names::SAVE, {"0"}));
 	}},
-	{[](const std::vector<std::string>& words) -> bool{ // Create printing
+	// Create printing
+	{[](const std::vector<std::string>& words) -> bool{
 		return words[0] == "println";
 	},[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		commands.emplace_back(

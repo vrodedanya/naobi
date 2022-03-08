@@ -15,6 +15,10 @@ namespace naobi
 	class compiler
 	{
 	public:
+		using compilerRule = naobi::rule<std::function<bool(const std::vector<std::string>& line)>,
+				std::function<void(const std::vector<std::string>& line, const naobi::module::sptr& module)>>;
+
+	public:
 		compiler();
 
 		void compile(const std::string& fileName);
@@ -34,8 +38,6 @@ namespace naobi
 		static void exitOn(const std::vector<std::string>& lineToExit);
 
 	private:
-		using compilerRule = naobi::rule<std::function<bool(const std::vector<std::string>& line)>,
-		        std::function<void(const std::vector<std::string>& line, const naobi::module::sptr& module)>>;
 		std::vector<compilerRule> _rules;
 
 		naobi::composition _composition;
