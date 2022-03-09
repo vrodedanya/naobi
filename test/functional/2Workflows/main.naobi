@@ -1,11 +1,13 @@
 
 workflow testing
 target onBegin()
-invoke always
 {
-    integer variable;
-    variable = 5;
+    integer variable=3, testing =4, second=2;
     println(variable);
+    variable = testing;
+    println(variable);
+    variable = second;
+    println(testing);
 }
 
 workflow invokingAlways

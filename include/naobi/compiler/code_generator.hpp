@@ -19,11 +19,15 @@ namespace naobi
 				std::function<void(const std::vector<std::string>& words, std::vector<naobi::command>& commands)>>;
 
 	public:
-		static std::vector<naobi::command> generate(const std::vector<std::string>& line);
+		code_generator();
+
+		std::vector<naobi::command> generate(const std::vector<std::string>& line);
 		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
 
 	private:
-		static std::vector<generatorRule> _generatorRules; // rules to generate code
+		std::vector<generatorRule> _generatorRules; // rules to generate code
+
+		std::map<std::string, variable::sptr> _variablesTemp;
 
 		static std::map<command::names, command::implementation> _commands; // commands implementation
 	};
