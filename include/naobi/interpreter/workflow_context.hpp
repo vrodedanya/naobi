@@ -16,7 +16,7 @@ namespace naobi
 	{
 		using sptr = std::shared_ptr<workflow_context>;
 
-		std::vector<naobi::variable::sptr> variables;
+		std::map<std::string, naobi::variable::sptr> variables;
 		std::stack<naobi::variable::sptr> stack;
 		std::vector<command>::const_iterator ip;
 		naobi::workflow::sptr workflow;
