@@ -210,7 +210,8 @@ _rules(
 		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
 		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
 		lines = naobi::parser::removeEmpty(lines);
-		auto commands = naobi::code_generator::generate(lines);
+		naobi::code_generator generator;
+		auto commands = generator.generate(lines);
 		tempWorkflow->setCommands(commands);
 
 		LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
