@@ -7,7 +7,7 @@ target onBegin()
     variable = testing;
     println(variable);
     variable = second;
-    println(testing);
+    println(variable);
 }
 
 workflow invokingAlways
