@@ -48,8 +48,11 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 	{
 		parent->addModule(module);
 	}
+	std::string fileContent = fileTextOpt.value();
+	naobi::parser::removeComments(fileContent);
+	LOG(compiler.compile, logger::LOW, "after removing comments:\n", fileContent);
 
-	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileTextOpt.value()), '\n', ' ');
+	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileContent), '\n', ' ');
 	auto lines = parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER);
 	lines = parser::removeEmpty(lines);
 	LOG(compiler.compile, logger::LOW, "lines:\n", lines);

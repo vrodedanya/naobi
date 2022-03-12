@@ -25,6 +25,10 @@ namespace naobi
 		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
 
 	private:
+		static bool isNumber(const std::string& string);
+		static bool isLiteral(const std::string& string);
+
+	private:
 		std::vector<generatorRule> _generatorRules; // rules to generate code
 
 		std::map<std::string, variable::sptr> _variablesTemp;

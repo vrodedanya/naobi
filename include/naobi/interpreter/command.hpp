@@ -19,6 +19,7 @@ namespace naobi
 			PLACE, // 1 - value, type
 			PRINTLN,
 			PRINT,
+			INPUT,
 		};
 
 		names name;

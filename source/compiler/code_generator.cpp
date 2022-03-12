@@ -19,8 +19,10 @@ std::vector<naobi::command> naobi::code_generator::generate(const std::vector<st
 		bool isCompiled = false;
 		for (const auto& rule : _generatorRules)
 		{
-			isCompiled = rule.checkLineAndRun(words, commands);
-			if (isCompiled) break;
+			if (!isCompiled)
+				isCompiled = rule.checkLineAndRun(words, commands);
+			else
+				rule.checkLineAndRun(words, commands);
 		}
 		if (!isCompiled)
 		{
@@ -94,6 +96,22 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		std::cout << *val;
 		context->stack.pop();
 	}},
+	{naobi::command::names::INPUT,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+		std::string str;
+		std::cin >> str;
+		naobi::variable::Type type;
+		if (naobi::code_generator::isNumber(str))
+		{
+			type = naobi::variable::Type::INTEGER;
+		}
+		if (type == naobi::variable::Type::INTEGER)
+		{
+			auto var = std::make_shared<naobi::variable>("temp", type);
+			var->value() = std::stoi(str);
+			context->stack.push(var);
+		}
+	}},
 };
 
 
@@ -103,7 +121,8 @@ naobi::code_generator::code_generator() :
 	// Variable creating logic
 	{[](const std::vector<std::string>& words) -> bool{
 		return naobi::keywords::checkIsType(words[0]);
-	},[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+	},
+	 [this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		naobi::variable::Type type;
 		std::vector<std::string> wordsTemp = words;
 		std::for_each(wordsTemp.begin(), wordsTemp.end(), [](auto& elem) {elem = naobi::parser::removeSym(elem, ',');});
@@ -147,10 +166,31 @@ naobi::code_generator::code_generator() :
 		}
 
 	}},
-	// Create assignment logic
+	// Create printing TODO should be one logic for all functions. Standard functions will be provided by shared standard library all append in modules
+	{[](const std::vector<std::string>& words) -> bool{
+		return words[0] == "println" || words[0] == "print";
+	},
+	 []([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+				commands.emplace_back(
+						naobi::code_generator::createCommand(
+								naobi::command::names::LOAD, {words[2]}));
+				commands.emplace_back(
+						naobi::code_generator::createCommand(
+								words[0] == "println" ? naobi::command::names::PRINTLN : naobi::command::names::PRINT, {}));
+			}},
+	{[](const std::vector<std::string>& words) -> bool{
+		return std::find(words.begin(), words.end(), "input") != words.cend();
+	},
+	[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+				commands.emplace_back(
+						naobi::code_generator::createCommand(
+								naobi::command::names::INPUT, {}));
+		}},
+	// Create assignment logic (LOW priority )
 	{[](const std::vector<std::string>& words) -> bool{
 		return words[1] == "=";
-	},[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+	},
+	 [this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		if (words.size() < 3)
 		{
 			LOG(code_generator, logger::CRITICAL, "CRITICAL bad assignment operator format");
@@ -164,43 +204,38 @@ naobi::code_generator::code_generator() :
 			LOG(code_generator, logger::CRITICAL, "CRITICAL '", words[0], "' doesn't exist");
 			std::exit(1);
 		}
-		if (words[2][0] != '-' && !std::isdigit(words[2][0]) && std::count(words[2].begin(), words[2].end(), '"') == 0)
+		if (_variablesTemp.find(words[2]) != _variablesTemp.cend())
 		{
-			if (_variablesTemp.find(words[2]) == _variablesTemp.cend())
-			{
-				LOG(code_generator, logger::CRITICAL, "CRITICAL '", words[2], "' doesn't exist");
-				std::exit(1);
-			}
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
 							naobi::command::names::LOAD, {words[2]}));
-			commands.emplace_back(
-					naobi::code_generator::createCommand(
-							naobi::command::names::SAVE, {words[0]}));
 		}
-		else
+		else if (isLiteral(words[2]))
 		{
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
 							naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), words[2]}));
+		}
+		// todo check function and it returns value
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
 							naobi::command::names::SAVE, {words[0]}));
-		}
-	}},
-	// Create printing
-	{[](const std::vector<std::string>& words) -> bool{
-		return words[0] == "println" || words[0] == "print";
-	},[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		commands.emplace_back(
-				naobi::code_generator::createCommand(
-						naobi::command::names::LOAD, {words[2]}));
-		commands.emplace_back(
-				naobi::code_generator::createCommand(
-						words[0] == "println" ? naobi::command::names::PRINTLN : naobi::command::names::PRINT, {}));
 	}},
 }
 )
 {
 
+}
+
+bool naobi::code_generator::isLiteral(const std::string &string)
+{
+	return isNumber(string) || (string.front() == '"' && string.back() == '"');
+}
+
+bool naobi::code_generator::isNumber(const std::string &string)
+{
+	if (string.empty()) return false;
+	if (string.size() == 1) return std::isdigit(string[0]);
+	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem){return isdigit(elem) || elem == '.';});
+	return (string[0] == '-' && isAllNumbers) || (isAllNumbers && std::isdigit(string[0]));
 }
