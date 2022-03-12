@@ -8,6 +8,16 @@ target onBegin()
     println(variable);
     variable = second;
     println(variable);
+
+    // Testing input
+
+    testing = input();
+    println(testing);
+
+    testing = input();
+    variable = testing;
+    println(variable);
+
 }
 
 workflow invokingAlways

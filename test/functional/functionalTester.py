@@ -1,6 +1,7 @@
 import os
 import subprocess
 import json
+import time
 
 
 class Colors:
@@ -29,24 +30,21 @@ if __name__ == "__main__":
     else:
         args.insert(0, "../../build/./naobi")
 
-    for count, directory in enumerate(directories):
+    for directory in directories:
         args.append(directory + "/main.naobi")
         process = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-
         if process.returncode != 1 and is_exist(directory + "/scenario.json"):
             f = open(directory + "/scenario.json")
             scenarios = json.loads(f.read())
-            lineNumber = 0
-            for scenario in scenarios:
-                inputStr = ""
+            for count, scenario in enumerate(scenarios):
                 if len(scenario["in"]) != 0:
-                    inputStr = scenario["in"]
-                var = process.communicate(inputStr)[0].decode().split(sep="\n")
-                if var[lineNumber] != scenario["out"]:
-                    print(Colors.FAIL + Colors.BOLD + "Test " + directory + " failed!\nExpected '" + scenario["out"] +
-                          "' got '" + var[lineNumber] + "' in scenario " + str(count + 1))
+                    process.stdin.write(bytes(scenario["in"] + '\n', "UTF-8"))
+                    process.stdin.flush()
+                test = process.stdout.readline().decode().replace('\n', '')
+                if test != scenario["out"]:
+                    print(Colors.FAIL + Colors.BOLD + "Test " + directory + " failed!\nExpected '" + str(scenario["out"])
+                          + "' got '" + str(test) + "' in scenario " + str(count + 1))
                     exit(1)
-                lineNumber += 1
 
         process.wait()
         if process.returncode != 0:
