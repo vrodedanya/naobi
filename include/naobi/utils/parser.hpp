@@ -32,6 +32,7 @@ namespace naobi
 		static std::string removeFirstSym(const std::string& str, char sym) noexcept;
 		static std::string removeSym(const std::string& str, char symbolToRemove) noexcept;
 		static std::string replaceSym(const std::string& str, char symbolToReplace, char replacementCharacter) noexcept;
+		static void removeComments(std::string& str) noexcept;
 		static std::string placeAfter(const std::string& str, char symbolAfter, const std::string& symbolToPlace) noexcept;
 
 		static std::vector<std::string> removeEmpty(const std::vector<std::string>& vec) noexcept;

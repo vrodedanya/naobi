@@ -181,3 +181,12 @@ std::string naobi::parser::join(std::vector<std::string>::iterator &begin, std::
 
 	return temp;
 }
+
+void naobi::parser::removeComments(std::string &str) noexcept
+{
+	std::size_t commentPos;
+	while ((commentPos = str.find_first_of(R"(//)")) != std::string::npos)
+	{
+		str.erase(commentPos, str.find('\n', commentPos) - commentPos);
+	}
+}
