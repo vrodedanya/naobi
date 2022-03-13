@@ -1,7 +1,6 @@
 import os
 import subprocess
 import json
-import time
 
 
 class Colors:
@@ -42,7 +41,8 @@ if __name__ == "__main__":
                     process.stdin.flush()
                 test = process.stdout.readline().decode().replace('\n', '')
                 if test != scenario["out"]:
-                    print(Colors.FAIL + Colors.BOLD + "Test " + directory + " failed!\nExpected '" + str(scenario["out"])
+                    print(Colors.FAIL + Colors.BOLD + "Test " + directory + " failed!\nExpected '" +
+                          str(scenario["out"])
                           + "' got '" + str(test) + "' in scenario " + str(count + 1))
                     exit(1)
 
