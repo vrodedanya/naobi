@@ -183,6 +183,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 		}
 
 	}},
+	// Function calling
 	{[](const std::vector<std::string>& words) -> bool{
 		return words[1] == "(" && std::find(words.begin() + 2, words.end(), ")") != words.end();
 	},
@@ -193,13 +194,9 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 			LOG(code_generator, logger::CRITICAL, "CRITICAL function '", words[0], "' not found");
 			std::exit(EXIT_FAILURE);
 		}
-		 if (_variablesTemp.find(words[2]) == _variablesTemp.cend())
-		 {
-			 LOG(code_generator, logger::CRITICAL, "CRITICAL '", words[2], "' doesn't exist");
-			 std::exit(EXIT_FAILURE);
-		 }
-		 commands.emplace_back(code_generator::createCommand(naobi::command::names::LOAD, {words[2]})); // TODO function may contain more arguments
-		 commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
+		processExpression(std::vector<std::string>(words.begin() + 2,
+												   findEndBracket(words.begin() + 1, words.end())), commands);
+		commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
 	}},
 	// Create assignment logic (LOW priority )
 	{[](const std::vector<std::string>& words) -> bool{
@@ -247,6 +244,7 @@ bool naobi::code_generator::isNumber(const std::string &string)
 void
 naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
 {
+	std::stack<naobi::command> stack;
 	LOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
 	for (auto it = words.cbegin() ; it != words.cend() ; it++)
 	{
@@ -258,26 +256,55 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 				auto func = _module->findFunction(*it);
 				if (func == nullptr)
 				{
-					LOG(code_generator, logger::CRITICAL, "CRITICAL function '", *it, "' not found");
+					LOG(processExpression, logger::CRITICAL, "CRITICAL function '", *it, "' not found");
 					std::exit(EXIT_FAILURE);
 				}
 				if ((it + 2) != words.cend() && *(it + 2) != ")") // TODO function may contain more arguments
 				{
 					processExpression(std::vector<std::string>(it + 2, it + 3), commands);
 				}
-				commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
-				it = std::find(it, words.cend(), ")");
+				commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {*it}));
+				it = findEndBracket(it, words.end());
+			}
+			else if (isOperation(*it))
+			{
+				if (*it == "+")
+				{
+					while (!stack.empty() && stack.top().name == naobi::command::names::ADD)
+					{
+						commands.emplace_back(stack.top());
+						stack.pop();
+					}
+					stack.push(createCommand(naobi::command::names::ADD, {}));
+				}
 			}
 			else
 			{
 				if (_variablesTemp.find(*it) == _variablesTemp.cend())
 				{
-					LOG(code_generator, logger::CRITICAL, "CRITICAL variable '", *it, "' not found");
+					LOG(processExpression, logger::CRITICAL, "CRITICAL variable '", *it, "' not found");
 					std::exit(EXIT_FAILURE);
 				}
 				commands.emplace_back(code_generator::createCommand(naobi::command::names::LOAD, {*it}));
 			}
 		}
+		else
+		{
+			if (isNumber(*it))
+			{
+				commands.emplace_back(code_generator::createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(naobi::variable::Type::INTEGER)), *it}));
+			}
+		}
+	}
+	while (!stack.empty())
+	{
+		commands.emplace_back(stack.top());
+		stack.pop();
 	}
 
+}
+
+bool naobi::code_generator::isOperation(const std::string &string)
+{
+	return std::string("+-*/").find(string) != std::string::npos;
 }

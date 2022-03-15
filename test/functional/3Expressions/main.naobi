@@ -1,0 +1,9 @@
+import standard;
+
+workflow main
+target onBegin
+{
+    integer a = 5, b = 3;
+    a = a + b + input();
+    println(a);
+}

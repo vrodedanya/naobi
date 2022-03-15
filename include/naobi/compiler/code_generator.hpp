@@ -27,8 +27,12 @@ namespace naobi
 	private:
 		static bool isNumber(const std::string& string);
 		static bool isLiteral(const std::string& string);
+		static bool isOperation(const std::string& string);
 
 		void processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		template<typename ITERATOR>
+		ITERATOR findEndBracket(ITERATOR begin, ITERATOR end);
 
 	private:
 		naobi::module::sptr _module;
@@ -38,6 +42,22 @@ namespace naobi
 
 		static std::map<command::names, command::implementation> _commands; // commands implementation
 	};
+}
+
+template <typename ITERATOR>
+ITERATOR naobi::code_generator::findEndBracket(ITERATOR begin, ITERATOR end)
+{
+	int brackets = 0;
+	for (auto it = begin ; it != end ; it++)
+	{
+		if (*it == ")")
+		{
+			brackets--;
+			if (brackets == 0) return it;
+		}
+		else if (*it == "(") brackets++;
+	}
+	return end;
 }
 
 #endif //NAOBI_CODE_GENERATOR_HPP
