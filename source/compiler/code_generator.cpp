@@ -112,10 +112,27 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 			context->stack.push(var);
 		}
 	}},
+	{naobi::command::names::RETURN,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+		auto address = context->returnPoints.top();
+		context->ip = address;
+		context->returnPoints.pop();
+	}},
+	{naobi::command::names::CALL,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+		auto address = context->ip;
+		context->returnPoints.push(address);
+		auto it = context->workflow->module()->findFunction(arguments[0]);
+		context->ip = it->commands().begin();
+	}},
+	{naobi::command::names::NOPE,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+	}},
 };
 
 
-naobi::code_generator::code_generator() :
+naobi::code_generator::code_generator(naobi::module::sptr module) :
+	_module(module),
 	_generatorRules(
 {
 	// Variable creating logic
@@ -166,26 +183,24 @@ naobi::code_generator::code_generator() :
 		}
 
 	}},
-	// Create printing TODO should be one logic for all functions. Standard functions will be provided by shared standard library all append in modules
 	{[](const std::vector<std::string>& words) -> bool{
-		return words[0] == "println" || words[0] == "print";
+		return words[1] == "(" && std::find(words.begin() + 2, words.end(), ")") != words.end();
 	},
-	 []([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-				commands.emplace_back(
-						naobi::code_generator::createCommand(
-								naobi::command::names::LOAD, {words[2]}));
-				commands.emplace_back(
-						naobi::code_generator::createCommand(
-								words[0] == "println" ? naobi::command::names::PRINTLN : naobi::command::names::PRINT, {}));
-			}},
-	{[](const std::vector<std::string>& words) -> bool{
-		return std::find(words.begin(), words.end(), "input") != words.cend();
-	},
-	[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-				commands.emplace_back(
-						naobi::code_generator::createCommand(
-								naobi::command::names::INPUT, {}));
-		}},
+	 [this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+		auto it = _module->findFunction(words[0]);
+		if (it == nullptr)
+		{
+			LOG(code_generator, logger::CRITICAL, "CRITICAL function '", words[0], "' not found");
+			std::exit(EXIT_FAILURE);
+		}
+		 if (_variablesTemp.find(words[2]) == _variablesTemp.cend())
+		 {
+			 LOG(code_generator, logger::CRITICAL, "CRITICAL '", words[2], "' doesn't exist");
+			 std::exit(EXIT_FAILURE);
+		 }
+		 commands.emplace_back(code_generator::createCommand(naobi::command::names::LOAD, {words[2]})); // TODO function may contain more arguments
+		 commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
+	}},
 	// Create assignment logic (LOW priority )
 	{[](const std::vector<std::string>& words) -> bool{
 		return words[1] == "=";
@@ -204,18 +219,7 @@ naobi::code_generator::code_generator() :
 			LOG(code_generator, logger::CRITICAL, "CRITICAL '", words[0], "' doesn't exist");
 			std::exit(1);
 		}
-		if (_variablesTemp.find(words[2]) != _variablesTemp.cend())
-		{
-			commands.emplace_back(
-					naobi::code_generator::createCommand(
-							naobi::command::names::LOAD, {words[2]}));
-		}
-		else if (isLiteral(words[2]))
-		{
-			commands.emplace_back(
-					naobi::code_generator::createCommand(
-							naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), words[2]}));
-		}
+		processExpression(std::vector<std::string>(words.begin() + 2, words.end()), commands);
 		// todo check function and it returns value
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
@@ -238,4 +242,42 @@ bool naobi::code_generator::isNumber(const std::string &string)
 	if (string.size() == 1) return std::isdigit(string[0]);
 	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem){return isdigit(elem) || elem == '.';});
 	return (string[0] == '-' && isAllNumbers) || (isAllNumbers && std::isdigit(string[0]));
+}
+
+void
+naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
+{
+	LOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
+	for (auto it = words.cbegin() ; it != words.cend() ; it++)
+	{
+		LOG(processExpression, logger::IMPORTANT, "Word: ", *it);
+		if (!isLiteral(*it))
+		{
+			if ((it + 1) != words.cend() && *(it + 1) == "(")
+			{
+				auto func = _module->findFunction(*it);
+				if (func == nullptr)
+				{
+					LOG(code_generator, logger::CRITICAL, "CRITICAL function '", *it, "' not found");
+					std::exit(EXIT_FAILURE);
+				}
+				if ((it + 2) != words.cend() && *(it + 2) != ")") // TODO function may contain more arguments
+				{
+					processExpression(std::vector<std::string>(it + 2, it + 3), commands);
+				}
+				commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
+				it = std::find(it, words.cend(), ")");
+			}
+			else
+			{
+				if (_variablesTemp.find(*it) == _variablesTemp.cend())
+				{
+					LOG(code_generator, logger::CRITICAL, "CRITICAL variable '", *it, "' not found");
+					std::exit(EXIT_FAILURE);
+				}
+				commands.emplace_back(code_generator::createCommand(naobi::command::names::LOAD, {*it}));
+			}
+		}
+	}
+
 }

@@ -1,6 +1,8 @@
 #ifndef NAOBI_COMMAND_HPP
 #define NAOBI_COMMAND_HPP
 
+#include <functional>
+
 namespace naobi
 {
 	struct workflow_context;
@@ -20,6 +22,9 @@ namespace naobi
 			PRINTLN,
 			PRINT,
 			INPUT,
+			RETURN,
+			CALL, // function name
+			NOPE,
 		};
 
 		names name;

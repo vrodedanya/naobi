@@ -6,7 +6,8 @@
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/logger.hpp>
 #include <naobi/utils/keywords.hpp>
-#include "naobi/compiler/code_generator.hpp"
+#include <naobi/compiler/code_generator.hpp>
+#include <naobi/standard/standard_module.hpp>
 
 void naobi::compiler::compile(const std::string &fileName)
 {
@@ -26,6 +27,11 @@ void naobi::compiler::compile(const std::string &fileName)
 
 void naobi::compiler::compile(const std::string &fileName, const naobi::module::sptr& parent)
 {
+	if (fileName == "standard;")
+	{
+		parent->addModule(std::shared_ptr<naobi::module>(new naobi::standard()));
+		return;
+	}
 	LOG(compiler.compile, logger::BASIC, "process file name");
 	std::string file = processFileName(fileName);
 
@@ -141,7 +147,7 @@ std::vector<std::string> naobi::compiler::collectModules(const std::vector<std::
 	std::vector<std::string> buffer;
 	for (const auto& line : lines)
 	{
-		auto arguments = parser::split(line, {" "}, {});
+		auto arguments = parser::split(naobi::parser::removeFirstSym(line, ' '), {" "}, {});
 		if (arguments.size() == 2 && arguments[0] == "import")
 		{
 			buffer.emplace_back(arguments[1]);
@@ -213,7 +219,7 @@ _rules(
 		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
 		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
 		lines = naobi::parser::removeEmpty(lines);
-		naobi::code_generator generator;
+		naobi::code_generator generator(module);
 		auto commands = generator.generate(lines);
 		tempWorkflow->setCommands(commands);
 

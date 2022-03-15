@@ -25,6 +25,9 @@ namespace naobi
 		[[nodiscard]] const std::vector<naobi::command>& commands() const {return _commands;}
 		void setCommands(const std::vector<naobi::command>& commands){_commands = commands;}
 
+		naobi::module::sptr module(){return _parentModule;}
+		[[nodiscard]] naobi::module::sptr module() const {return _parentModule;}
+
 	private:
 		std::string _name;
 		naobi::module::sptr _parentModule;

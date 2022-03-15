@@ -27,6 +27,7 @@ namespace naobi
 		naobi::module::sptr getModule(const std::string& moduleName);
 
 		naobi::module::sptr findModule(const std::string& moduleName);
+		naobi::function::sptr findFunction(const std::string& functionName);
 
 		[[nodiscard]] std::string name() const {return _name;}
 

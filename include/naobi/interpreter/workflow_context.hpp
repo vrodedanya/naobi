@@ -18,6 +18,7 @@ namespace naobi
 
 		std::map<std::string, naobi::variable::sptr> variables;
 		std::stack<naobi::variable::sptr> stack;
+		std::stack<std::vector<command>::const_iterator> returnPoints;
 		std::vector<command>::const_iterator ip;
 		naobi::workflow::sptr workflow;
 	};

@@ -70,3 +70,15 @@ naobi::module::sptr naobi::module::findModule(const std::string& moduleName)
 	}
 	return nullptr;
 }
+
+naobi::function::sptr naobi::module::findFunction(const std::string &functionName)
+{
+	auto function_ptr = getFunction(functionName);
+	if (function_ptr != nullptr) return function_ptr;
+	for (const auto& element : _modules)
+	{
+		auto ptr = element->findFunction(functionName);
+		if (ptr != nullptr) return ptr;
+	}
+	return nullptr;
+}

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include "naobi/interpreter/command.hpp"
 
 namespace naobi
 {
@@ -17,7 +18,13 @@ namespace naobi
 
 		[[nodiscard]] std::string name() const {return _name;}
 
+		void setCommands(const std::vector<naobi::command>& commands){_commands = commands;}
+
+		std::vector<naobi::command>& commands(){return _commands;}
+		[[nodiscard]] const std::vector<naobi::command>& commands() const {return _commands;}
+
 	private:
+		std::vector<naobi::command> _commands;
 		std::string _name;
 	};
 }

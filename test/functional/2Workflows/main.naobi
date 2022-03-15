@@ -1,3 +1,4 @@
+import standard;
 
 workflow testing
 target onBegin()
