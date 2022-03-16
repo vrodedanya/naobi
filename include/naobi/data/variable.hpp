@@ -23,6 +23,8 @@ namespace naobi
 	public:
 		variable(std::string name, Type type);
 
+		variable& operator = (const variable& var);
+
 		[[nodiscard]] std::string name() const {return _name;}
 
 		[[nodiscard]] Type type() const {return _type;}
@@ -30,6 +32,8 @@ namespace naobi
 		variable_type& value(){return _value;}
 
 		[[nodiscard]] const variable_type& value() const {return _value;}
+
+		naobi::variable::sptr copy();
 
 	private:
 		friend std::ostream& operator << (std::ostream& os, const naobi::variable& var);
@@ -40,6 +44,9 @@ namespace naobi
 	};
 
 	naobi::variable::sptr operator += (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+	naobi::variable::sptr operator -= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+	naobi::variable::sptr operator *= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+	naobi::variable::sptr operator /= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
 
 	std::ostream& operator << (std::ostream& os, const naobi::variable& var);
 

@@ -28,6 +28,38 @@ naobi::variable::sptr naobi::operator+=(naobi::variable::sptr& variable1, const 
 	}
 	return nullptr;
 }
+naobi::variable::sptr naobi::operator -= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
+{
+	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	{
+		int a = std::get<int>(variable1->value()) - std::get<int>(variable2->value());
+		variable1->value() = a;
+		return variable1;
+	}
+	return nullptr;
+}
+
+naobi::variable::sptr naobi::operator *= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
+{
+	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	{
+		int a = std::get<int>(variable1->value()) * std::get<int>(variable2->value());
+		variable1->value() = a;
+		return variable1;
+	}
+	return nullptr;
+}
+
+naobi::variable::sptr naobi::operator /= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
+{
+	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	{
+		int a = std::get<int>(variable1->value()) / std::get<int>(variable2->value());
+		variable1->value() = a;
+		return variable1;
+	}
+	return nullptr;
+}
 
 std::ostream& naobi::operator << (std::ostream& os, const naobi::variable& var)
 {
@@ -40,4 +72,17 @@ std::ostream& naobi::operator << (std::ostream& os, const naobi::variable& var)
 		os << "UNDEFINED VARIABLE TYPE";
 	}
 	return os;
+}
+
+naobi::variable &naobi::variable::operator=(const naobi::variable &var)
+{
+	_value = var.value();
+	return *this;
+}
+
+naobi::variable::sptr naobi::variable::copy()
+{
+	auto var = std::make_shared<naobi::variable>(_name, _type);
+	var->_value = _value;
+	return var;
 }
