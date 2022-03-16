@@ -16,6 +16,9 @@ namespace naobi
 		// CommandName <-> argumentsCount
 			NEW, // 2 - name, type
 			ADD, // 0
+			SUB,
+			MUL,
+			DIV,
 			LOAD, // 1 - number
 			SAVE, // 1 - number
 			PLACE, // 1 - value, type

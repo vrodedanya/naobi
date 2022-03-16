@@ -39,6 +39,8 @@ if __name__ == "__main__":
                 if len(scenario["in"]) != 0:
                     process.stdin.write(bytes(scenario["in"] + '\n', "UTF-8"))
                     process.stdin.flush()
+                if scenario["out"] == "":
+                    continue
                 test = process.stdout.readline().decode().replace('\n', '')
                 if test != scenario["out"]:
                     print(Colors.FAIL + Colors.BOLD + "Test " + directory + " failed!\nExpected '" +

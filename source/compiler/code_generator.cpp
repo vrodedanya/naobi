@@ -62,6 +62,24 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		context->stack.pop();
 		context->stack.top() += top;
 	}},
+	{naobi::command::names::SUB,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+				auto top = context->stack.top();
+				context->stack.pop();
+				context->stack.top() -= top;
+			}},
+	{naobi::command::names::MUL,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+				auto top = context->stack.top();
+				context->stack.pop();
+				context->stack.top() *= top;
+	}},
+	{naobi::command::names::DIV,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
+				auto top = context->stack.top();
+				context->stack.pop();
+				context->stack.top() /= top;
+			}},
 	{naobi::command::names::NEW,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
 		auto type = static_cast<naobi::variable::Type>(std::stoi(arguments[1]));
@@ -70,7 +88,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	}},
 	{naobi::command::names::LOAD, // TODO Difficult moment: variable can be load as reference or as copy
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){ //
-		context->stack.push(context->variables[arguments[0]]);
+		context->stack.push(context->variables[arguments[0]]->copy());
 	}},
 	{naobi::command::names::SAVE,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
@@ -126,7 +144,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		context->ip = it->commands().begin();
 	}},
 	{naobi::command::names::NOPE,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
 	}},
 };
 
@@ -251,7 +269,37 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		LOG(processExpression, logger::IMPORTANT, "Word: ", *it);
 		if (!isLiteral(*it))
 		{
-			if ((it + 1) != words.cend() && *(it + 1) == "(")
+			if (isOperation(*it))
+			{
+				if (*it == "+" || *it == "-")
+				{
+					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
+											  stack.top().name == naobi::command::names::SUB ||
+											  stack.top().name == naobi::command::names::MUL ||
+											  stack.top().name == naobi::command::names::DIV ))
+					{
+						commands.emplace_back(stack.top());
+						stack.pop();
+					}
+					stack.push(createCommand(*it == "+" ? naobi::command::names::ADD : naobi::command::names::SUB, {}));
+				}
+				else if (*it == "*" || *it == "/")
+				{
+					while (!stack.empty() && (stack.top().name == naobi::command::names::MUL ||
+											  stack.top().name == naobi::command::names::DIV))
+					{
+						commands.emplace_back(stack.top());
+						stack.pop();
+					}
+					stack.push(createCommand(*it == "*" ? naobi::command::names::MUL : naobi::command::names::DIV, {}));
+				}
+				else
+				{
+					LOG(processExpression, logger::CRITICAL, "CRITICAL Bad operator '", *it, "'");
+					std::exit(EXIT_FAILURE);
+				}
+			}
+			else if ((it + 1) != words.cend() && *(it + 1) == "(")
 			{
 				auto func = _module->findFunction(*it);
 				if (func == nullptr)
@@ -266,16 +314,31 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 				commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {*it}));
 				it = findEndBracket(it, words.end());
 			}
-			else if (isOperation(*it))
+
+			else if (*it == "(" || *it == ")")
 			{
-				if (*it == "+")
+				if (*it == "(")
 				{
-					while (!stack.empty() && stack.top().name == naobi::command::names::ADD)
+					stack.push(code_generator::createCommand(naobi::command::names::NOPE, {}));
+				}
+				else
+				{
+					bool isBracket = false;
+					while (!stack.empty())
 					{
+						if (stack.top().name == naobi::command::names::NOPE)
+						{
+							stack.pop();
+							isBracket = true;
+						}
 						commands.emplace_back(stack.top());
 						stack.pop();
 					}
-					stack.push(createCommand(naobi::command::names::ADD, {}));
+					if (!isBracket)
+					{
+						LOG(processExpression, logger::CRITICAL, "CRITICAL brackets in ", words, " are not correct");
+						std::exit(EXIT_FAILURE);
+					}
 				}
 			}
 			else

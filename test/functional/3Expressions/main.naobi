@@ -4,6 +4,15 @@ workflow main
 target onBegin
 {
     integer a = 5, b = 3;
-    a = a + b + input();
+    a = b / 3 + a - b * 4;
+    println(a);
+    a = input();
+    b = input();
+    println(a + b);
+    println(a - b);
+    println(a * b);
+    println(a / b);
+
+    a = b * (a + b);
     println(a);
 }
