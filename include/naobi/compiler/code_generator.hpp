@@ -28,6 +28,8 @@ namespace naobi
 		static bool isNumber(const std::string& string);
 		static bool isLiteral(const std::string& string);
 		static bool isOperation(const std::string& string);
+		static bool isBoolean(const std::string& string);
+		static bool isString(const std::string& string);
 
 		void processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
 

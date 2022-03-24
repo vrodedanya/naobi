@@ -11,7 +11,7 @@ namespace naobi
 	class variable
 	{
 	public:
-		using variable_type = std::variant<int>;
+		using variable_type = std::variant<int, bool>;
 		using uptr = std::unique_ptr<variable>;
 		using sptr = std::shared_ptr<variable>;
 
@@ -19,6 +19,7 @@ namespace naobi
 		{
 			UNDEFINED,
 			INTEGER,
+			BOOLEAN,
 		};
 	public:
 		variable(std::string name, Type type);
@@ -47,6 +48,11 @@ namespace naobi
 	naobi::variable::sptr operator -= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
 	naobi::variable::sptr operator *= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
 	naobi::variable::sptr operator /= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+
+	naobi::variable::sptr operator == (const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+	bool operator == (const naobi::variable::sptr& var1, bool var2);
+	bool operator != (const naobi::variable::sptr& var1, bool var2);
+
 
 	std::ostream& operator << (std::ostream& os, const naobi::variable& var);
 

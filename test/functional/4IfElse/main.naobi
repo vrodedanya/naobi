@@ -1,0 +1,13 @@
+import standard;
+
+workflow main
+target onBegin
+{
+    integer first = 0, second = 0;
+    boolean third = false, check = third;
+    if (third == check == third)
+    {
+        println(third);
+        println(first);
+    }
+}

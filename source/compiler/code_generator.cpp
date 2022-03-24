@@ -1,6 +1,7 @@
 #include <naobi/compiler/code_generator.hpp>
 
 #include <naobi/utils/logger.hpp>
+#include <utility>
 #include <naobi/interpreter/workflow_context.hpp>
 #include <naobi/utils/keywords.hpp>
 
@@ -100,6 +101,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		auto type = static_cast<naobi::variable::Type>(std::stoi(arguments[0]));
 		auto var = std::make_shared<naobi::variable>("temp", type);
 		if (type == naobi::variable::Type::INTEGER) var->value() = std::stoi(arguments[1]);
+		else if (type == naobi::variable::Type::BOOLEAN) var->value() = (arguments[1] == "true");
 		context->stack.push(var);
 	}},
 	{naobi::command::names::PRINTLN,
@@ -143,14 +145,28 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		auto it = context->workflow->module()->findFunction(arguments[0]);
 		context->ip = it->commands().begin();
 	}},
+	{naobi::command::names::JUMP,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments)
+	{
+		if (context->stack.top() != true)
+			context->ip += std::stoi(arguments[0]);
+	}},
 	{naobi::command::names::NOPE,
 	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+	}},
+	{naobi::command::names::EQ,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto first = context->stack.top();
+		context->stack.pop();
+		auto second = context->stack.top();
+		context->stack.pop();
+		context->stack.push(first == second);
 	}},
 };
 
 
 naobi::code_generator::code_generator(naobi::module::sptr module) :
-	_module(module),
+	_module(std::move(module)),
 	_generatorRules(
 {
 	// Variable creating logic
@@ -163,6 +179,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 		std::for_each(wordsTemp.begin(), wordsTemp.end(), [](auto& elem) {elem = naobi::parser::removeSym(elem, ',');});
 		wordsTemp = naobi::parser::removeEmpty(wordsTemp);
 		if (wordsTemp[0] == "integer") type = naobi::variable::Type::INTEGER;
+		else if (wordsTemp[0] == "boolean") type = naobi::variable::Type::BOOLEAN;
 		else type = naobi::variable::Type::UNDEFINED;
 
 		auto it = wordsTemp.begin() + 1;
@@ -176,7 +193,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 			auto var = std::make_shared<naobi::variable>(*it, type);
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
-							naobi::command::names::NEW,{*it, std::to_string(static_cast<int>(type))}));
+							naobi::command::names::NEW, {*it, std::to_string(static_cast<int>(type))}));
 			it++;
 			if (it == wordsTemp.cend() || *it != "=")
 			{
@@ -189,9 +206,21 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 				LOG(code_generator, logger::CRITICAL, "CRITICAL '", *(it - 1), "' has empty literal");
 				std::exit(1);
 			}
-			commands.emplace_back(
-					naobi::code_generator::createCommand(
-							naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), *it}));
+			if (!isLiteral(*it))
+			{
+				if (_variablesTemp.find(*it) == _variablesTemp.cend())
+				{
+					LOG(code_generator, logger::CRITICAL, "CRITICAL '", *it, "' doesn't exist");
+					std::exit(1);
+				}
+				commands.emplace_back(createCommand(naobi::command::names::LOAD, {*it}));
+			}
+			else
+			{
+				commands.emplace_back(
+						naobi::code_generator::createCommand(
+								naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), *it}));
+			}
 			// TODO add assigning value for providing some checks in compile time
 			commands.emplace_back(
 					naobi::code_generator::createCommand(
@@ -201,9 +230,32 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 		}
 
 	}},
+	// If else statement
+	{[](const std::vector<std::string>& words) -> bool{
+		return words[0] == "if" && words[1] == "(";
+	},
+	[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+		LOG(code_generator, logger::LOW, "Words:\n", words);
+		auto bodyIt = findEndBracket(words.begin() + 1, words.end());
+		processExpression(std::vector<std::string>(words.begin() + 2 , bodyIt), commands);
+
+		std::string codeBlock = *(bodyIt + 1);
+		codeBlock = naobi::parser::removeFirstSym(codeBlock.substr(1, codeBlock.size() - 2), ' ');
+		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
+		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
+		lines = naobi::parser::removeEmpty(lines);
+		auto tempCommands = generate(lines);
+		std::size_t tempCommandsSize = tempCommands.size();
+		commands.emplace_back(createCommand(naobi::command::names::JUMP, {std::to_string(tempCommandsSize)}));
+		for (const auto& command : tempCommands)
+		{
+			commands.push_back(command);
+		}
+
+	}},
 	// Function calling
 	{[](const std::vector<std::string>& words) -> bool{
-		return words[1] == "(" && std::find(words.begin() + 2, words.end(), ")") != words.end();
+		return words[1] == "(" && std::find(words.begin() + 2, words.end(), ")") != words.end() && !keywords::check(words[0]);
 	},
 	 [this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		auto it = _module->findFunction(words[0]);
@@ -248,7 +300,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 
 bool naobi::code_generator::isLiteral(const std::string &string)
 {
-	return isNumber(string) || (string.front() == '"' && string.back() == '"');
+	return isNumber(string) || isString(string) || isBoolean(string);
 }
 
 bool naobi::code_generator::isNumber(const std::string &string)
@@ -258,6 +310,17 @@ bool naobi::code_generator::isNumber(const std::string &string)
 	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem){return isdigit(elem) || elem == '.';});
 	return (string[0] == '-' && isAllNumbers) || (isAllNumbers && std::isdigit(string[0]));
 }
+
+bool naobi::code_generator::isString(const std::string &string)
+{
+	return string.front() == '"' && string.back() == '"';
+}
+
+bool naobi::code_generator::isBoolean(const std::string &string)
+{
+	return string == "true" || string == "false";
+}
+
 
 void
 naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
@@ -271,7 +334,21 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		{
 			if (isOperation(*it))
 			{
-				if (*it == "+" || *it == "-")
+				if (*it == "=" && *(it + 1) == "=")
+				{
+					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
+											  stack.top().name == naobi::command::names::SUB ||
+											  stack.top().name == naobi::command::names::MUL ||
+											  stack.top().name == naobi::command::names::DIV ||
+											  stack.top().name == naobi::command::names::EQ))
+					{
+						commands.emplace_back(stack.top());
+						stack.pop();
+					}
+					stack.push(createCommand(naobi::command::names::EQ, {}));
+					it++;
+				}
+				else if (*it == "+" || *it == "-")
 				{
 					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
 											  stack.top().name == naobi::command::names::SUB ||
@@ -369,5 +446,6 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 
 bool naobi::code_generator::isOperation(const std::string &string)
 {
-	return std::string("+-*/").find(string) != std::string::npos;
+	return std::string("+-*/=").find(string) != std::string::npos;
 }
+

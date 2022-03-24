@@ -2,7 +2,7 @@
 #define NAOBI_KEYWORDS_HPP
 
 #include <string>
-#include <vector>
+#include <array>
 
 namespace naobi
 {
@@ -12,15 +12,17 @@ namespace naobi
 		static inline bool check(const std::string& word);
 		static inline bool checkIsType(const std::string& word);
 	private:
-		static inline std::vector<std::string> _keywords = {
+		static inline std::array<std::string, 6> _keywords = {
 			"workflow",
 			"target",
 			"invoke",
 			"function",
 			"const",
+			"if",
 		};
-		static inline std::vector<std::string> _types = {
+		static inline std::array<std::string, 2> _types = {
 			"integer",
+			"boolean",
 		};
 	};
 

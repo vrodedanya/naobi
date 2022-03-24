@@ -19,6 +19,7 @@ namespace naobi
 			SUB,
 			MUL,
 			DIV,
+			EQ,
 			LOAD, // 1 - number
 			SAVE, // 1 - number
 			PLACE, // 1 - value, type
@@ -27,6 +28,7 @@ namespace naobi
 			INPUT,
 			RETURN,
 			CALL, // function name
+			JUMP,
 			NOPE,
 		};
 
