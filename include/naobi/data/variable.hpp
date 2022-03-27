@@ -6,33 +6,28 @@
 #include <memory>
 #include <variant>
 
+#include "naobi/utils/type.hpp"
+
 namespace naobi
 {
 	class variable
 	{
 	public:
-		using variable_type = std::variant<int, bool>;
 		using uptr = std::unique_ptr<variable>;
 		using sptr = std::shared_ptr<variable>;
 
-		enum class Type
-		{
-			UNDEFINED,
-			INTEGER,
-			BOOLEAN,
-		};
 	public:
-		variable(std::string name, Type type);
+		variable(std::string name, utils::type::names type);
 
 		variable& operator = (const variable& var);
 
 		[[nodiscard]] std::string name() const {return _name;}
 
-		[[nodiscard]] Type type() const {return _type;}
+		[[nodiscard]] utils::type::names type() const {return _type;}
 
-		variable_type& value(){return _value;}
+		utils::type::variable_type& value(){return _value;}
 
-		[[nodiscard]] const variable_type& value() const {return _value;}
+		[[nodiscard]] const utils::type::variable_type& value() const {return _value;}
 
 		naobi::variable::sptr copy();
 
@@ -40,8 +35,8 @@ namespace naobi
 		friend std::ostream& operator << (std::ostream& os, const naobi::variable& var);
 
 		std::string _name;
-		variable_type _value{};
-		Type _type{Type::INTEGER};
+		utils::type::variable_type _value{};
+		utils::type::names _type{utils::type::names::INTEGER};
 	};
 
 	naobi::variable::sptr operator += (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);

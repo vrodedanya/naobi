@@ -216,7 +216,7 @@ _rules(
 
 		std::string codeBlock = line.back().substr(1, line.back().size() - 2);
 		codeBlock = naobi::parser::removeFirstSym(codeBlock, ' ');
-		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
+		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";", "}"}, {}));
 		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
 		lines = naobi::parser::removeEmpty(lines);
 		naobi::code_generator generator(module);

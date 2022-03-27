@@ -83,7 +83,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 			}},
 	{naobi::command::names::NEW,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto type = static_cast<naobi::variable::Type>(std::stoi(arguments[1]));
+		auto type = utils::type::toType(arguments[1]);
 		auto var = std::make_shared<naobi::variable>(arguments[0], type);
 		context->variables[var->name()] = var;
 	}},
@@ -98,10 +98,9 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	}},
 	{naobi::command::names::PLACE,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto type = static_cast<naobi::variable::Type>(std::stoi(arguments[0]));
+		auto type = utils::type::toType(arguments[0]);
 		auto var = std::make_shared<naobi::variable>("temp", type);
-		if (type == naobi::variable::Type::INTEGER) var->value() = std::stoi(arguments[1]);
-		else if (type == naobi::variable::Type::BOOLEAN) var->value() = (arguments[1] == "true");
+		var->value() = utils::type::getValueFrom(type, arguments[1]);
 		context->stack.push(var);
 	}},
 	{naobi::command::names::PRINTLN,
@@ -120,17 +119,10 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
 		std::string str;
 		std::cin >> str;
-		naobi::variable::Type type;
-		if (naobi::code_generator::isNumber(str))
-		{
-			type = naobi::variable::Type::INTEGER;
-		}
-		if (type == naobi::variable::Type::INTEGER)
-		{
-			auto var = std::make_shared<naobi::variable>("temp", type);
-			var->value() = std::stoi(str);
-			context->stack.push(var);
-		}
+		utils::type::names type = utils::type::checkTypeFromInput(str);
+		auto var = std::make_shared<naobi::variable>("temp", type);
+		var->value() = utils::type::getValueFrom(type, str);
+		context->stack.push(var);
 	}},
 	{naobi::command::names::RETURN,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
@@ -165,22 +157,20 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 };
 
 
-naobi::code_generator::code_generator(naobi::module::sptr module) :
+naobi::code_generator::code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp) :
 	_module(std::move(module)),
+	_variablesTemp(variablesTemp),
 	_generatorRules(
 {
 	// Variable creating logic
 	{[](const std::vector<std::string>& words) -> bool{
-		return naobi::keywords::checkIsType(words[0]);
+		return utils::type::fromStringToName(words[0]) != utils::type::names::UNDEFINED;
 	},
 	 [this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		naobi::variable::Type type;
 		std::vector<std::string> wordsTemp = words;
 		std::for_each(wordsTemp.begin(), wordsTemp.end(), [](auto& elem) {elem = naobi::parser::removeSym(elem, ',');});
 		wordsTemp = naobi::parser::removeEmpty(wordsTemp);
-		if (wordsTemp[0] == "integer") type = naobi::variable::Type::INTEGER;
-		else if (wordsTemp[0] == "boolean") type = naobi::variable::Type::BOOLEAN;
-		else type = naobi::variable::Type::UNDEFINED;
+		utils::type::names type = utils::type::fromStringToName(wordsTemp[0]);
 
 		auto it = wordsTemp.begin() + 1;
 		while (it != wordsTemp.cend())
@@ -201,13 +191,13 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 				std::exit(1);
 			}
 			it++;
-			if (it == wordsTemp.cend()) // TODO add checking is literal
+			if (it == wordsTemp.cend())
 			{
 				LOG(code_generator, logger::CRITICAL, "CRITICAL '", *(it - 1), "' has empty literal");
 				std::exit(1);
 			}
-			if (!isLiteral(*it))
-			{
+			if (!utils::type::isLiteral(*it))
+			{ // TODO for type safety need to check type of loading variable
 				if (_variablesTemp.find(*it) == _variablesTemp.cend())
 				{
 					LOG(code_generator, logger::CRITICAL, "CRITICAL '", *it, "' doesn't exist");
@@ -217,9 +207,18 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 			}
 			else
 			{
-				commands.emplace_back(
-						naobi::code_generator::createCommand(
-								naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), *it}));
+				if (utils::type::validate(*it, type))
+				{
+					commands.emplace_back(
+							naobi::code_generator::createCommand(
+									naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), *it}));
+				}
+				else
+				{
+					LOG(code_generator, logger::CRITICAL, "CRITICAL variable type ('", utils::type::fromNameToString(type),
+						"') is not matching literal type which is '", utils::type::fromNameToString(utils::type::checkType(*it)), "'");
+					std::exit(1);
+				}
 			}
 			// TODO add assigning value for providing some checks in compile time
 			commands.emplace_back(
@@ -241,7 +240,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 
 		std::string codeBlock = *(bodyIt + 1);
 		codeBlock = naobi::parser::removeFirstSym(codeBlock.substr(1, codeBlock.size() - 2), ' ');
-		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";"}, {}));
+		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";", "}"}, {}));
 		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
 		lines = naobi::parser::removeEmpty(lines);
 		auto tempCommands = generate(lines);
@@ -279,8 +278,6 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 			std::exit(1);
 		}
 
-		// todo expression handler
-		naobi::variable::Type type = naobi::variable::Type::INTEGER; // TODO checking type of result variable
 		if (_variablesTemp.find(words[0]) == _variablesTemp.cend())
 		{
 			LOG(code_generator, logger::CRITICAL, "CRITICAL '", words[0], "' doesn't exist");
@@ -288,49 +285,24 @@ naobi::code_generator::code_generator(naobi::module::sptr module) :
 		}
 		processExpression(std::vector<std::string>(words.begin() + 2, words.end()), commands);
 		// todo check function and it returns value
-			commands.emplace_back(
-					naobi::code_generator::createCommand(
-							naobi::command::names::SAVE, {words[0]}));
+		commands.emplace_back(
+				naobi::code_generator::createCommand(
+						naobi::command::names::SAVE, {words[0]}));
 	}},
 }
 )
 {
-
 }
-
-bool naobi::code_generator::isLiteral(const std::string &string)
-{
-	return isNumber(string) || isString(string) || isBoolean(string);
-}
-
-bool naobi::code_generator::isNumber(const std::string &string)
-{
-	if (string.empty()) return false;
-	if (string.size() == 1) return std::isdigit(string[0]);
-	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem){return isdigit(elem) || elem == '.';});
-	return (string[0] == '-' && isAllNumbers) || (isAllNumbers && std::isdigit(string[0]));
-}
-
-bool naobi::code_generator::isString(const std::string &string)
-{
-	return string.front() == '"' && string.back() == '"';
-}
-
-bool naobi::code_generator::isBoolean(const std::string &string)
-{
-	return string == "true" || string == "false";
-}
-
 
 void
 naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
 {
 	std::stack<naobi::command> stack;
 	LOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
-	for (auto it = words.cbegin() ; it != words.cend() ; it++)
+	for (auto it = words.cbegin(); it != words.cend(); it++)
 	{
 		LOG(processExpression, logger::IMPORTANT, "Word: ", *it);
-		if (!isLiteral(*it))
+		if (!utils::type::isLiteral(*it))
 		{
 			if (isOperation(*it))
 			{
@@ -353,7 +325,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
 											  stack.top().name == naobi::command::names::SUB ||
 											  stack.top().name == naobi::command::names::MUL ||
-											  stack.top().name == naobi::command::names::DIV ))
+											  stack.top().name == naobi::command::names::DIV))
 					{
 						commands.emplace_back(stack.top());
 						stack.pop();
@@ -391,7 +363,6 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 				commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {*it}));
 				it = findEndBracket(it, words.end());
 			}
-
 			else if (*it == "(" || *it == ")")
 			{
 				if (*it == "(")
@@ -430,10 +401,9 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		}
 		else
 		{
-			if (isNumber(*it))
-			{
-				commands.emplace_back(code_generator::createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(naobi::variable::Type::INTEGER)), *it}));
-			}
+			utils::type::names type = utils::type::checkType(*it);
+			commands.emplace_back(
+					createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), *it}));
 		}
 	}
 	while (!stack.empty())
@@ -441,11 +411,4 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		commands.emplace_back(stack.top());
 		stack.pop();
 	}
-
 }
-
-bool naobi::code_generator::isOperation(const std::string &string)
-{
-	return std::string("+-*/=").find(string) != std::string::npos;
-}
-

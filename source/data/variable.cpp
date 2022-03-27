@@ -2,34 +2,40 @@
 
 #include "naobi/utils/logger.hpp"
 
-naobi::variable::variable(std::string name, naobi::variable::Type type) :
+naobi::variable::variable(std::string name, utils::type::names type) :
 	_name(std::move(name)),
 	_type(type)
 {
 	switch (_type)
 	{
-		case Type::INTEGER:
+		case utils::type::names::INTEGER:
 			_value = 0;
 			break;
-		case Type::BOOLEAN:
+		case utils::type::names::BOOLEAN:
 			_value = false;
 			break;
-		case Type::UNDEFINED:
+		case utils::type::names::STRING:
+			_value = "";
+			break;
+		case utils::type::names::FLOAT:
+			_value = 0.0;
+			break;
+		case utils::type::names::UNDEFINED:
 		default:
-			LOG(varible.constructor, logger::CRITICAL, "CRITICAL VARIABLE WITH UNDEFINED TYPE");
+			LOG(varible.constructor, logger::CRITICAL, "CRITICAL variable with undefined type");
 			std::exit(1);
 	}
 }
 
 naobi::variable::sptr naobi::operator+=(naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
 {
-	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	if (variable1->type() == utils::type::names::INTEGER && variable1->type() == variable2->type())
 	{
 		int a = std::get<int>(variable1->value()) + std::get<int>(variable2->value());
 		variable1->value() = a;
 		return variable1;
 	}
-	else if (variable1->type() == variable::Type::BOOLEAN && variable1->type() == variable2->type())
+	else if (variable1->type() == utils::type::names::BOOLEAN && variable1->type() == variable2->type())
 	{
 		int a = std::get<bool>(variable1->value()) + std::get<bool>(variable2->value());
 		variable1->value() = a;
@@ -39,13 +45,13 @@ naobi::variable::sptr naobi::operator+=(naobi::variable::sptr& variable1, const 
 }
 naobi::variable::sptr naobi::operator -= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
 {
-	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	if (variable1->type() == utils::type::names::INTEGER && variable1->type() == variable2->type())
 	{
 		int a = std::get<int>(variable1->value()) - std::get<int>(variable2->value());
 		variable1->value() = a;
 		return variable1;
 	}
-	else if (variable1->type() == variable::Type::BOOLEAN && variable1->type() == variable2->type())
+	else if (variable1->type() == utils::type::names::BOOLEAN && variable1->type() == variable2->type())
 	{
 		int a = std::get<bool>(variable1->value()) - std::get<bool>(variable2->value());
 		variable1->value() = a;
@@ -56,13 +62,13 @@ naobi::variable::sptr naobi::operator -= (naobi::variable::sptr& variable1, cons
 
 naobi::variable::sptr naobi::operator *= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
 {
-	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	if (variable1->type() == utils::type::names::INTEGER && variable1->type() == variable2->type())
 	{
 		int a = std::get<int>(variable1->value()) * std::get<int>(variable2->value());
 		variable1->value() = a;
 		return variable1;
 	}
-	else if (variable1->type() == variable::Type::BOOLEAN && variable1->type() == variable2->type())
+	else if (variable1->type() == utils::type::names::BOOLEAN && variable1->type() == variable2->type())
 	{
 		int a = std::get<bool>(variable1->value()) * std::get<bool>(variable2->value());
 		variable1->value() = a;
@@ -73,13 +79,13 @@ naobi::variable::sptr naobi::operator *= (naobi::variable::sptr& variable1, cons
 
 naobi::variable::sptr naobi::operator /= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
 {
-	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	if (variable1->type() == utils::type::names::INTEGER && variable1->type() == variable2->type())
 	{
 		int a = std::get<int>(variable1->value()) / std::get<int>(variable2->value());
 		variable1->value() = a;
 		return variable1;
 	}
-	else if (variable1->type() == variable::Type::BOOLEAN && variable1->type() == variable2->type())
+	else if (variable1->type() == utils::type::names::BOOLEAN && variable1->type() == variable2->type())
 	{
 		int a = std::get<bool>(variable1->value()) / std::get<bool>(variable2->value());
 		variable1->value() = a;
@@ -90,15 +96,15 @@ naobi::variable::sptr naobi::operator /= (naobi::variable::sptr& variable1, cons
 
 naobi::variable::sptr naobi::operator == (const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
 {
-	if (variable1->type() == variable::Type::INTEGER && variable1->type() == variable2->type())
+	if (variable1->type() == utils::type::names::INTEGER && variable1->type() == variable2->type())
 	{
-		auto var = std::make_shared<naobi::variable>("temp", variable::Type::BOOLEAN);
+		auto var = std::make_shared<naobi::variable>("temp", utils::type::names::BOOLEAN);
 		var->value() = std::get<int>(variable1->value()) == std::get<int>(variable2->value());
 		return var;
 	}
-	else if (variable1->type() == variable::Type::BOOLEAN && variable1->type() == variable2->type())
+	else if (variable1->type() == utils::type::names::BOOLEAN && variable1->type() == variable2->type())
 	{
-		auto var = std::make_shared<naobi::variable>("temp", variable::Type::BOOLEAN);
+		auto var = std::make_shared<naobi::variable>("temp", utils::type::names::BOOLEAN);
 		var->value() = std::get<bool>(variable1->value()) == std::get<bool>(variable2->value());
 		return var;
 	}
@@ -107,7 +113,7 @@ naobi::variable::sptr naobi::operator == (const naobi::variable::sptr& variable1
 
 bool naobi::operator == (const naobi::variable::sptr& var1, bool var2)
 {
-	if (var1->type() == variable::Type::BOOLEAN)
+	if (var1->type() == utils::type::names::BOOLEAN)
 	{
 		return std::get<bool>(var1->value()) == var2;
 	}
@@ -123,13 +129,22 @@ bool naobi::operator != (const naobi::variable::sptr& var1, bool var2)
 
 std::ostream& naobi::operator << (std::ostream& os, const naobi::variable& var)
 {
-	if (var._type == naobi::variable::Type::INTEGER)
+	if (var._type == naobi::utils::type::names::INTEGER)
 	{
 		os << std::get<int>(var._value);
 	}
-	else if (var._type == naobi::variable::Type::BOOLEAN)
+	else if (var._type == naobi::utils::type::names::BOOLEAN)
 	{
 		os << std::boolalpha << std::get<bool>(var._value);
+	}
+	else if (var._type == naobi::utils::type::names::STRING)
+	{
+		std::string val = std::get<std::string>(var._value);
+		os << std::boolalpha << std::string_view(val).substr(1, val.size() - 2);
+	}
+	else if (var._type == naobi::utils::type::names::FLOAT)
+	{
+		os << std::boolalpha << std::get<double>(var._value);
 	}
 	else
 	{

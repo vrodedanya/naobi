@@ -15,6 +15,7 @@ set(NAOBI_SOURCES
         source/data/function.cpp
         source/data/variable.cpp
         source/data/workflow.cpp
+        source/utils/type.cpp
         source/utils/arguments.cpp
         source/standard/standard_module.cpp)
 

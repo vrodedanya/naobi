@@ -19,18 +19,14 @@ namespace naobi
 				std::function<void(const std::vector<std::string>& words, std::vector<naobi::command>& commands)>>;
 
 	public:
-		explicit code_generator(naobi::module::sptr module);
+		explicit code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp = std::map<std::string, variable::sptr>());
 
 		std::vector<naobi::command> generate(const std::vector<std::string>& line);
 		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
 
-	private:
-		static bool isNumber(const std::string& string);
-		static bool isLiteral(const std::string& string);
-		static bool isOperation(const std::string& string);
-		static bool isBoolean(const std::string& string);
-		static bool isString(const std::string& string);
+		static bool isOperation(const std::string& string){return std::string("+-*/=").find(string) != std::string::npos;}
 
+	private:
 		void processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
 
 		template<typename ITERATOR>
@@ -38,9 +34,8 @@ namespace naobi
 
 	private:
 		naobi::module::sptr _module;
-		std::vector<generatorRule> _generatorRules; // rules to generate code
-
 		std::map<std::string, variable::sptr> _variablesTemp;
+		std::vector<generatorRule> _generatorRules; // rules to generate code
 
 		static std::map<command::names, command::implementation> _commands; // commands implementation
 	};
