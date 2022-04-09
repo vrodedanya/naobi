@@ -154,6 +154,46 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		context->stack.pop();
 		context->stack.push(first == second);
 	}},
+	{naobi::command::names::GREATER,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto first = context->stack.top();
+		context->stack.pop();
+		auto second = context->stack.top();
+		context->stack.pop();
+		context->stack.push(second > first);
+	}},
+	{naobi::command::names::LESS,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto first = context->stack.top();
+		context->stack.pop();
+		auto second = context->stack.top();
+		context->stack.pop();
+		context->stack.push(second < first);
+	}},
+	{naobi::command::names::GREATER_OR_EQ,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto first = context->stack.top();
+		context->stack.pop();
+		auto second = context->stack.top();
+		context->stack.pop();
+		context->stack.push(second >= first);
+	}},
+	{naobi::command::names::LESS_OR_EQ,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto first = context->stack.top();
+		context->stack.pop();
+		auto second = context->stack.top();
+		context->stack.pop();
+		context->stack.push(second <= first);
+	}},
+	{naobi::command::names::NOT_EQ,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto first = context->stack.top();
+		context->stack.pop();
+		auto second = context->stack.top();
+		context->stack.pop();
+		context->stack.push(second != first);
+	}},
 };
 
 
@@ -209,9 +249,14 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			{
 				if (utils::type::validate(*it, type))
 				{
+					std::string value = *it;
+					if (type == utils::type::names::STRING)
+					{
+						value = value.substr(1, value.size() - 2);
+					}
 					commands.emplace_back(
 							naobi::code_generator::createCommand(
-									naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), *it}));
+									naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), value}));
 				}
 				else
 				{
@@ -306,19 +351,52 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		{
 			if (isOperation(*it))
 			{
-				if (*it == "=" && *(it + 1) == "=")
+				if ((*it == "=" && *(it + 1) == "=") || *it == "<" || *it == ">" || (*it == "<" && *(it + 1) == "=") ||
+					(*it == ">" && *(it + 1) == "=") || (*it == "!" && *(it + 1) == "="))
 				{
 					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
 											  stack.top().name == naobi::command::names::SUB ||
 											  stack.top().name == naobi::command::names::MUL ||
 											  stack.top().name == naobi::command::names::DIV ||
-											  stack.top().name == naobi::command::names::EQ))
+											  stack.top().name == naobi::command::names::EQ ||
+											  stack.top().name == naobi::command::names::GREATER ||
+											  stack.top().name == naobi::command::names::LESS ||
+											  stack.top().name == naobi::command::names::GREATER_OR_EQ ||
+											  stack.top().name == naobi::command::names::LESS_OR_EQ ||
+											  stack.top().name == naobi::command::names::NOT_EQ
+											  ))
 					{
 						commands.emplace_back(stack.top());
 						stack.pop();
 					}
-					stack.push(createCommand(naobi::command::names::EQ, {}));
-					it++;
+					if (*it == "=" && *(it + 1) == "=")
+					{
+						stack.push(createCommand(command::names::EQ, {}));
+						it++;
+					}
+					else if (*it == "<" && *(it + 1) == "=")
+					{
+						stack.push(createCommand(command::names::LESS_OR_EQ, {}));
+						it++;
+					}
+					else if (*it == ">" && *(it + 1) == "=")
+					{
+						stack.push(createCommand(command::names::GREATER_OR_EQ, {}));
+						it++;
+					}
+					else if (*it == "!" && *(it + 1) == "=")
+					{
+						stack.push(createCommand(command::names::NOT_EQ, {}));
+						it++;
+					}
+					else if (*it == ">")
+					{
+						stack.push(createCommand(command::names::GREATER, {}));
+					}
+					else if (*it == "<")
+					{
+						stack.push(createCommand(command::names::LESS, {}));
+					}
 				}
 				else if (*it == "+" || *it == "-")
 				{

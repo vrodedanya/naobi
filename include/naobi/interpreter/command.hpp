@@ -20,6 +20,11 @@ namespace naobi
 			MUL,
 			DIV,
 			EQ,
+			GREATER,
+			LESS,
+			GREATER_OR_EQ,
+			LESS_OR_EQ,
+			NOT_EQ,
 			LOAD, // 1 - number
 			SAVE, // 1 - number
 			PLACE, // 1 - value, type
