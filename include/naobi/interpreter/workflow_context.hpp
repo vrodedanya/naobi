@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 #include <memory>
+#include <chrono>
 
 #include <naobi/data/workflow.hpp>
 #include <naobi/data/variable.hpp>
@@ -21,6 +22,7 @@ namespace naobi
 		std::stack<std::vector<command>::const_iterator> returnPoints;
 		std::vector<command>::const_iterator ip;
 		naobi::workflow::sptr workflow;
+		std::chrono::system_clock::time_point beginClock;
 	};
 }
 

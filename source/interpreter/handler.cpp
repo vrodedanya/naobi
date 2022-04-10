@@ -1,4 +1,5 @@
 #include <naobi/interpreter/handler.hpp>
+#include <iostream>
 
 naobi::handler::handler(const naobi::composition& composition)
 {
@@ -13,12 +14,22 @@ naobi::handler::handler(const naobi::composition& composition)
 
 void naobi::handler::execute()
 {
-	for (auto& context : _contexts)
+	for (auto context = _contexts.begin() ; !_contexts.empty(); context++)
 	{
-		while (context->ip != context->workflow->commands().cend())
+		if (context == _contexts.end()) context = _contexts.begin();
+		(*context)->beginClock = std::chrono::system_clock::now();
+
+		while (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - (*context)->beginClock).count() < MAX_TIME_PER_CONTEXT)
 		{
-			context->ip->impl(context, context->ip->arguments);
-			context->ip++;
+			if ((*context)->ip == (*context)->workflow->commands().cend())
+			{
+				_contexts.erase(context);
+				break;
+			}
+
+			(*context)->ip->impl(*context, (*context)->ip->arguments);
+			(*context)->ip++;
+			//std::cout << "Time: " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - (*context)->beginClock).count() << std::endl;
 		}
 	}
 }

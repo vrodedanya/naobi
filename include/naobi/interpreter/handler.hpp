@@ -13,6 +13,8 @@ namespace naobi
 		void execute();
 	private:
 		std::vector<naobi::workflow_context::sptr> _contexts;
+
+		const int MAX_TIME_PER_CONTEXT = 50;
 	};
 }
 
