@@ -1,33 +1,45 @@
 #include <naobi/compiler/code_generator.hpp>
 
+#include <cstring>
+
 #include <naobi/utils/logger.hpp>
-#include <utility>
 #include <naobi/interpreter/workflow_context.hpp>
 #include <naobi/utils/keywords.hpp>
 
 
-std::vector<naobi::command> naobi::code_generator::generate(const std::vector<std::string> &lines)
+std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::string> lines)
 {
 	LOG(code_generator, naobi::logger::BASIC, "Code lines:\n", lines);
 	std::vector<naobi::command> commands;
 
-	for (const auto& line : lines)
+	for (auto it = lines.begin() ; it != lines.end() ; it++)
 	{
 		auto words = naobi::parser::removeEmpty(
-				naobi::parser::split(line, {" "}, {"+", "-", "*", "/", "=", "(", ")"}));
-		LOG(compiler.processModule, logger::LOW, "words:\n", words);
+				naobi::parser::split(*it, {" "}, {"+", "-", "*", "/", "=", "!", "<", ">", "(", ")"}));
+		LOG(code_generator, logger::LOW, "words:\n", words);
 
 		bool isCompiled = false;
 		for (const auto& rule : _generatorRules)
 		{
 			if (!isCompiled)
+			{
+				if (words[0] == "if" && (it+1) != lines.end() && (it+1)->substr(0, std::strlen("else")) == "else")
+				{
+					auto temp = naobi::parser::removeEmpty(
+							naobi::parser::split(*(it + 1), {" "}, {"+", "-", "*", "/", "=", "!", "<", ">", "(", ")"}));
+					words.insert(words.end(), temp.begin(), temp.end());
+					lines.erase(it + 1);
+				}
 				isCompiled = rule.checkLineAndRun(words, commands);
+			}
 			else
+			{
 				rule.checkLineAndRun(words, commands);
+			}
 		}
 		if (!isCompiled)
 		{
-			LOG(compiler.processModule, logger::CRITICAL, "CRITICAL failed to identify line:\n", line);
+			LOG(compiler.processModule, logger::CRITICAL, "CRITICAL failed to identify line:\n", *it);
 			std::exit(EXIT_FAILURE);
 		}
 	}
@@ -87,7 +99,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		auto var = std::make_shared<naobi::variable>(arguments[0], type);
 		context->variables[var->name()] = var;
 	}},
-	{naobi::command::names::LOAD, // TODO Difficult moment: variable can be load as reference or as copy
+	{naobi::command::names::LOAD,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){ //
 		context->stack.push(context->variables[arguments[0]]->copy());
 	}},
@@ -140,8 +152,15 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	{naobi::command::names::JUMP,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments)
 	{
+		context->ip += std::stoi(arguments[0]);
+	}},
+	{naobi::command::names::IF_JUMP,
+	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments)
+	{
 		if (context->stack.top() != true)
+		{
 			context->ip += std::stoi(arguments[0]);
+		}
 	}},
 	{naobi::command::names::NOPE,
 	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
@@ -194,14 +213,18 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		context->stack.pop();
 		context->stack.push(second != first);
 	}},
+	{naobi::command::names::EXIT,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto top = context->stack.top();
+		std::exit(std::get<int>(top->value()));
+	}},
 };
 
 
 naobi::code_generator::code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp) :
 	_module(std::move(module)),
 	_variablesTemp(variablesTemp),
-	_generatorRules(
-{
+	_generatorRules({
 	// Variable creating logic
 	{[](const std::vector<std::string>& words) -> bool{
 		return utils::type::fromStringToName(words[0]) != utils::type::names::UNDEFINED;
@@ -279,7 +302,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		return words[0] == "if" && words[1] == "(";
 	},
 	[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		LOG(code_generator, logger::LOW, "Words:\n", words);
+		LOG(code_generator, logger::LOW, "if block:\n", words);
 		auto bodyIt = findEndBracket(words.begin() + 1, words.end());
 		processExpression(std::vector<std::string>(words.begin() + 2 , bodyIt), commands);
 
@@ -288,14 +311,41 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";", "}"}, {}));
 		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
 		lines = naobi::parser::removeEmpty(lines);
+
 		auto tempCommands = generate(lines);
 		std::size_t tempCommandsSize = tempCommands.size();
-		commands.emplace_back(createCommand(naobi::command::names::JUMP, {std::to_string(tempCommandsSize)}));
+
+		if (*(bodyIt + 2) == "else")
+		{
+			tempCommandsSize++;
+		}
+
+		commands.emplace_back(createCommand(naobi::command::names::IF_JUMP, {std::to_string(tempCommandsSize)}));
 		for (const auto& command : tempCommands)
 		{
 			commands.push_back(command);
 		}
 
+		if (*(bodyIt + 2) == "else")
+		{
+			std::string elseBlock = *(bodyIt + 3);
+			elseBlock = elseBlock.substr(1, elseBlock.size() - 2);
+			LOG(code_generator, logger::IMPORTANT, "Else block:\n", elseBlock);
+
+			auto elseLines = naobi::parser::removeEmpty(naobi::parser::split(elseBlock, {";", "}"}, {}));
+			std::for_each(elseLines.begin(), elseLines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
+			elseLines = naobi::parser::removeEmpty(elseLines);
+
+			LOG(code_generator, logger::IMPORTANT, "Else lines:\n", elseLines);
+
+			auto tempElseCommands = generate(elseLines);
+			std::size_t tempElseCommandsSize = tempElseCommands.size();
+			commands.emplace_back(createCommand(naobi::command::names::JUMP, {std::to_string(tempElseCommandsSize)}));
+			for (const auto& command : tempElseCommands)
+			{
+				commands.push_back(command);
+			}
+		}
 	}},
 	// Function calling
 	{[](const std::vector<std::string>& words) -> bool{
@@ -334,8 +384,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 				naobi::code_generator::createCommand(
 						naobi::command::names::SAVE, {words[0]}));
 	}},
-}
-)
+})
 {
 }
 
@@ -480,8 +529,13 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		else
 		{
 			utils::type::names type = utils::type::checkType(*it);
+			std::string temp = *it;
+			if (type == utils::type::names::STRING)
+			{
+				temp = temp.substr(1, temp.size() - 2);
+			}
 			commands.emplace_back(
-					createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), *it}));
+					createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), temp}));
 		}
 	}
 	while (!stack.empty())

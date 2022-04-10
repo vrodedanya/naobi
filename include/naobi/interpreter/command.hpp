@@ -34,6 +34,8 @@ namespace naobi
 			RETURN,
 			CALL, // function name
 			JUMP,
+			IF_JUMP,
+			EXIT,
 			NOPE,
 		};
 

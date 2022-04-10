@@ -3,9 +3,31 @@ import standard;
 workflow main
 target onBegin
 {
-    integer first = 5, second = 5;
-    if (first != second)
+    float first = 5.0, second = 5.0;
+    if (first == second)
     {
-        println("First is less than second");
+        if (true)
+        {
+            first = first * 5.0;
+            println(first);
+            first = second / first;
+            println(first);
+        }
+        else
+        {
+            println("Ssss");
+        }
     }
+    else
+    {
+        if (false)
+        {
+            println(3);
+        }
+        else
+        {
+            println(4);
+        }
+    }
+    println(first);
 }

@@ -21,7 +21,7 @@ namespace naobi
 	public:
 		explicit code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp = std::map<std::string, variable::sptr>());
 
-		std::vector<naobi::command> generate(const std::vector<std::string>& line);
+		std::vector<naobi::command> generate(std::vector<std::string> line);
 		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
 
 		static bool isOperation(const std::string& string){return std::string("+-*/=<>!").find(string) != std::string::npos;}

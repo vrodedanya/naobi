@@ -22,6 +22,15 @@ naobi::standard::standard() : module("standard")
 		addFunction(function);
 	}
 	{
+		auto function = std::make_shared<naobi::function>("exit");
+		std::vector<naobi::command> commands;
+		commands.emplace_back(code_generator::createCommand(naobi::command::names::NOPE, {}));
+		commands.emplace_back(code_generator::createCommand(naobi::command::names::EXIT, {}));
+		commands.emplace_back(code_generator::createCommand(naobi::command::names::RETURN, {}));
+		function->setCommands(commands);
+		addFunction(function);
+	}
+	{
 		auto function = std::make_shared<naobi::function>("input");
 		std::vector<naobi::command> commands;
 		commands.emplace_back(code_generator::createCommand(naobi::command::names::NOPE, {}));
