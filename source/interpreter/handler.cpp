@@ -20,7 +20,5 @@ void naobi::handler::execute()
 			context->ip->impl(context, context->ip->arguments);
 			context->ip++;
 		}
-
 	}
-
 }

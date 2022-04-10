@@ -15,7 +15,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 	for (auto it = lines.begin() ; it != lines.end() ; it++)
 	{
 		auto words = naobi::parser::removeEmpty(
-				naobi::parser::split(*it, {" "}, {"+", "-", "*", "/", "=", "!", "<", ">", "(", ")"}));
+				naobi::parser::split(*it, {" "}, {"+", "-", "*", "/", "=", "!", "<", ">", "(", ")", ","}));
 		LOG(code_generator, logger::LOW, "words:\n", words);
 
 		bool isCompiled = false;
@@ -154,7 +154,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	{
 		context->ip += std::stoi(arguments[0]);
 	}},
-	{naobi::command::names::IF_JUMP,
+	{naobi::command::names::JUMP_IF,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments)
 	{
 		if (context->stack.top() != true)
@@ -217,6 +217,20 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
 		auto top = context->stack.top();
 		std::exit(std::get<int>(top->value()));
+	}},
+	{naobi::command::names::INC,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto top = context->stack.top();
+		auto var = std::make_shared<naobi::variable>("temp", top->type());
+		var->value() = 1;
+		context->stack.top() += var;
+	}},
+	{naobi::command::names::DEC,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto top = context->stack.top();
+		auto var = std::make_shared<naobi::variable>("temp", top->type());
+		var->value() = 1;
+		context->stack.top() -= var;
 	}},
 };
 
@@ -320,7 +334,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			tempCommandsSize++;
 		}
 
-		commands.emplace_back(createCommand(naobi::command::names::IF_JUMP, {std::to_string(tempCommandsSize)}));
+		commands.emplace_back(createCommand(naobi::command::names::JUMP_IF, {std::to_string(tempCommandsSize)}));
 		for (const auto& command : tempCommands)
 		{
 			commands.push_back(command);
@@ -346,6 +360,41 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 				commands.push_back(command);
 			}
 		}
+	}},
+	{[](const std::vector<std::string>& words) -> bool{
+		return words[0] == "for" && words.size() == 10;
+	},
+	[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+		LOG(code_generator, logger::LOW, "for:\n", words);
+		utils::type::names type = utils::type::fromStringToName(words[1]);
+		commands.push_back(createCommand(command::names::NEW, {words[2], std::to_string(static_cast<int>(type))}));
+		commands.push_back(createCommand(command::names::PLACE, {std::to_string(static_cast<int>(type)), words[5]}));
+		commands.push_back(createCommand(command::names::SAVE, {words[2]}));
+
+		auto var = std::make_shared<naobi::variable>(words[2], type);
+		_variablesTemp[var->name()] = var;
+
+		commands.push_back(createCommand(command::names::LOAD, {words[2]}));
+		commands.push_back(createCommand(command::names::PLACE, {std::to_string(static_cast<int>(type)), words[7]}));
+		commands.push_back(createCommand(command::names::LESS, {}));
+
+		std::string codeBlock = words[9];
+		LOG(code_generator.forBlock, logger::BASIC, "for block:\n", codeBlock);
+
+		codeBlock = naobi::parser::removeFirstSym(codeBlock.substr(1, codeBlock.size() - 2), ' ');
+		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";", "}"}, {}));
+		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
+		lines = naobi::parser::removeEmpty(lines);
+		LOG(code_generator.forBlock, logger::LOW, "for block lines:\n", lines);
+
+		auto tempCommands = generate(lines);
+		commands.push_back(createCommand(command::names::JUMP_IF, {std::to_string(tempCommands.size() + 4)}));
+		commands.insert(commands.cend(), tempCommands.begin(), tempCommands.end());
+		commands.push_back(createCommand(command::names::LOAD, {words[2]}));
+		commands.push_back(createCommand(command::names::INC, {}));
+		commands.push_back(createCommand(command::names::SAVE, {words[2]}));
+		int size = -(8 + static_cast<int>(tempCommands.size()));
+		commands.push_back(createCommand(command::names::JUMP, {std::to_string(size)}));
 	}},
 	// Function calling
 	{[](const std::vector<std::string>& words) -> bool{

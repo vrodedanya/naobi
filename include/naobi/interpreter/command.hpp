@@ -15,6 +15,8 @@ namespace naobi
 		{
 		// CommandName <-> argumentsCount
 			NEW, // 2 - name, type
+			INC,
+			DEC,
 			ADD, // 0
 			SUB,
 			MUL,
@@ -34,7 +36,7 @@ namespace naobi
 			RETURN,
 			CALL, // function name
 			JUMP,
-			IF_JUMP,
+			JUMP_IF,
 			EXIT,
 			NOPE,
 		};
