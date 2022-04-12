@@ -1,0 +1,19 @@
+import standard;
+
+workflow main
+target onBegin
+{
+    for integer i in (0, 10)
+    {
+        println(i);
+    }
+}
+
+workflow second
+target onBegin
+{
+    for integer i in (100, 110)
+    {
+        println(i);
+    }
+}

@@ -22,7 +22,7 @@ namespace naobi
 		std::stack<std::vector<command>::const_iterator> returnPoints;
 		std::vector<command>::const_iterator ip;
 		naobi::workflow::sptr workflow;
-		std::chrono::system_clock::time_point beginClock;
+		std::chrono::high_resolution_clock::time_point beginClock;
 	};
 }
 

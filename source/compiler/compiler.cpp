@@ -8,6 +8,7 @@
 #include <naobi/utils/keywords.hpp>
 #include <naobi/compiler/code_generator.hpp>
 #include <naobi/standard/standard_module.hpp>
+#include <naobi/interpreter/event_manager.hpp>
 
 void naobi::compiler::compile(const std::string &fileName)
 {
@@ -224,6 +225,8 @@ _rules(
 		tempWorkflow->setCommands(commands);
 
 		LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
+
+		event_manager::addWorkflow(target, tempWorkflow);
 
 		this->_composition.workflows.push_back(tempWorkflow);
 	}},

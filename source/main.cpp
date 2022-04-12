@@ -2,6 +2,7 @@
 #include <naobi/utils/logger.hpp>
 #include <naobi/utils/arguments.hpp>
 #include <naobi/interpreter/handler.hpp>
+#include <naobi/interpreter/event_manager.hpp>
 
 int main(int argc, char* argv[])
 {
@@ -24,9 +25,11 @@ int main(int argc, char* argv[])
 		}
 		naobi::compiler compiler;
 		compiler.compile(argv[argc - 1]);
-		auto composition = compiler.getComposition();
+		
+		naobi::event_manager::pushEvent("onBegin");
 
-		naobi::handler handler(composition);
+		naobi::handler handler;
+
 		handler.execute();
 	}
 	return EXIT_SUCCESS;
