@@ -233,7 +233,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		var->value() = 1;
 		context->stack.top() -= var;
 	}},
-	{naobi::command::names::RAISE,
+	{naobi::command::names::ARISE,
 	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
 		event_manager::pushEvent(arguments[0]);
 	}},
@@ -425,10 +425,10 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 	}},
 	// Raise
 	{[](const std::vector<std::string>& words) -> bool{
-		return words[0] == "raise" && words.size() == 2;
+		return words[0] == "arise" && words.size() == 2;
 	},
 	[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		commands.push_back(createCommand(command::names::RAISE, {words[1]}));
+		commands.push_back(createCommand(command::names::ARISE, {words[1]}));
 	}},
 	// Create assignment logic (LOW priority )
 	{[](const std::vector<std::string>& words) -> bool{

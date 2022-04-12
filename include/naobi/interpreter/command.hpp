@@ -40,7 +40,7 @@ namespace naobi
 			JUMP_IF,
 			EXIT,
 			NOPE,
-			RAISE,
+			ARISE,
 		};
 
 		names name;

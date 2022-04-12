@@ -24,8 +24,10 @@ void naobi::handler::execute()
 		{
 			if ((*context)->ip == (*context)->workflow->commands().cend())
 			{
+				auto nextContext = std::next(context);
+				if (nextContext == _contexts.end()) nextContext = _contexts.begin();
 				_contexts.erase(context);
-				context = _contexts.begin();
+				context = nextContext;
 				break;
 			}
 

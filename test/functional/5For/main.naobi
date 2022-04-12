@@ -3,25 +3,21 @@ import standard;
 workflow main
 target onBegin
 {
-    for integer i in (5, 40)
+    for integer i in (0, 10)
     {
-        print(i);
-        if (i % 5 == 0)
+        if (i % 2 == 0)
         {
-            println("");
+            println("Even");
+            arise test;
         }
     }
 }
 
 workflow second
-target onBegin
+target test
 {
-    for integer i in (5, 40)
+    for integer i in (0, 10)
     {
-        print(i);
-        if (i % 5 == 0)
-        {
-            println("");
-        }
+        println(i);
     }
 }
