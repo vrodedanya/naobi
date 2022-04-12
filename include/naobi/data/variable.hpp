@@ -43,6 +43,7 @@ namespace naobi
 	naobi::variable::sptr operator -= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
 	naobi::variable::sptr operator *= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
 	naobi::variable::sptr operator /= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+	naobi::variable::sptr operator %= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
 
 	naobi::variable::sptr operator > (const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
 	naobi::variable::sptr operator < (const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);

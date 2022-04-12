@@ -24,7 +24,7 @@ namespace naobi
 		std::vector<naobi::command> generate(std::vector<std::string> line);
 		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
 
-		static bool isOperation(const std::string& string){return std::string("+-*/=<>!").find(string) != std::string::npos;}
+		static bool isOperation(const std::string& string){return std::string("+-*/=%<>!").find(string) != std::string::npos;}
 
 	private:
 		void processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);

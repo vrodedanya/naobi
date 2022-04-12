@@ -78,22 +78,22 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	}},
 	{naobi::command::names::SUB,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-				auto top = context->stack.top();
-				context->stack.pop();
-				context->stack.top() -= top;
-			}},
+		auto top = context->stack.top();
+		context->stack.pop();
+		context->stack.top() -= top;
+	}},
 	{naobi::command::names::MUL,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-				auto top = context->stack.top();
-				context->stack.pop();
-				context->stack.top() *= top;
+		auto top = context->stack.top();
+		context->stack.pop();
+		context->stack.top() *= top;
 	}},
 	{naobi::command::names::DIV,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-				auto top = context->stack.top();
-				context->stack.pop();
-				context->stack.top() /= top;
-			}},
+		auto top = context->stack.top();
+		context->stack.pop();
+		context->stack.top() /= top;
+	}},
 	{naobi::command::names::NEW,
 	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
 		auto type = utils::type::toType(arguments[1]);
@@ -236,6 +236,12 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 	{naobi::command::names::RAISE,
 	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
 		event_manager::pushEvent(arguments[0]);
+	}},
+	{naobi::command::names::MOD,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		auto top = context->stack.top();
+		context->stack.pop();
+		context->stack.top() %= top;
 	}},
 };
 
@@ -469,6 +475,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 											  stack.top().name == naobi::command::names::SUB ||
 											  stack.top().name == naobi::command::names::MUL ||
 											  stack.top().name == naobi::command::names::DIV ||
+											  stack.top().name == naobi::command::names::MOD ||
 											  stack.top().name == naobi::command::names::EQ ||
 											  stack.top().name == naobi::command::names::GREATER ||
 											  stack.top().name == naobi::command::names::LESS ||
@@ -514,22 +521,36 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
 											  stack.top().name == naobi::command::names::SUB ||
 											  stack.top().name == naobi::command::names::MUL ||
-											  stack.top().name == naobi::command::names::DIV))
+											  stack.top().name == naobi::command::names::DIV ||
+											  stack.top().name == naobi::command::names::MOD))
 					{
 						commands.emplace_back(stack.top());
 						stack.pop();
 					}
 					stack.push(createCommand(*it == "+" ? naobi::command::names::ADD : naobi::command::names::SUB, {}));
 				}
-				else if (*it == "*" || *it == "/")
+				else if (*it == "*" || *it == "/" || *it == "%")
 				{
 					while (!stack.empty() && (stack.top().name == naobi::command::names::MUL ||
-											  stack.top().name == naobi::command::names::DIV))
+											  stack.top().name == naobi::command::names::DIV ||
+											  stack.top().name == naobi::command::names::MOD))
 					{
 						commands.emplace_back(stack.top());
 						stack.pop();
 					}
-					stack.push(createCommand(*it == "*" ? naobi::command::names::MUL : naobi::command::names::DIV, {}));
+					if (*it == "*")
+					{
+						stack.push(createCommand(naobi::command::names::MUL, {}));
+
+					}
+					else if (*it == "/")
+					{
+						stack.push(createCommand(naobi::command::names::DIV, {}));
+					}
+					else if (*it == "%")
+					{
+						stack.push(createCommand(naobi::command::names::MOD, {}));
+					}
 				}
 				else
 				{

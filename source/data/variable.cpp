@@ -171,6 +171,30 @@ naobi::variable::sptr naobi::operator /= (naobi::variable::sptr& variable1, cons
 	return nullptr;
 }
 
+naobi::variable::sptr naobi::operator %= (naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
+{
+	if (variable1->type() == utils::type::names::INTEGER && variable1->type() == variable2->type())
+	{
+		int a = std::get<int>(variable1->value()) % std::get<int>(variable2->value());
+		variable1->value() = a;
+		return variable1;
+	}
+	else if (variable1->type() == utils::type::names::BOOLEAN && variable1->type() == variable2->type())
+	{
+		int a = std::get<bool>(variable1->value()) % std::get<bool>(variable2->value());
+		variable1->value() = a;
+		return variable1;
+	}
+	else
+	{
+		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
+		std::exit(1);
+	}
+	return nullptr;
+}
+
+
 naobi::variable::sptr naobi::operator > (const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2)
 {
 	if (variable1->type() == utils::type::names::INTEGER && variable1->type() == variable2->type())

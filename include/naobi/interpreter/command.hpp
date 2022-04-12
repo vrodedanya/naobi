@@ -21,6 +21,7 @@ namespace naobi
 			SUB,
 			MUL,
 			DIV,
+			MOD,
 			EQ,
 			GREATER,
 			LESS,
