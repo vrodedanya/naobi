@@ -427,7 +427,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 	{[](const std::vector<std::string>& words) -> bool{
 		return words[0] == "raise" && words.size() == 2;
 	},
-	[this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+	[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		commands.push_back(createCommand(command::names::RAISE, {words[1]}));
 	}},
 	// Create assignment logic (LOW priority )

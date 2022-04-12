@@ -60,7 +60,7 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 	LOG(compiler.compile, logger::LOW, "after removing comments:\n", fileContent);
 
 	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileContent), '\n', ' ');
-	auto lines = parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER);
+	auto lines = parser::removeEmpty(parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER));
 	lines = parser::removeEmpty(lines);
 	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
@@ -113,7 +113,7 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 	{
 		LOG(compiler.processModule, logger::LOW, "process line '",line,"'");
 
-		auto words = naobi::parser::split(naobi::parser::removeFirstSym(line, ' '), {" "}, {});
+		auto words = naobi::parser::removeEmpty(naobi::parser::split(naobi::parser::removeFirstSym(line, ' '), {" "}, {}));
 		LOG(compiler.processModule, logger::LOW, "words:\n", words);
 
 		bool isCompiled{};

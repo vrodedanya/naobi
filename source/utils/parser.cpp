@@ -163,7 +163,7 @@ std::vector<std::string> naobi::parser::removeEmpty(const std::vector<std::strin
 	buffer.reserve(vec.size());
 	for (const auto& string : vec)
 	{
-		if (!string.empty()) buffer.push_back(string);
+		if (!string.empty() && !(string[0] == ' ' && string.size() == 1) ) buffer.push_back(string);
 	}
 	return buffer;
 }
