@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <naobi/interpreter/event_manager.hpp>
+#include <naobi/utils/logger.hpp>
 
 
 naobi::handler::handler()
@@ -32,5 +33,6 @@ void naobi::handler::execute()
 			(*context)->ip++;
 		}
 		event_manager::updateContexts(_contexts);
+		LOG(handler.execute, logger::IMPORTANT, "Contexts at the moment: ", _contexts.size());
 	}
 }

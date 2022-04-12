@@ -5,6 +5,7 @@
 #include <naobi/utils/logger.hpp>
 #include <naobi/interpreter/workflow_context.hpp>
 #include <naobi/utils/keywords.hpp>
+#include <naobi/interpreter/event_manager.hpp>
 
 
 std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::string> lines)
@@ -232,6 +233,10 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		var->value() = 1;
 		context->stack.top() -= var;
 	}},
+	{naobi::command::names::RAISE,
+	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
+		event_manager::pushEvent(arguments[0]);
+	}},
 };
 
 
@@ -361,6 +366,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			}
 		}
 	}},
+	// For
 	{[](const std::vector<std::string>& words) -> bool{
 		return words[0] == "for" && words.size() == 10;
 	},
@@ -410,6 +416,13 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		processExpression(std::vector<std::string>(words.begin() + 2,
 												   findEndBracket(words.begin() + 1, words.end())), commands);
 		commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
+	}},
+	// Raise
+	{[](const std::vector<std::string>& words) -> bool{
+		return words[0] == "raise" && words.size() == 2;
+	},
+	[this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+		commands.push_back(createCommand(command::names::RAISE, {words[1]}));
 	}},
 	// Create assignment logic (LOW priority )
 	{[](const std::vector<std::string>& words) -> bool{

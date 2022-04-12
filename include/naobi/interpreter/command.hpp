@@ -39,6 +39,7 @@ namespace naobi
 			JUMP_IF,
 			EXIT,
 			NOPE,
+			RAISE,
 		};
 
 		names name;
