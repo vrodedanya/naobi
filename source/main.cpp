@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 		naobi::compiler compiler;
 		compiler.compile(argv[argc - 1]);
 		
-		naobi::event_manager::pushEvent("onBegin");
+		naobi::event_manager::pushEvent("begin");
 
 		naobi::handler handler;
 

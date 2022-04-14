@@ -1,7 +1,7 @@
 import standard;
 
 workflow main
-target onBegin
+target begin
 {
     integer a = 5, b = 3;
     a = b / 3 + a - b * 4;

@@ -1,7 +1,7 @@
 import standard;
 
 workflow testing
-target onBegin
+target begin
 {
     integer variable=3, testing =4, second=2;
     println(variable);
@@ -22,13 +22,13 @@ target onBegin
 }
 
 workflow invokingAlways
-target onBegin
+target begin
 invoke always
 {
 }
 
 workflow invokingOnce
-target onBegin
+target begin
 invoke once
 {
 

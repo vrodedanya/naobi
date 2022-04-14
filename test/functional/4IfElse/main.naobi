@@ -1,7 +1,7 @@
 import standard;
 
 workflow main
-target onBegin
+target begin
 {
     float first = 5.0, second = 5.0;
     if (first == second)
