@@ -14,14 +14,17 @@ void naobi::compiler::compile(const std::string &fileName)
 {
 	LOG(compiler.compile, logger::LOW, "begin compiling program");
 
-	std::filesystem::path path(naobi::parser::dirName(fileName));
-	if (!std::filesystem::is_directory(path))
+	if (fileName.find('/') != std::string::npos)
 	{
-		LOG(compiler.compile, logger::CRITICAL, "CRITICAL directory ", naobi::parser::dirName(fileName), " doesn't exist");
-		exit(EXIT_FAILURE);
+		std::filesystem::path path(naobi::parser::dirName(fileName));
+		if (!std::filesystem::is_directory(path))
+		{
+			LOG(compiler.compile, logger::CRITICAL, "CRITICAL directory ", naobi::parser::dirName(fileName), " doesn't exist");
+			exit(EXIT_FAILURE);
+		}
+		std::filesystem::current_path(path);
+		LOG(compiler.compile, logger::IMPORTANT, "set current directory to ", naobi::parser::dirName(fileName));
 	}
-	std::filesystem::current_path(path);
-	LOG(compiler.compile, logger::IMPORTANT, "set current directory to ", naobi::parser::dirName(fileName));
 
 	compile(naobi::parser::fileName(fileName), nullptr);
 }
