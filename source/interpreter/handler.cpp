@@ -26,11 +26,11 @@ void naobi::handler::execute()
 			{
 				auto nextContext = std::next(context);
 				if (nextContext == _contexts.end()) nextContext = _contexts.begin();
+				event_manager::pushEvent((*context)->workflow->name() + "End");
 				_contexts.erase(context);
 				context = nextContext;
 				break;
 			}
-
 			(*context)->ip->impl(*context, (*context)->ip->arguments);
 			(*context)->ip++;
 		}

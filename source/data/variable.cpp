@@ -53,6 +53,12 @@ naobi::variable::sptr naobi::operator+=(naobi::variable::sptr& variable1, const 
 		variable1->value() = a;
 		return variable1;
 	}
+	else if (variable1->type() == utils::type::names::STRING && variable2->type() == utils::type::names::INTEGER)
+	{
+		std::string a = std::get<std::string>(variable1->value()) + std::to_string(std::get<int>(variable2->value()));
+		variable1->value() = a;
+		return variable1;
+	}
 	else
 	{
 		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",

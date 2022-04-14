@@ -18,7 +18,7 @@ namespace naobi
 	private:
 		std::list<naobi::workflow_context::sptr> _contexts;
 
-		const int MAX_TIME_PER_CONTEXT = 33;
+		const int MAX_TIME_PER_CONTEXT = 5;
 	};
 }
 
