@@ -26,4 +26,6 @@ jobs:
 
     - name: FunctionalTests
       working-directory: ${{github.workspace}}/test/functional
-      run: python3 functionalTester.py
+      run: >
+        python3 -m pip install radish-bdd
+        python3 functionalTester.py
