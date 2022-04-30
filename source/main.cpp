@@ -23,7 +23,16 @@ int main(int argc, char* argv[])
 
 
 		naobi::compiler compiler;
-		compiler.compile(argv[argc - 1]);
+
+		auto script = arguments.find_str("--script");
+		if (script.has_value())
+		{
+			compiler.compileText(script.value());
+		}
+		else
+		{
+			compiler.compile(argv[argc - 1]);
+		}
 		
 		naobi::event_manager::pushEvent("begin");
 

@@ -29,6 +29,28 @@ void naobi::compiler::compile(const std::string &fileName)
 	compile(naobi::parser::fileName(fileName), nullptr);
 }
 
+void naobi::compiler::compileText(const std::string& text)
+{
+	const char* moduleName = "console";
+	auto module = std::make_shared<naobi::module>(moduleName);
+	_root = module;
+
+	std::string fileContent = text;
+	naobi::parser::removeComments(fileContent);
+	LOG(compiler.compile, logger::LOW, "after removing comments:\n", fileContent);
+
+	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileContent), '\n', ' ');
+	auto lines = parser::removeEmpty(parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER));
+	lines = parser::removeEmpty(lines);
+	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
+
+	processModules(lines, module);
+
+	processModule(lines, module);
+
+	LOG(compiler.compile, logger::SUCCESS, "compiled '", moduleName, "'");
+}
+
 void naobi::compiler::compile(const std::string &fileName, const naobi::module::sptr& parent)
 {
 	if (fileName == "standard;")
@@ -47,16 +69,15 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 		LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to open file '", file, "'");
 		std::exit(EXIT_FAILURE);
 	}
-	_compilingFileContent = fileTextOpt.value();
 
 	auto module = std::make_shared<naobi::module>(file);
-	if (parent == nullptr)
+	if (parent != nullptr)
 	{
-		_composition.rootModule = module;
+		parent->addModule(module);
 	}
 	else
 	{
-		parent->addModule(module);
+		_root = module;
 	}
 	std::string fileContent = fileTextOpt.value();
 	naobi::parser::removeComments(fileContent);
@@ -100,7 +121,7 @@ void naobi::compiler::processModules(const std::vector<std::string> &lines, cons
 			LOG(compiler.processModules, logger::CRITICAL, "CRITICAL module '", file, "' import itself");
 			exitOn({"import", moduleName});
 		}
-		auto ptr = _composition.rootModule->findModule(file);
+		auto ptr = _root->findModule(file);
 		if (ptr != nullptr)
 		{
 			module->addModule(ptr);
@@ -174,7 +195,7 @@ _rules(
 	// Workflow logic
 	{[](const std::vector<std::string> &line) -> bool {
 		return !line.empty() && line[0] == "workflow";
-	},[this](const std::vector<std::string> &line, const naobi::module::sptr &module){
+	},[](const std::vector<std::string> &line, const naobi::module::sptr &module){
 		std::string name;
 		std::string target;
 		int invoke = -1;
@@ -230,8 +251,6 @@ _rules(
 		LOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
 
 		event_manager::addWorkflow(target, tempWorkflow);
-
-		this->_composition.workflows.push_back(tempWorkflow);
 	}},
 	// Function logic
 	{[](const std::vector<std::string> &line) -> bool{

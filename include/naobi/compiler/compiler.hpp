@@ -22,8 +22,8 @@ namespace naobi
 		compiler();
 
 		void compile(const std::string& fileName);
+		void compileText(const std::string& text);
 
-		[[nodiscard]] naobi::composition getComposition() const noexcept {return _composition;}
 	private:
 		void compile(const std::string& fileName, const naobi::module::sptr& parent);
 
@@ -39,10 +39,7 @@ namespace naobi
 
 	private:
 		std::vector<compilerRule> _rules;
-
-		naobi::composition _composition;
-
-		std::string _compilingFileContent;
+		naobi::module::sptr _root;
 	};
 }
 
