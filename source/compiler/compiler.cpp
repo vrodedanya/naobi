@@ -214,8 +214,7 @@ _rules(
 		target = getParamValue(line, "target");
 		if (target.empty())
 		{
-			LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find target");
-			exitOn(line);
+			target = "begin";
 		}
 		if (naobi::keywords::check(target))
 		{
