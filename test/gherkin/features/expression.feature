@@ -39,6 +39,17 @@ Feature: Arithmetic and logical expressions
     | 5.0     | 4.3     | 9.3    |
     | 100000  | 1000000 | 1100000|
 
+  Scenario: Adding two different types
+    Given script:
+      """
+      import standard;
+      workflow main
+      {
+        println(5 + 5.0);
+      }
+      """
+    Then ends with the code 1
+
   Scenario: Subtracting two numbers
     Given script:
       """
