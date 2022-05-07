@@ -1,4 +1,7 @@
 site_name: Naobi
-theme: material
+theme:
+  name: material
+  palette:
+    primary: blue grey
 nav:
   - Home: index.md
