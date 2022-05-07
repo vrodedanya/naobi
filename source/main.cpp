@@ -11,6 +11,13 @@ int main(int argc, char* argv[])
 		naobi::arguments arguments(argv, argv + argc);
 		naobi::logger::enable();
 		naobi::logger::enableLoggingToStdErr();
+		if (arguments.find_flag("--version") || arguments.find_flag("-v"))
+		{
+			std::cout << "Naobi language\n"
+						 "Version " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << std::endl;
+			return EXIT_SUCCESS;
+		}
+
 		auto tempLevel = arguments.find_int("--level");
 		if (tempLevel.has_value()) naobi::logger::setLevel(tempLevel.value());
 		else naobi::logger::setLevel(naobi::logger::CRITICAL);

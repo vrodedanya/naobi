@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(naobi)
+project(naobi VERSION 0.5.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -45,6 +45,11 @@ target_compile_options(${CMAKE_PROJECT_NAME}_lib PUBLIC -pedantic -Wall -Wextra 
 add_executable(${CMAKE_PROJECT_NAME} source/main.cpp)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_PROJECT_NAME}_lib)
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+        VERSION_MAJOR=${CMAKE_PROJECT_VERSION_MAJOR}
+        VERSION_MINOR=${CMAKE_PROJECT_VERSION_MINOR}
+        VERSION_PATCH=${CMAKE_PROJECT_VERSION_PATCH}
+        )
 
 add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
