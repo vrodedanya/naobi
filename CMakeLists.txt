@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(naobi VERSION 0.5.0)
+project(naobi VERSION 0.5.1)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -22,7 +22,8 @@ set(NAOBI_SOURCES
         )
 
 set(NAOBI_TEST_SOURCES
-        test/module/parser_test.cpp)
+        test/module/parser_test.cpp
+        test/module/type_test.cpp)
 
 FetchContent_Declare(
         googletest

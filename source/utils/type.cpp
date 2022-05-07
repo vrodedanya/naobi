@@ -11,7 +11,7 @@ bool naobi::utils::type::isInteger(const std::string &string)
 {
 	if (string.empty()) return false;
 	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem){return isdigit(elem);});
-	return isAllNumbers && ((string[0] == '-' && string.size() == 2) || std::isdigit(string[0]));
+	return isAllNumbers && ((string[0] == '-' && string.size() >= 2) || std::isdigit(string[0]));
 }
 
 bool naobi::utils::type::isBoolean(const std::string &string)
@@ -39,7 +39,7 @@ bool naobi::utils::type::isFloat(const std::string &string)
 		}
 		return isdigit(elem);
 	});
-	return isAllNumbers && ((string[0] == '-' && string.size() == 2) || std::isdigit(string[0]));
+	return dot != 0 && isAllNumbers && ((string[0] == '-' && string.size() >= 2) || std::isdigit(string[0]));
 }
 
 naobi::utils::type::names naobi::utils::type::checkType(const std::string& string)
