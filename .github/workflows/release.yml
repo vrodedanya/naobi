@@ -1,11 +1,12 @@
   name: tagged-release
   on:
-    pull_request:
-      branches:
-        - master
     push:
-      branches:
-        - master
+      tags:
+        - "v*"
+    pull_request:
+      tags:
+        - "v*"
+
 
   jobs:
     tagged-release:
@@ -13,6 +14,12 @@
       name: Tagged Release
 
       steps:
+        - uses: actions/checkout@v1
+
+        - name: Exit if not on master branch
+          if: endsWith(github.ref, 'master') == false
+          run: exit -1
+
         - uses: "marvinpinto/action-automatic-releases@latest"
           with:
             repo_token: "${{ secrets.GITHUB_TOKEN }}"
