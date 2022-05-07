@@ -1,0 +1,4 @@
+site_name: Naobi
+theme: material
+nav:
+  - Home: index.md
