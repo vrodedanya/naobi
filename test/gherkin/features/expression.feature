@@ -10,16 +10,6 @@ Feature: Arithmetic and logical expressions
       }
       """
     Then got 10
-  Scenario: Adding two positive numbers with spacers
-    Given script:
-      """
-      import standard;
-      workflow main
-      {
-      println(5 + 10)
-      }
-      """
-    Then got 15
   Scenario Outline: Adding two positive numbers multiple cases
     Given script:
       """
