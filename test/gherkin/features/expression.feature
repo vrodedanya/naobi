@@ -26,7 +26,6 @@ Feature: Arithmetic and logical expressions
     | number1 | number2 | result |
     | 5       | 10      | 15     |
     | 156     | 244     | 400    |
-    | 5.0     | 4.3     | 9.3    |
     | 100000  | 1000000 | 1100000|
 
   Scenario: Adding two different types
