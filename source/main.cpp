@@ -42,6 +42,10 @@ int main(int argc, char* argv[])
 		}
 		
 		naobi::event_manager::pushEvent("begin");
+		if (arguments.find_flag("--print-compile-end"))
+		{
+			std::cerr << "compile_end" << std::endl;
+		}
 
 		naobi::handler handler;
 

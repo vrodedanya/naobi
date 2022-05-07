@@ -1,6 +1,5 @@
 import os
 import subprocess
-import time
 
 from radish import given, then, when
 
@@ -15,11 +14,15 @@ def is_process_running(process):
     return process.poll() is None
 
 
+logs = ""
+
+
 def take_logs(byte_lines):
     utf8_lines = []
     for line in byte_lines:
         utf8_lines.append(line.decode("UTF-8"))
-    return "".join(utf8_lines)
+    temp = "".join(utf8_lines)
+    return temp if len(temp) > 0 else logs
 
 
 # Steps
@@ -27,15 +30,23 @@ def take_logs(byte_lines):
 
 @given("script:")
 def take_script(step):
-    args = ["--script", step.text]
+    args = ["--script", step.text, "--print-compile-end"]
     if is_exist("../../cmake-build-debug/naobi"):
         args.insert(0, "../../cmake-build-debug/./naobi")
     else:
         args.insert(0, "../../build/./naobi")
 
     step.context.process = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-    # Waiting for compilation
-    # time.sleep(0.25)
+    while True:
+        if is_process_running(step.context.process):
+            out = step.context.process.stderr.readline().decode().replace('\n', '')
+            if out == "compile_end":
+                break
+            else:
+                global logs
+                logs = logs + out
+        else:
+            break
 
 
 @when("pass integer {number:d}")
