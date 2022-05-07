@@ -35,21 +35,96 @@ def take_script(step):
 
     step.context.process = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     # Waiting for compilation
-    time.sleep(0.3)
+    # time.sleep(0.25)
 
 
-@when("pass {number:d}")
+@when("pass integer {number:d}")
 def take_input(step, number):
     if not is_process_running(step.context.process):
         raise ChildProcessError("Naobi interpreter is already finished with code: "
-                                f"{str(step.context.process.returncode)}\nLogs:\n"
+                                f"{step.context.process.returncode}\nLogs:\n"
                                 f"{take_logs(step.context.process.stderr.readlines())}")
     step.context.process.stdin.write(bytes(str(number) + '\n', "UTF-8"))
     step.context.process.stdin.flush()
 
 
-@then("got {number:d}")
+@when("pass float {number:f}")
+def take_input(step, number):
+    if not is_process_running(step.context.process):
+        raise ChildProcessError("Naobi interpreter is already finished with code: "
+                                f"{step.context.process.returncode}\nLogs:\n"
+                                f"{take_logs(step.context.process.stderr.readlines())}")
+    step.context.process.stdin.write(bytes(str(number) + '\n', "UTF-8"))
+    step.context.process.stdin.flush()
+
+
+@when("pass boolean {var:Boolean}")
+def take_input(step, var):
+    if not is_process_running(step.context.process):
+        raise ChildProcessError("Naobi interpreter is already finished with code: "
+                                f"{step.context.process.returncode}\nLogs:\n"
+                                f"{take_logs(step.context.process.stderr.readlines())}")
+    step.context.process.stdin.write(bytes(str(var).lower() + '\n', "UTF-8"))
+    step.context.process.stdin.flush()
+
+
+@when("pass string {string:QuotedString}")
+def take_input(step, string):
+    if not is_process_running(step.context.process):
+        raise ChildProcessError("Naobi interpreter is already finished with code: "
+                                f"{step.context.process.returncode}\nLogs:\n"
+                                f"{take_logs(step.context.process.stderr.readlines())}")
+    step.context.process.stdin.write(bytes(string + '\n', "UTF-8"))
+    step.context.process.stdin.flush()
+
+
+@then("got integer {number:d}")
 def take_result(step, number):
+    if not is_process_running(step.context.process):
+        if step.context.process.returncode != 0:
+            raise ChildProcessError(f"Naobi exit with code: "
+                                    f"{step.context.process.returncode} \n Logs:\n"
+                                    f"{take_logs(step.context.process.stderr.readlines())}")
+    out = step.context.process.stdout.readline().decode().replace('\n', '')
+    if len(out) == 0:
+        raise AssertionError("Empty output")
+    integer = int(out)
+    if integer != number:
+        raise AssertionError(f"Expected {number} got {integer}")
+
+
+@then("got float {number:d}")
+def take_result(step, number):
+    if not is_process_running(step.context.process):
+        if step.context.process.returncode != 0:
+            raise ChildProcessError(f"Naobi exit with code: "
+                                    f"{step.context.process.returncode} \n Logs:\n"
+                                    f"{take_logs(step.context.process.stderr.readlines())}")
+    out = step.context.process.stdout.readline().decode().replace('\n', '')
+    if len(out) == 0:
+        raise AssertionError("Empty output")
+    temp = float(out)
+    if temp != number:
+        raise AssertionError(f"Expected {number} got {temp}")
+
+
+@then("got string {string:QuotedString}")
+def take_result(step, string):
+    if not is_process_running(step.context.process):
+        if step.context.process.returncode != 0:
+            raise ChildProcessError(f"Naobi exit with code: "
+                                    f"{step.context.process.returncode} \n Logs:\n"
+                                    f"{take_logs(step.context.process.stderr.readlines())}")
+    out = step.context.process.stdout.readline().decode().replace('\n', '')
+    if len(out) == 0:
+        raise AssertionError("Empty output")
+    temp = out
+    if temp != string:
+        raise AssertionError(f"Expected {string} got {temp}")
+
+
+@then("got boolean {var:Boolean}")
+def take_result(step, var):
     if not is_process_running(step.context.process):
         if step.context.process.returncode != 0:
             raise ChildProcessError(f"Naobi exit with code: "
@@ -58,9 +133,9 @@ def take_result(step, number):
     out = step.context.process.stdout.readline().decode().replace('\n', '')
     if len(out) == 0:
         raise AssertionError("Empty output")
-    integer = int(out)
-    if integer != number:
-        raise AssertionError(f"Expected {str(number)} got {str(integer)}")
+    temp = out
+    if temp != str(var).lower():
+        raise AssertionError(f"Expected {var} got {temp}")
 
 
 @then("ends with the code {number:d}")
