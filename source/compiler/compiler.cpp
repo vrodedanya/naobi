@@ -40,11 +40,10 @@ void naobi::compiler::compileText(const std::string& text)
 	LOG(compiler.compile, logger::LOW, "after removing comments:\n", fileContent);
 
 	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileContent), '\n', ' ');
-	auto lines = parser::removeEmpty(parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER));
-	lines = parser::removeEmpty(lines);
+	auto lines = parser::split(temp, parser::isEnds(";}"),{},{{'{','}'},{'"','"'}});
 	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
-	processModules(lines, module);
+	processImportingModules(lines, module);
 
 	processModule(lines, module);
 
@@ -55,6 +54,11 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 {
 	if (fileName == "standard;")
 	{
+		if (parent == nullptr)
+		{
+			LOG(compiler.compile, logger::CRITICAL, "CRITICAL standard module without parent");
+			std::exit(EXIT_FAILURE);
+		}
 		parent->addModule(std::shared_ptr<naobi::module>(new naobi::standard()));
 		return;
 	}
@@ -84,11 +88,10 @@ void naobi::compiler::compile(const std::string &fileName, const naobi::module::
 	LOG(compiler.compile, logger::LOW, "after removing comments:\n", fileContent);
 
 	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileContent), '\n', ' ');
-	auto lines = parser::removeEmpty(parser::split(temp, {";", "}"}, {}, naobi::parser::SPLIT_AFTER));
-	lines = parser::removeEmpty(lines);
+	auto lines = parser::split(temp, parser::isEnds(";}"),{},{{'{','}'},{'"','"'}});
 	LOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
-	processModules(lines, module);
+	processImportingModules(lines, module);
 
 	processModule(lines, module);
 
@@ -110,7 +113,7 @@ std::string naobi::compiler::processFileName(const std::string &fileName)
 	return file;
 }
 
-void naobi::compiler::processModules(const std::vector<std::string> &lines, const naobi::module::sptr& module)
+void naobi::compiler::processImportingModules(const std::vector<std::string> &lines, const naobi::module::sptr& module)
 {
 	auto modulesNames = compiler::collectModules(lines);
 	for (const auto& moduleName : modulesNames)
@@ -118,7 +121,7 @@ void naobi::compiler::processModules(const std::vector<std::string> &lines, cons
 		std::string file = processFileName(moduleName);
 		if (file == module->name())
 		{
-			LOG(compiler.processModules, logger::CRITICAL, "CRITICAL module '", file, "' import itself");
+			LOG(compiler.processImportingModules, logger::CRITICAL, "CRITICAL module '", file, "' import itself");
 			exitOn({"import", moduleName});
 		}
 		auto ptr = _root->findModule(file);
@@ -137,8 +140,10 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 	{
 		LOG(compiler.processModule, logger::LOW, "process line '",line,"'");
 
-		auto words = naobi::parser::removeEmpty(naobi::parser::split(naobi::parser::removeFirstSym(line, ' '), {" "}, {}));
+		auto words = parser::split(line, parser::isAnyOf(" "), {}, {{'"', '"'}}, {{'{','}'}});
 		LOG(compiler.processModule, logger::LOW, "words:\n", words);
+
+		if (words.empty()) continue;
 
 		bool isCompiled{};
 		for (const auto& rule : _rules)
@@ -168,11 +173,11 @@ std::optional<std::string> naobi::compiler::loadFile(const std::string &fileName
 
 std::vector<std::string> naobi::compiler::collectModules(const std::vector<std::string>& lines)
 {
-	LOG(compiler.collectModules, logger::LOW, "begin collectModules");
+	LOG(compiler.collectModules, logger::LOW, "begin collect modules");
 	std::vector<std::string> buffer;
 	for (const auto& line : lines)
 	{
-		auto arguments = parser::split(naobi::parser::removeFirstSym(line, ' '), {" "}, {});
+		auto arguments = parser::split(line, parser::isAnyOf(" "));
 		if (arguments.size() == 2 && arguments[0] == "import")
 		{
 			buffer.emplace_back(arguments[1]);
@@ -195,7 +200,8 @@ _rules(
 	// Workflow logic
 	{[](const std::vector<std::string> &line) -> bool {
 		return !line.empty() && line[0] == "workflow";
-	},[](const std::vector<std::string> &line, const naobi::module::sptr &module){
+	},[](const std::vector<std::string> &line, const naobi::module::sptr &module)
+	{
 		std::string name;
 		std::string target;
 		int invoke = -1;
@@ -239,10 +245,7 @@ _rules(
 		tempWorkflow->setInvoke(invoke);
 
 		std::string codeBlock = line.back().substr(1, line.back().size() - 2);
-		codeBlock = naobi::parser::removeFirstSym(codeBlock, ' ');
-		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";", "}"}, {}));
-		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
-		lines = naobi::parser::removeEmpty(lines);
+		auto lines = parser::split(codeBlock, parser::isAnyOf(";}"), {}, {{'{','}'}, {'"','"'}});
 		naobi::code_generator generator(module);
 		auto commands = generator.generate(lines);
 		tempWorkflow->setCommands(commands);

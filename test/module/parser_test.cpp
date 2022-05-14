@@ -2,78 +2,84 @@
 #include <gmock/gmock.h>
 
 #include <naobi/utils/parser.hpp>
+#include <set>
+
+using namespace naobi::parser;
 
 TEST(parser, split)
 {
-	ASSERT_THAT(naobi::parser::split("a;b;c;d", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
-	ASSERT_THAT(naobi::parser::split("a;b;c;d;", {";"}, {}), testing::ElementsAre("a", "b", "c", "d"));
-	ASSERT_THAT(naobi::parser::split("a;;b;c;d;", {";"}, {}), testing::ElementsAre("a", "", "b", "c", "d"));
-	ASSERT_THAT(naobi::parser::split("a + b = c", {}, {"+", "="}),
-				testing::ElementsAre("a ", "+", " b ", "=", " c"));
-	ASSERT_THAT(naobi::parser::split("a + \"c+d\" = c", {" "}, {}),
-				testing::ElementsAre("a", "+", "\"c+d\"", "=", "c"));
-	ASSERT_THAT(naobi::parser::split("a + \"c+d\" = c", {""}, {"+", "="}),
-				testing::ElementsAre("a ", "+", " \"c+d\" ", "=", " c"));
-	ASSERT_THAT(naobi::parser::split("a+\"c+d\"+\"test\"= c", {""}, {"+", "="}),
-				testing::ElementsAre("a", "+", "\"c+d\"", "+", "\"test\"", "=", " c"));
-	ASSERT_THAT(naobi::parser::split("c\"test\"", {}, {}),
-				testing::ElementsAre("c\"test\""));
-	ASSERT_THAT(naobi::parser::split("workflow test {int d=a+b+c;}", {" "}, {}),
-				testing::ElementsAre("workflow", "test", "{int d=a+b+c;}"));
-	ASSERT_THAT(naobi::parser::split("workflow test{int d=a+b+c;} workflow test2{}", {";", "}"}, {},
-									 naobi::parser::SPLIT_AFTER),
-				testing::ElementsAre("workflow test{int d=a+b+c;}", " workflow test2{}"));
-	ASSERT_THAT(naobi::parser::split("\nworkflow test\n{int d=a+b+c;}\nworkflow test2\n{}\n", {"\n"}, {}),
-				testing::ElementsAre("", "workflow test", "{int d=a+b+c;}", "workflow test2", "{}"));
+	ASSERT_THAT(split("a;b;c;d", isAnyOf(";")), testing::ElementsAre("a", "b", "c", "d"));
+	ASSERT_THAT(split("a+b-c*d/e 234", isAnyOf(" "), isAnyOf("+-*")),
+				testing::ElementsAre("a", "+", "b", "-", "c", "*", "d/e", "234"));
+	ASSERT_THAT(split("import standard;"
+									 "workflow main"
+									 "{"
+									 "println(6+6);"
+									 "}"
+									 "workflow test"
+									 "{"
+									 "println(\"Hello\");"
+									 "}"
+									 , isAnyOf(";}"),
+									 {}, {{'{', '}'}}),
+				testing::ElementsAre("import standard", "workflow main{println(6+6);}", "workflow test{println(\"Hello\");}"));
+	ASSERT_THAT(split("println(\"Hello\");"
+									 "integer a = b + c;"
+									 "string res = \"Hello\";"
+									 "testing();",
+					  				isAnyOf(";"),{},{{'(',')'},{'"', '"'}}),
+				testing::ElementsAre("println(\"Hello\")", "integer a = b + c", "string res = \"Hello\"", "testing()"));
+	ASSERT_THAT(split("println(\"Ssss\");", isAnyOf("};"), {}, {{'"','"'}}),
+				testing::ElementsAre(("println(\"Ssss\")")));
 }
 
 TEST(parser, removeExtraSpaces)
 {
 	std::string test = "      test test  test  test test   test  test   ";
-	EXPECT_EQ(naobi::parser::removeExtraSpaces(test), " test test test test test test test ");
+	EXPECT_EQ(removeExtraSpaces(test), " test test test test test test test ");
 
 	test = "\ttest\t\ttest\t\t\ttest";
-	EXPECT_EQ(naobi::parser::removeExtraSpaces(test), "\ttest\ttest\ttest");
+	EXPECT_EQ(removeExtraSpaces(test), "\ttest\ttest\ttest");
 
-	EXPECT_EQ(naobi::parser::removeExtraSpaces("test    sub   \"file test   test  xur\""), "test sub \"file test   test  xur\"");
-	EXPECT_EQ(naobi::parser::removeExtraSpaces("test    sub   \"file test\t   test  xur\""), "test sub \"file test\t   test  xur\"");
+	EXPECT_EQ(removeExtraSpaces("test    sub   \"file test   test  xur\""), "test sub \"file test   test  xur\"");
+	EXPECT_EQ(removeExtraSpaces("test    sub   \"file test\t   test  xur\""), "test sub \"file test\t   test  xur\"");
 }
 
 TEST(parser, removeSym)
 {
 	std::string test = "some message for   testing ";
-	EXPECT_EQ(naobi::parser::removeSym(test, ' '), "somemessagefortesting");
-	EXPECT_EQ(naobi::parser::removeSym("some\nmessage\n\"\n text \n text \n\"", '\n'), "somemessage\"\n text \n text \n\"");
+	EXPECT_EQ(removeSym(test, ' '), "somemessagefortesting");
+	EXPECT_EQ(removeSym("some\nmessage\n\"\n text \n text \n\"", '\n'), "somemessage\"\n text \n text \n\"");
 }
 
 TEST(parser, placeAfter)
 {
-	EXPECT_EQ(naobi::parser::placeAfter("check\ntest\nkek\n", '\n', " -> "), "check\n -> test\n -> kek\n -> ");
-	EXPECT_EQ(naobi::parser::placeAfter("check\ntest\ntest\"\ntest\n\"", '\n', ";"), "check\n;test\n;test\"\ntest\n\"");
+	EXPECT_EQ(placeAfter("check\ntest\nkek\n", '\n', " -> "), "check\n -> test\n -> kek\n -> ");
+	EXPECT_EQ(placeAfter("check\ntest\ntest\"\ntest\n\"", '\n', ";"), "check\n;test\n;test\"\ntest\n\"");
 }
 
 TEST(parser, dirName)
 {
-	EXPECT_EQ(naobi::parser::dirName("test/file/name.txt"), "test/file");
-	EXPECT_EQ(naobi::parser::dirName("test\\file\\name.txt"), "test\\file");
-	EXPECT_EQ(naobi::parser::dirName("../test/check/name.txt"), "../test/check");
-	EXPECT_EQ(naobi::parser::dirName("../keep/get/check/"), "../keep/get/check");
+	EXPECT_EQ(dirName("test/file/name.txt"), "test/file");
+	EXPECT_EQ(dirName("test\\file\\name.txt"), "test\\file");
+	EXPECT_EQ(dirName("../test/check/name.txt"), "../test/check");
+	EXPECT_EQ(dirName("../keep/get/check/"), "../keep/get/check");
 }
 
 TEST(parser, fileName)
 {
-	EXPECT_EQ(naobi::parser::fileName("test/file/name.txt"), "name.txt");
-	EXPECT_EQ(naobi::parser::fileName("test\\file\\name.txt"), "name.txt");
-	EXPECT_EQ(naobi::parser::fileName("../test/check/name.txt"), "name.txt");
-	EXPECT_EQ(naobi::parser::fileName("../keep/get/check/"), "");
+	EXPECT_EQ(fileName("test/file/name.txt"), "name.txt");
+	EXPECT_EQ(fileName("test\\file\\name.txt"), "name.txt");
+	EXPECT_EQ(fileName("../test/check/name.txt"), "name.txt");
+	EXPECT_EQ(fileName("../keep/get/check/"), "");
 }
 
 TEST(parser, join)
 {
-	EXPECT_EQ(naobi::parser::join({"test","kek","alololo","hmm"}, " "), "test kek alololo hmm");
+	EXPECT_EQ(join({"test","kek","alololo","hmm"}, " "), "test kek alololo hmm");
 }
 
 TEST(parser, removeFirstSym)
 {
-	EXPECT_EQ(naobi::parser::removeFirstSym(" testing", ' '), "testing");
+	EXPECT_EQ(removeFirstSym(" testing", ' '), "testing");
 }

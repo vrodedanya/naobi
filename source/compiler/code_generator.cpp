@@ -15,9 +15,9 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 
 	for (auto it = lines.begin() ; it != lines.end() ; it++)
 	{
-		auto words = naobi::parser::removeEmpty(
-				naobi::parser::split(*it, {" "}, {"+", "-", "*", "/", "=", "!", "<", ">", "(", ")", ","}));
+		auto words = parser::split(*it, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {}, {{'"', '"'}, {'{','}'}});
 		LOG(code_generator, logger::LOW, "words:\n", words);
+		if (words.empty()) continue;
 
 		bool isCompiled = false;
 		for (const auto& rule : _generatorRules)
@@ -26,8 +26,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 			{
 				if (words[0] == "if" && (it+1) != lines.end() && (it+1)->substr(0, std::strlen("else")) == "else")
 				{
-					auto temp = naobi::parser::removeEmpty(
-							naobi::parser::split(*(it + 1), {" "}, {"+", "-", "*", "/", "=", "!", "<", ">", "(", ")"}));
+					auto temp = parser::split(*(it + 1), parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {}, {{'"', '"'}, {'{','}'}});
 					words.insert(words.end(), temp.begin(), temp.end());
 					lines.erase(it + 1);
 				}
@@ -332,10 +331,8 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		processExpression(std::vector<std::string>(words.begin() + 2 , bodyIt), commands);
 
 		std::string codeBlock = *(bodyIt + 1);
-		codeBlock = naobi::parser::removeFirstSym(codeBlock.substr(1, codeBlock.size() - 2), ' ');
-		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";", "}"}, {}));
-		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
-		lines = naobi::parser::removeEmpty(lines);
+		auto lines = parser::split(codeBlock.substr(1, codeBlock.size() - 2), parser::isAnyOf(";}"), {}, {{'{','}'}, {'"','"'}});
+		lines = parser::removeEmpty(lines);
 
 		auto tempCommands = generate(lines);
 		std::size_t tempCommandsSize = tempCommands.size();
@@ -357,9 +354,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			elseBlock = elseBlock.substr(1, elseBlock.size() - 2);
 			LOG(code_generator, logger::IMPORTANT, "Else block:\n", elseBlock);
 
-			auto elseLines = naobi::parser::removeEmpty(naobi::parser::split(elseBlock, {";", "}"}, {}));
-			std::for_each(elseLines.begin(), elseLines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
-			elseLines = naobi::parser::removeEmpty(elseLines);
+			auto elseLines = naobi::parser::split(elseBlock, parser::isAnyOf(";}"), {}, {{'{','}',},{'"','"'}});
 
 			LOG(code_generator, logger::IMPORTANT, "Else lines:\n", elseLines);
 
@@ -393,10 +388,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		std::string codeBlock = words[9];
 		LOG(code_generator.forBlock, logger::BASIC, "for block:\n", codeBlock);
 
-		codeBlock = naobi::parser::removeFirstSym(codeBlock.substr(1, codeBlock.size() - 2), ' ');
-		auto lines = naobi::parser::removeEmpty(naobi::parser::split(codeBlock, {";", "}"}, {}));
-		std::for_each(lines.begin(), lines.end(), [](auto& elem){elem = naobi::parser::removeFirstSym(elem, ' ');});
-		lines = naobi::parser::removeEmpty(lines);
+		auto lines = parser::split(codeBlock.substr(1, codeBlock.size() - 2), parser::isAnyOf(";}"), {}, {{'"', '"'},{'{','}'}});
 		LOG(code_generator.forBlock, logger::LOW, "for block lines:\n", lines);
 
 		auto tempCommands = generate(lines);

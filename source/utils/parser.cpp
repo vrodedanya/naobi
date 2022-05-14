@@ -1,6 +1,103 @@
 #include "naobi/utils/parser.hpp"
 
 #include <algorithm>
+#include <map>
+
+std::vector<std::string> naobi::parser::split(const std::string &text, const std::function<int(char)>& isSplitter, const std::function<bool(char)>& isSingle,
+											  const std::map<char, char>& blocks, const std::map<char, char>& separatedBlocks)
+{
+	assert(isSplitter);
+	std::vector<std::string> resultVector;
+	std::string stringBuffer;
+	int blockIndex = 0;
+	char currentBlock;
+	bool separated{};
+
+	for (const auto& sym : text)
+	{
+		if (blockIndex == 0)
+		{
+			int mod;
+			if ( (mod = isSplitter(sym)) != 0)
+			{
+				if (!stringBuffer.empty())
+				{
+					if (mod == 2) stringBuffer += sym;
+					resultVector.emplace_back(stringBuffer);
+					stringBuffer.clear();
+				}
+				else if (mod == 2)
+				{
+					stringBuffer += sym;
+					resultVector.emplace_back(stringBuffer);
+					stringBuffer.clear();
+				}
+			}
+			else if (isSingle && isSingle(sym))
+			{
+				if (!stringBuffer.empty())
+				{
+					resultVector.emplace_back(stringBuffer);
+					stringBuffer.clear();
+				}
+				stringBuffer += sym;
+				resultVector.emplace_back(stringBuffer);
+				stringBuffer.clear();
+			}
+			else if (blocks.find(sym) != blocks.end())
+			{
+				currentBlock = sym;
+				blockIndex++;
+				stringBuffer += sym;
+				separated = false;
+			}
+			else if (separatedBlocks.find(sym) != separatedBlocks.end())
+			{
+				currentBlock = sym;
+				blockIndex++;
+				if (!stringBuffer.empty())
+				{
+					resultVector.emplace_back(stringBuffer);
+					stringBuffer.clear();
+				}
+				stringBuffer += sym;
+				separated = true;
+			}
+			else
+			{
+				stringBuffer += sym;
+			}
+		}
+		else
+		{
+			if (currentBlock == sym && ((!separated && blocks.at(currentBlock) != currentBlock) || (separated && separatedBlocks.at(currentBlock) != currentBlock)))
+			{
+				blockIndex++;
+			}
+			else if ((!separated && blocks.at(currentBlock) == sym) ||
+					(separated && separatedBlocks.at(currentBlock) == sym))
+			{
+				blockIndex--;
+			}
+			stringBuffer += sym;
+			if (blockIndex == 0)
+			{
+				if (separated || isSplitter(sym))
+				{
+					resultVector.emplace_back(stringBuffer);
+					stringBuffer.clear();
+				}
+				separated = false;
+			}
+		}
+	}
+	if (!stringBuffer.empty())
+	{
+		resultVector.emplace_back(stringBuffer);
+	}
+	std::for_each(resultVector.begin(), resultVector.end(), [](auto& str){str = parser::removeFirstSym(str, ' ');});
+	return resultVector;
+}
 
 std::string naobi::parser::removeExtraSpaces(const std::string &str) noexcept
 {
@@ -98,59 +195,6 @@ std::string naobi::parser::join(const std::vector<std::string> &strings, const s
 	return temp;
 }
 
-std::vector<std::string> naobi::parser::split(const std::string &text, const std::vector<std::string> &splitters,
-											  const std::vector<std::string> &single, int mods)
-{
-	std::vector<std::string> buffer;
-	std::string tempString;
-	bool isQuote = false;
-	int brackets{};
-	for (auto sym : text)
-	{
-		if (brackets == 0 && sym == '\"')
-		{
-			isQuote = !isQuote;
-		}
-		if (sym == '{')
-		{
-			brackets++;
-		}
-		else if (sym == '}')
-		{
-			brackets--;
-		}
-		if (brackets == 0 && !isQuote && std::find(single.cbegin(), single.cend(), std::string(1, sym)) != single.cend())
-		{
-			if (!tempString.empty())
-			{
-				buffer.push_back(tempString);
-				tempString.clear();
-			}
-			buffer.emplace_back(1, sym);
-		}
-		else if (brackets == 0 && !isQuote && std::find(splitters.cbegin(), splitters.cend(), std::string(1, sym)) != splitters.cend())
-		{
-			if (mods & SPLIT_AFTER)
-			{
-				tempString += sym;
-				buffer.push_back(tempString);
-				tempString.clear();
-				continue;
-			}
-			else
-			{
-				buffer.push_back(tempString);
-				tempString.clear();
-			}
-		}
-		else
-		{
-			tempString += sym;
-		}
-	}
-	if (!tempString.empty()) buffer.push_back(tempString);
-	return buffer;
-}
 
 std::string naobi::parser::removeFirstSym(const std::string &str, char sym) noexcept
 {
@@ -190,3 +234,18 @@ void naobi::parser::removeComments(std::string &str) noexcept
 		str.erase(commentPos, str.find('\n', commentPos) - commentPos);
 	}
 }
+
+std::function<int(char)> naobi::parser::isAnyOf(const std::string& str)
+{
+	return [symbols = str](auto ch) noexcept -> int {return symbols.find(ch) != std::string::npos;};
+}
+
+std::function<int(char)> naobi::parser::isEnds(const std::string& str)
+{
+	return [symbols = str](auto ch) noexcept -> int {
+		auto temp = symbols.find(ch);
+		if (temp != std::string::npos) return 2;
+		else return 0;
+	};
+}
+

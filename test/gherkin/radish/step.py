@@ -22,7 +22,11 @@ def take_logs(byte_lines):
     for line in byte_lines:
         utf8_lines.append(line.decode("UTF-8"))
     temp = "".join(utf8_lines)
-    return temp if len(temp) > 0 else logs
+    if len(temp) == 0:
+        global logs
+        temp = logs
+        logs = ""
+    return temp
 
 
 # Steps

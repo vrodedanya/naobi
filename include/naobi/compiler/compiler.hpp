@@ -28,7 +28,7 @@ namespace naobi
 		void compile(const std::string& fileName, const naobi::module::sptr& parent);
 
 		std::string processFileName(const std::string& fileName);
-		void processModules(const std::vector<std::string>& lines, const naobi::module::sptr& module);
+		void processImportingModules(const std::vector<std::string>& lines, const naobi::module::sptr& module);
 		void processModule(const std::vector<std::string>& lines, const naobi::module::sptr& module);
 
 
