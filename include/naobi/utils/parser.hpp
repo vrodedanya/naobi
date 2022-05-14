@@ -24,7 +24,9 @@ namespace naobi::parser
 										  const std::map<char, char>& separatedBlocks = {});
 
 	std::string join(const std::vector<std::string>& strings, const std::string& delimiter) noexcept;
-	std::string join(std::vector<std::string>::iterator& begin, std::vector<std::string>::iterator& end, const std::string& delimiter) noexcept;
+
+	template <typename ITERATOR_BEGIN, typename ITERATOR_END>
+	std::string join(const ITERATOR_BEGIN& begin, const ITERATOR_END& end, const std::string& delimiter) noexcept;
 
 
 	std::string removeExtraSpaces(const std::string& str) noexcept;
@@ -37,6 +39,21 @@ namespace naobi::parser
 	std::vector<std::string> removeEmpty(const std::vector<std::string>& vec) noexcept;
 	std::string dirName(const std::string& path) noexcept;
 	std::string fileName(const std::string& path) noexcept;
+}
+
+template <typename ITERATOR_BEGIN, typename ITERATOR_END>
+std::string naobi::parser::join(const ITERATOR_BEGIN& begin, const ITERATOR_END& end,
+								const std::string &delimiter) noexcept
+{
+	std::string temp;
+
+	for(auto it = begin ; it != end ; it++)
+	{
+		temp += *it;
+		if ((it + 1) != end) temp += delimiter;
+	}
+
+	return temp;
 }
 
 #endif //NAOBI_PARSER_HPP

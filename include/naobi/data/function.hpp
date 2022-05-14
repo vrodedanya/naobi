@@ -3,7 +3,10 @@
 
 #include <string>
 #include <memory>
-#include "naobi/interpreter/command.hpp"
+#include <optional>
+
+#include <naobi/interpreter/command.hpp>
+#include <naobi/utils/type.hpp>
 
 namespace naobi
 {
@@ -12,11 +15,18 @@ namespace naobi
 	public:
 		using uptr = std::unique_ptr<function>;
 		using sptr = std::shared_ptr<function>;
+		using argument_type = std::pair<std::string, utils::type::names>;
 
 	public:
 		explicit function(std::string name);
 
 		[[nodiscard]] std::string name() const {return _name;}
+
+		bool addArgument(const std::string& name, utils::type::names type);
+		std::optional<argument_type> getArgument(const std::string& name);
+		std::optional<argument_type> getArgument(std::size_t pos);
+
+		const std::vector<argument_type> &getArguments() const;
 
 		void setCommands(const std::vector<naobi::command>& commands);
 
@@ -25,6 +35,7 @@ namespace naobi
 
 	private:
 		std::vector<naobi::command> _commands;
+		std::vector<argument_type> _arguments;
 		std::string _name;
 	};
 }

@@ -212,19 +212,7 @@ std::vector<std::string> naobi::parser::removeEmpty(const std::vector<std::strin
 	return buffer;
 }
 
-std::string naobi::parser::join(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator &end,
-								const std::string &delimiter) noexcept
-{
-	std::string temp;
 
-	for(auto it = begin ; it != end ; it++)
-	{
-		temp += *it;
-		if ((it + 1) != end) temp += delimiter;
-	}
-
-	return temp;
-}
 
 void naobi::parser::removeComments(std::string &str) noexcept
 {

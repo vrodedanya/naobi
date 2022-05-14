@@ -265,16 +265,36 @@ _rules(
 			std::exit(EXIT_FAILURE);
 		}
 		auto function = std::make_shared<naobi::function>(name);
+		code_generator generator(module);
+
+		auto arguments = parser::split(line[2].substr(1, line[2].size() - 2), parser::isAnyOf(","));
+		LOG(compiler.compile, logger::IMPORTANT, "Arguments of function: ", arguments);
+		for (const auto& argument : arguments)
+		{
+			auto words = parser::split(argument, parser::isAnyOf(" "));
+			if (words.size() != 2) LOG(compiler.compile, logger::CRITICAL, "CRITICAL wrong argument: ", words);
+			auto type = utils::type::fromStringToName(words[0]);
+			auto argName = words[1];
+			auto variable = std::make_shared<naobi::variable>(argName, type);
+			generator.addVariable(argName, variable);
+			function->addArgument(argName, type);
+		}
 
 		std::string codeBlock = line.back().substr(1, line.back().size() - 2);
 		auto lines = parser::split(codeBlock, parser::isAnyOf(";}"), {}, {{'{','}'}, {'"','"'}});
 
-		code_generator generator(module);
 		auto commands = generator.generate(lines);
 		function->setCommands(commands);
 
-		module->addFunction(function);
-		LOG(compiler.compile, logger::IMPORTANT, "Added function with name ", name);
+		if (module->addFunction(function))
+		{
+			LOG(compiler.compile, logger::IMPORTANT, "Added function with name ", name);
+		}
+		else
+		{
+			LOG(compiler.compile, logger::CRITICAL, "CRITICAL function with name ", name, " and this arguments ", line[2], " is already exist");
+			std::exit(EXIT_FAILURE);
+		}
 	}},
 	// Import plug
 	{[](const std::vector<std::string> &line) -> bool{

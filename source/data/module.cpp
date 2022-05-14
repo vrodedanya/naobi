@@ -24,7 +24,12 @@ bool naobi::module::addConst(const naobi::variable::sptr& newConst)
 
 bool naobi::module::addFunction(const naobi::function::sptr& newFunction)
 {
-	if (getFunction(newFunction->name()) != nullptr) return false;
+	auto it = std::find_if(_functions.begin(), _functions.end(), [newFunction](function::sptr& function)
+	{
+		return newFunction->name() == function->name() && std::equal(newFunction->getArguments().cbegin(),newFunction->getArguments().cend(),
+																	 function->getArguments().cbegin());
+	});
+	if (it != _functions.end()) return false;
 	_functions.emplace_back(newFunction);
 	return true;
 }

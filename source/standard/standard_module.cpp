@@ -5,22 +5,26 @@ naobi::standard::standard() : module("standard")
 {
 	{
 		auto function = std::make_shared<naobi::function>("println");
-		std::vector<naobi::command> commands;
-		commands.emplace_back(code_generator::createCommand(naobi::command::names::PRINTLN, {}));
+		function->addArgument("variable", utils::type::names::DYNAMIC);
+		std::vector<command> commands;
+		commands.emplace_back(code_generator::createCommand(command::names::LOAD, {"variable"}));
+		commands.emplace_back(code_generator::createCommand(command::names::PRINTLN, {}));
 		function->setCommands(commands);
 		addFunction(function);
 	}
 	{
 		auto function = std::make_shared<naobi::function>("print");
-		std::vector<naobi::command> commands;
-		commands.emplace_back(code_generator::createCommand(naobi::command::names::PRINT, {}));
+		function->addArgument("variable", utils::type::names::DYNAMIC);
+		std::vector<command> commands;
+		commands.emplace_back(code_generator::createCommand(command::names::LOAD, {"variable"}));
+		commands.emplace_back(code_generator::createCommand(command::names::PRINT, {}));
 		function->setCommands(commands);
 		addFunction(function);
 	}
 	{
 		auto function = std::make_shared<naobi::function>("exit");
-		std::vector<naobi::command> commands;
-		commands.emplace_back(code_generator::createCommand(naobi::command::names::EXIT, {}));
+		std::vector<command> commands;
+		commands.emplace_back(code_generator::createCommand(command::names::EXIT, {}));
 		function->setCommands(commands);
 		addFunction(function);
 	}

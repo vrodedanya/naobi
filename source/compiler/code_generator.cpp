@@ -411,8 +411,55 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			LOG(code_generator, logger::CRITICAL, "CRITICAL function '", words[0], "' not found");
 			std::exit(EXIT_FAILURE);
 		}
-		processExpression(std::vector<std::string>(words.begin() + 2,
-												   findEndBracket(words.begin() + 1, words.end())), commands);
+		auto argsString = parser::join(words.begin() + 2, words.end() - 1, "");
+		auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(',')'}});
+		LOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
+		std::size_t pos = 0;
+		for (const auto& arg : args)
+		{
+			auto pair = parser::split(arg, parser::isAnyOf(":"), {}, {{'(',')'}});
+			std::string value;
+			function::argument_type argInFunction;
+			if (pair.size() == 1)
+			{
+				value = pair[0];
+				auto argInFunctionOpt = it->getArgument(pos);
+				if (!argInFunctionOpt.has_value())
+				{
+					LOG(code_generator, logger::CRITICAL, "CRITICAL argument with position ", pos, " doesn't exist");
+					std::exit(EXIT_FAILURE);
+				}
+				argInFunction = argInFunctionOpt.value();
+			}
+			else if (pair.size() == 2)
+			{
+				auto name = pair[0];
+				value = pair[1];
+				auto argInFunctionOpt = it->getArgument(name);
+				if (!argInFunctionOpt.has_value())
+				{
+					LOG(code_generator, logger::CRITICAL, "CRITICAL argument with name ", name, " doesn't exist");
+					std::exit(EXIT_FAILURE);
+				}
+				argInFunction = argInFunctionOpt.value();
+			}
+			else
+			{
+				LOG(code_generator, logger::CRITICAL, "CRITICAL invalid argument ", pair);
+				std::exit(EXIT_FAILURE);
+			}
+			auto valueSplitter = parser::split(value, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
+											   {{'"', '"'},
+												{'{', '}'}});
+			processExpression(valueSplitter, commands);
+			commands.emplace_back(code_generator::createCommand(command::names::NEW,
+																{argInFunction.first, std::to_string(
+																		static_cast<int>(argInFunction.second))}));
+			commands.emplace_back(code_generator::createCommand(command::names::SAVE,
+																{argInFunction.first}));
+			pos++;
+		}
+
 		commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
 	}},
 	// Raise
@@ -618,4 +665,14 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		commands.emplace_back(stack.top());
 		stack.pop();
 	}
+}
+
+bool naobi::code_generator::addVariable(const std::string &name, const naobi::variable::sptr& var)
+{
+	if (_variablesTemp.find(name) != _variablesTemp.cend())
+	{
+		return false;
+	}
+	_variablesTemp[name] = var;
+	return true;
 }

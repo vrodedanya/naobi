@@ -79,6 +79,7 @@ naobi::utils::type::names naobi::utils::type::fromStringToName(const std::string
 	else if (type == "boolean") return names::BOOLEAN;
 	else if (type == "float") return names::FLOAT;
 	else if (type == "string") return names::STRING;
+	else if (type == "dynamic") return names::DYNAMIC;
 	else return names::UNDEFINED;
 }
 
@@ -93,5 +94,6 @@ std::string naobi::utils::type::fromNameToString(const names& name)
 	else if (name == names::BOOLEAN) return "boolean";
 	else if (name == names::FLOAT) return "float";
 	else if (name == names::STRING) return "string";
+	else if (name == names::DYNAMIC) return "dynamic";
 	else return "undefined";
 }

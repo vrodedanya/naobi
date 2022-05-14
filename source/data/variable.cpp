@@ -20,6 +20,8 @@ naobi::variable::variable(std::string name, utils::type::names type) :
 		case utils::type::names::FLOAT:
 			_value = 0.0;
 			break;
+		case utils::type::names::DYNAMIC:
+			break;
 		case utils::type::names::UNDEFINED:
 		default:
 			LOG(varible.constructor, logger::CRITICAL, "CRITICAL variable with undefined type");
@@ -433,11 +435,30 @@ std::ostream& naobi::operator << (std::ostream& os, const naobi::variable& var)
 	}
 	else if (var._type == naobi::utils::type::names::STRING)
 	{
-		os << std::boolalpha << std::get<std::string>(var._value);
+		os << std::get<std::string>(var._value);
 	}
 	else if (var._type == naobi::utils::type::names::FLOAT)
 	{
-		os << std::boolalpha << std::get<double>(var._value);
+		os << std::get<double>(var._value);
+	}
+	else if (var._type == utils::type::names::DYNAMIC)
+	{
+		if (std::holds_alternative<int>(var._value))
+		{
+			os << std::get<int>(var._value);
+		}
+		else if (std::holds_alternative<double>(var._value))
+		{
+			os << std::get<double>(var._value);
+		}
+		else if (std::holds_alternative<bool>(var._value))
+		{
+			os << std::boolalpha << std::get<bool>(var._value);
+		}
+		else if (std::holds_alternative<std::string>(var._value))
+		{
+			os << std::get<std::string>(var._value);
+		}
 	}
 	else
 	{

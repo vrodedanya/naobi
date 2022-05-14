@@ -39,3 +39,18 @@ Feature: Users functions
     """
     Then got integer 10
     Then ends with the code 0
+  Scenario: Function takes two integer arguments and print sum
+    Given script:
+    """
+    import standard;
+    function printSum(integer first, integer second)
+    {
+      println(first + second);
+    }
+    workflow main
+    {
+      printSum(first: 10, second: 40);
+    }
+    """
+    Then got integer 50
+    Then ends with the code 0
