@@ -280,6 +280,16 @@ _rules(
 			function->addArgument(argName, type);
 		}
 
+		if (std::find(line.begin(), line.end(),"->") != line.end())
+		{
+			auto returnType = utils::type::fromStringToName(line[4]);
+			function->setReturnType(returnType);
+		}
+		else
+		{
+			function->setReturnType(utils::type::names::UNDEFINED);
+		}
+
 		std::string codeBlock = line.back().substr(1, line.back().size() - 2);
 		auto lines = parser::split(codeBlock, parser::isAnyOf(";}"), {}, {{'{','}'}, {'"','"'}});
 

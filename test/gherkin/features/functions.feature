@@ -54,3 +54,18 @@ Feature: Users functions
     """
     Then got integer 50
     Then ends with the code 0
+  Scenario: Function that returns value
+    Given script:
+    """
+    import standard;
+    function five() -> integer
+    {
+      return 5;
+    }
+    workflow main
+    {
+      println(five());
+    }
+    """
+    Then got integer 5
+    Then ends with the code 0

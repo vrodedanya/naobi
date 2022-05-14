@@ -469,6 +469,13 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 	[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		commands.push_back(createCommand(command::names::ARISE, {words[1]}));
 	}},
+	{[](const std::vector<std::string>& words) -> bool{
+		return words[0] == "return" && words.size() == 2;
+	},
+	[this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
+		processExpression(std::vector<std::string>(words.begin() + 1, words.end()), commands);
+		commands.emplace_back(code_generator::createCommand(command::names::RETURN,{}));
+	}},
 	// Create assignment logic (LOW priority )
 	{[](const std::vector<std::string>& words) -> bool{
 		return words[1] == "=";

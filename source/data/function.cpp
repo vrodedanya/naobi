@@ -49,3 +49,13 @@ const std::vector<naobi::function::argument_type> &naobi::function::getArguments
 {
 	return _arguments;
 }
+
+const naobi::utils::type::names &naobi::function::getReturnType() const
+{
+	return _returnType;
+}
+
+void naobi::function::setReturnType(const naobi::utils::type::names &returnType)
+{
+	_returnType = returnType;
+}

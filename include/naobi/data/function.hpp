@@ -26,6 +26,10 @@ namespace naobi
 		std::optional<argument_type> getArgument(const std::string& name);
 		std::optional<argument_type> getArgument(std::size_t pos);
 
+		const utils::type::names &getReturnType() const;
+
+		void setReturnType(const utils::type::names &returnType);
+
 		const std::vector<argument_type> &getArguments() const;
 
 		void setCommands(const std::vector<naobi::command>& commands);
@@ -36,6 +40,7 @@ namespace naobi
 	private:
 		std::vector<naobi::command> _commands;
 		std::vector<argument_type> _arguments;
+		utils::type::names _returnType;
 		std::string _name;
 	};
 }
