@@ -122,7 +122,7 @@ void naobi::compiler::processImportingModules(const std::vector<std::string> &li
 		if (file == module->name())
 		{
 			LOG(compiler.processImportingModules, logger::CRITICAL, "CRITICAL module '", file, "' import itself");
-			exitOn({"import", moduleName});
+			std::exit(EXIT_FAILURE);
 		}
 		auto ptr = _root->findModule(file);
 		if (ptr != nullptr)
@@ -140,7 +140,7 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 	{
 		LOG(compiler.processModule, logger::LOW, "process line '",line,"'");
 
-		auto words = parser::split(line, parser::isAnyOf(" "), {}, {{'"', '"'}}, {{'{','}'}});
+		auto words = parser::split(line, parser::isAnyOf(" "), {}, {{'"', '"'}}, {{'{','}'},{'(',')'}});
 		LOG(compiler.processModule, logger::LOW, "words:\n", words);
 
 		if (words.empty()) continue;
@@ -210,12 +210,12 @@ _rules(
 		if (name.empty())
 		{
 			LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL failed to create workflow '", name, "'\n", "Can't find workflow name");
-			exitOn(line);
+			std::exit(EXIT_FAILURE);
 		}
 		if (naobi::keywords::check(name))
 		{
 			LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", name, "' is keyword!");
-			exitOn(line);
+			std::exit(EXIT_FAILURE);
 		}
 		target = getParamValue(line, "target");
 		if (target.empty())
@@ -225,7 +225,7 @@ _rules(
 		if (naobi::keywords::check(target))
 		{
 			LOG(compiler.compile, naobi::logger::CRITICAL, "CRITICAL '", target, "' is keyword!");
-			exitOn(line);
+			std::exit(EXIT_FAILURE);
 		}
 		auto temp = getParamValue(line, "invoke");
 		if (temp == "always")
@@ -256,16 +256,25 @@ _rules(
 	}},
 	// Function logic
 	{[](const std::vector<std::string> &line) -> bool{
-		return !line.empty() && line[0] == "function";
+		return !line.empty() && line[0] == "function" && line.size() >= 4;
 	},[](const std::vector<std::string> &line, const naobi::module::sptr &module){
 		std::string name = getParamValue(line, "function");
 		if (name.empty())
 		{
 			LOG(compiler.compile, logger::CRITICAL, "CRITICAL failed to get function name");
-			exitOn(line);
+			std::exit(EXIT_FAILURE);
 		}
 		auto function = std::make_shared<naobi::function>(name);
+
+		std::string codeBlock = line.back().substr(1, line.back().size() - 2);
+		auto lines = parser::split(codeBlock, parser::isAnyOf(";}"), {}, {{'{','}'}, {'"','"'}});
+
+		code_generator generator(module);
+		auto commands = generator.generate(lines);
+		function->setCommands(commands);
+
 		module->addFunction(function);
+		LOG(compiler.compile, logger::IMPORTANT, "Added function with name ", name);
 	}},
 	// Import plug
 	{[](const std::vector<std::string> &line) -> bool{
@@ -277,9 +286,3 @@ _rules(
 }
 )
 {}
-
-void naobi::compiler::exitOn(const std::vector<std::string>& lineToExit)
-{
-	LOG(compiler.compile, naobi::logger::CRITICAL, lineToExit);
-	std::exit(EXIT_FAILURE);
-}

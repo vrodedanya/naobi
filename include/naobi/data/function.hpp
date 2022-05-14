@@ -18,7 +18,7 @@ namespace naobi
 
 		[[nodiscard]] std::string name() const {return _name;}
 
-		void setCommands(const std::vector<naobi::command>& commands){_commands = commands;}
+		void setCommands(const std::vector<naobi::command>& commands);
 
 		std::vector<naobi::command>& commands(){return _commands;}
 		[[nodiscard]] const std::vector<naobi::command>& commands() const {return _commands;}

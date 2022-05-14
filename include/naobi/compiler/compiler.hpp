@@ -35,8 +35,6 @@ namespace naobi
 		std::optional<std::string> loadFile(const std::string& fileName);
 		std::vector<std::string> collectModules(const std::vector<std::string>& lines);
 
-		static void exitOn(const std::vector<std::string>& lineToExit);
-
 	private:
 		std::vector<compilerRule> _rules;
 		naobi::module::sptr _root;
