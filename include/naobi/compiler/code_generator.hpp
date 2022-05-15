@@ -29,6 +29,8 @@ namespace naobi
 
 		static bool isOperation(const std::string& string){return std::string("+-*/=%<>!").find(string) != std::string::npos;}
 
+		void callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
+
 	private:
 		void processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
 

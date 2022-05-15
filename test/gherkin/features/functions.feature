@@ -69,3 +69,47 @@ Feature: Users functions
     """
     Then got integer 5
     Then ends with the code 0
+  Scenario: Function that takes arguments and returns it
+    Given script:
+    """
+    import standard;
+    function pass(integer value) -> integer
+    {
+      return value;
+    }
+    workflow main
+    {
+      println(pass(5));
+    }
+    """
+    Then got integer 5
+    Then ends with the code 0
+  Scenario: Function that add two integers and return the sum
+    Given script:
+    """
+    import standard;
+    function sum(integer first, integer second) -> integer
+    {
+      return first + second;
+    }
+    workflow main
+    {
+      println(sum(first: 10, second: 40));
+    }
+    """
+    Then got integer 50
+    Then ends with the code 0
+  Scenario: Provided 1 argument but need 2
+    Given script:
+    """
+    import standard;
+    function sum(integer first, integer second) -> integer
+    {
+      return first + second;
+    }
+    workflow main
+    {
+      println(sum(10));
+    }
+    """
+    Then ends with the code 1

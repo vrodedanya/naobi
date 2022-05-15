@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include <naobi/utils/logger.hpp>
+#include <utility>
 #include <naobi/interpreter/workflow_context.hpp>
 #include <naobi/utils/keywords.hpp>
 #include <naobi/interpreter/event_manager.hpp>
@@ -405,62 +406,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		return words[1] == "(" && std::find(words.begin() + 2, words.end(), ")") != words.end() && !keywords::check(words[0]);
 	},
 	 [this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		auto it = _module->findFunction(words[0]);
-		if (it == nullptr)
-		{
-			LOG(code_generator, logger::CRITICAL, "CRITICAL function '", words[0], "' not found");
-			std::exit(EXIT_FAILURE);
-		}
-		auto argsString = parser::join(words.begin() + 2, words.end() - 1, "");
-		auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(',')'}});
-		LOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
-		std::size_t pos = 0;
-		for (const auto& arg : args)
-		{
-			auto pair = parser::split(arg, parser::isAnyOf(":"), {}, {{'(',')'}});
-			std::string value;
-			function::argument_type argInFunction;
-			if (pair.size() == 1)
-			{
-				value = pair[0];
-				auto argInFunctionOpt = it->getArgument(pos);
-				if (!argInFunctionOpt.has_value())
-				{
-					LOG(code_generator, logger::CRITICAL, "CRITICAL argument with position ", pos, " doesn't exist");
-					std::exit(EXIT_FAILURE);
-				}
-				argInFunction = argInFunctionOpt.value();
-			}
-			else if (pair.size() == 2)
-			{
-				auto name = pair[0];
-				value = pair[1];
-				auto argInFunctionOpt = it->getArgument(name);
-				if (!argInFunctionOpt.has_value())
-				{
-					LOG(code_generator, logger::CRITICAL, "CRITICAL argument with name ", name, " doesn't exist");
-					std::exit(EXIT_FAILURE);
-				}
-				argInFunction = argInFunctionOpt.value();
-			}
-			else
-			{
-				LOG(code_generator, logger::CRITICAL, "CRITICAL invalid argument ", pair);
-				std::exit(EXIT_FAILURE);
-			}
-			auto valueSplitter = parser::split(value, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
-											   {{'"', '"'},
-												{'{', '}'}});
-			processExpression(valueSplitter, commands);
-			commands.emplace_back(code_generator::createCommand(command::names::NEW,
-																{argInFunction.first, std::to_string(
-																		static_cast<int>(argInFunction.second))}));
-			commands.emplace_back(code_generator::createCommand(command::names::SAVE,
-																{argInFunction.first}));
-			pos++;
-		}
-
-		commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {words[0]}));
+		 callFunction(words, commands);
 	}},
 	// Raise
 	{[](const std::vector<std::string>& words) -> bool{
@@ -470,7 +416,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		commands.push_back(createCommand(command::names::ARISE, {words[1]}));
 	}},
 	{[](const std::vector<std::string>& words) -> bool{
-		return words[0] == "return" && words.size() == 2;
+		return words[0] == "return" && words.size() >= 2;
 	},
 	[this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		processExpression(std::vector<std::string>(words.begin() + 1, words.end()), commands);
@@ -493,7 +439,6 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			std::exit(1);
 		}
 		processExpression(std::vector<std::string>(words.begin() + 2, words.end()), commands);
-		// todo check function and it returns value
 		commands.emplace_back(
 				naobi::code_generator::createCommand(
 						naobi::command::names::SAVE, {words[0]}));
@@ -606,17 +551,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 			}
 			else if ((it + 1) != words.cend() && *(it + 1) == "(")
 			{
-				auto func = _module->findFunction(*it);
-				if (func == nullptr)
-				{
-					LOG(processExpression, logger::CRITICAL, "CRITICAL function '", *it, "' not found");
-					std::exit(EXIT_FAILURE);
-				}
-				if ((it + 2) != words.cend() && *(it + 2) != ")") // TODO function may contain more arguments
-				{
-					processExpression(std::vector<std::string>(it + 2, it + 3), commands);
-				}
-				commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {*it}));
+				callFunction(std::vector<std::string>(it, findEndBracket(it, words.end()) + 1), commands);
 				it = findEndBracket(it, words.end());
 			}
 			else if (*it == "(" || *it == ")")
@@ -682,4 +617,71 @@ bool naobi::code_generator::addVariable(const std::string &name, const naobi::va
 	}
 	_variablesTemp[name] = var;
 	return true;
+}
+
+void naobi::code_generator::callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands)
+{
+	LOG(code_generator, logger::IMPORTANT, "Function: ", functionCallWords);
+	auto it = _module->findFunction(functionCallWords[0]);
+	if (it == nullptr)
+	{
+		LOG(code_generator, logger::CRITICAL, "CRITICAL function '", functionCallWords[0], "' not found");
+		std::exit(EXIT_FAILURE);
+	}
+	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
+	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(',')'}});
+	LOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
+	if (args.size() != it->getArguments().size())
+	{
+		LOG(code_generator, logger::CRITICAL, "CRITICAL number of function '", functionCallWords[0], "' arguments is ",
+			it->getArguments().size(), " but provided ", args.size());
+		std::exit(EXIT_FAILURE);
+	}
+	std::size_t pos = 0;
+	for (const auto& arg : args)
+	{
+		auto pair = parser::split(arg, parser::isAnyOf(":"), {}, {{'(',')'}});
+		std::string value;
+		function::argument_type argInFunction;
+		if (pair.size() == 1)
+		{
+			value = pair[0];
+			auto argInFunctionOpt = it->getArgument(pos);
+			if (!argInFunctionOpt.has_value())
+			{
+				LOG(code_generator, logger::CRITICAL, "CRITICAL argument with position ", pos, " doesn't exist");
+				std::exit(EXIT_FAILURE);
+			}
+			argInFunction = argInFunctionOpt.value();
+		}
+		else if (pair.size() == 2)
+		{
+			auto name = pair[0];
+			value = pair[1];
+			auto argInFunctionOpt = it->getArgument(name);
+			if (!argInFunctionOpt.has_value())
+			{
+				LOG(code_generator, logger::CRITICAL, "CRITICAL argument with name ", name, " doesn't exist");
+				std::exit(EXIT_FAILURE);
+			}
+			argInFunction = argInFunctionOpt.value();
+		}
+		else
+		{
+			LOG(code_generator, logger::CRITICAL, "CRITICAL invalid argument ", pair);
+			std::exit(EXIT_FAILURE);
+		}
+		auto valueSplitter = parser::split(value, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
+										   {{'"', '"'},
+											{'{', '}'}});
+		processExpression(valueSplitter, commands);
+		commands.emplace_back(code_generator::createCommand(command::names::NEW,
+															{argInFunction.first, std::to_string(
+																	static_cast<int>(argInFunction.second))}));
+		commands.emplace_back(code_generator::createCommand(command::names::SAVE,
+															{argInFunction.first}));
+		pos++;
+	}
+
+	commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {functionCallWords[0]}));
 }
