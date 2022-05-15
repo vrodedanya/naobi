@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(naobi VERSION 0.6.1)
+project(naobi VERSION 0.6.2)
 
 set(CMAKE_CXX_STANDARD 17)
 

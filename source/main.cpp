@@ -49,7 +49,15 @@ int main(int argc, char* argv[])
 
 		naobi::handler handler;
 
-		handler.execute();
+		try
+		{
+			handler.execute();
+		}
+		catch (const std::exception& exception)
+		{
+			LOG(handler.execute, naobi::logger::CRITICAL, "CRITICAL got exception in runtime: ", exception.what());
+			return EXIT_FAILURE;
+		}
 	}
 	return EXIT_SUCCESS;
 }

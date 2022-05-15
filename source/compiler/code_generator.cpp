@@ -162,6 +162,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::code_gene
 		{
 			context->ip += std::stoi(arguments[0]);
 		}
+		context->stack.pop();
 	}},
 	{naobi::command::names::NOPE,
 	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
@@ -370,23 +371,39 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 	}},
 	// For
 	{[](const std::vector<std::string>& words) -> bool{
-		return words[0] == "for" && words.size() == 10;
+		return words[0] == "for" && words.size() >= 10;
 	},
 	[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		LOG(code_generator, logger::LOW, "for:\n", words);
 		utils::type::names type = utils::type::fromStringToName(words[1]);
+
+		std::string gen = parser::join(words.begin() + 4, findEndBracket(words.begin() + 4, words.end()) + 1, "");
+		LOG(code_generator, logger::IMPORTANT, "for generator: ", gen);
+		auto pairs = parser::split(gen.substr(1, gen.size() - 2), parser::isAnyOf(","), {}, {{'"','"'}, {'{', '}'}, {'(',')'}});
+		if (pairs.empty())
+		{
+			LOG(code_generator, logger::CRITICAL, "CRITICAL wrong for generator format: ", gen);
+			std::exit(EXIT_FAILURE);
+		}
+
 		commands.push_back(createCommand(command::names::NEW, {words[2], std::to_string(static_cast<int>(type))}));
-		commands.push_back(createCommand(command::names::PLACE, {std::to_string(static_cast<int>(type)), words[5]}));
+		processExpression(parser::split(pairs[0], parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
+										{{'"', '"'},
+										 {'{', '}'}}), commands);
 		commands.push_back(createCommand(command::names::SAVE, {words[2]}));
 
 		auto var = std::make_shared<naobi::variable>(words[2], type);
 		_variablesTemp[var->name()] = var;
 
 		commands.push_back(createCommand(command::names::LOAD, {words[2]}));
-		commands.push_back(createCommand(command::names::PLACE, {std::to_string(static_cast<int>(type)), words[7]}));
+		int tempSize = commands.size();
+		processExpression(parser::split(pairs[1], parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
+										{{'"', '"'},
+										 {'{', '}'}}), commands);
+		tempSize = static_cast<int>(commands.size()) - tempSize - 1;
 		commands.push_back(createCommand(command::names::LESS, {}));
 
-		std::string codeBlock = words[9];
+		std::string codeBlock = *(findEndBracket(words.begin() + 4, words.end()) + 1);
 		LOG(code_generator.forBlock, logger::BASIC, "for block:\n", codeBlock);
 
 		auto lines = parser::split(codeBlock.substr(1, codeBlock.size() - 2), parser::isAnyOf(";}"), {}, {{'"', '"'},{'{','}'}});
@@ -398,7 +415,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		commands.push_back(createCommand(command::names::LOAD, {words[2]}));
 		commands.push_back(createCommand(command::names::INC, {}));
 		commands.push_back(createCommand(command::names::SAVE, {words[2]}));
-		int size = -(8 + static_cast<int>(tempCommands.size()));
+		int size = -(8 + static_cast<int>(tempCommands.size()) + tempSize);
 		commands.push_back(createCommand(command::names::JUMP, {std::to_string(size)}));
 	}},
 	// Function calling
