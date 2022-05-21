@@ -108,7 +108,7 @@ def take_result(step, number):
         raise AssertionError(f"Expected {number} got {integer}")
 
 
-@then("got float {number:d}")
+@then("got float {number:f}")
 def take_result(step, number):
     if not is_process_running(step.context.process):
         if step.context.process.returncode != 0:

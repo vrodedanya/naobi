@@ -92,6 +92,8 @@ Feature: Add operation
       | first | second | result |
       | 0.5  | 0.5   | 1.0   |
       | 1.24  | 1.76  | 3.0   |
+      | 1.24  | 1.5  | 2.74   |
+      | -1.24  | 1.5  | 0.26  |
 
 # Strings
   Scenario: Adding two strings
