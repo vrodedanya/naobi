@@ -121,7 +121,7 @@ naobi::variable::sptr naobi::operator *= (naobi::variable::sptr& variable1, cons
 	}
 	else if (variable1->type() == utils::type::names::BOOLEAN && variable1->type() == variable2->type())
 	{
-		int a = std::get<bool>(variable1->value()) * std::get<bool>(variable2->value());
+		bool a = std::get<bool>(variable1->value()) && std::get<bool>(variable2->value());
 		variable1->value() = a;
 		return variable1;
 	}
