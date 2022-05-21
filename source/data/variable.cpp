@@ -172,7 +172,7 @@ naobi::variable::sptr naobi::operator /= (naobi::variable::sptr& variable1, cons
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME wrong types for division operator: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
