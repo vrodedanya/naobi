@@ -1,4 +1,4 @@
-name: Tests
+name: autotests
 
 on: [push, pull_request]
 
@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install googletest
-      run: cd test/module && sudo chmod +x test.sh && ./test.sh
+      run: cd test/module && sudo chmod +x install_googletest.sh && ./install_googletest.sh
 
     - name: Install radish
       run: |

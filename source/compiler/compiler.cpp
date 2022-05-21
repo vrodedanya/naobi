@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <memory>
 
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/logger.hpp>
