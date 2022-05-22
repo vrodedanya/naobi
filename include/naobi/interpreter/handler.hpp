@@ -4,21 +4,23 @@
 #include <list>
 
 #include <naobi/interpreter/workflow_context.hpp>
-#include <naobi/compiler/composition.hpp>
+#include <naobi/interpreter/event_manager.hpp>
+
 
 namespace naobi
 {
 	class handler
 	{
 	public:
-		handler();
+		const int MAX_TIME_PER_CONTEXT = 5;
 
 		void execute();
 
+		event_manager& eventManager() {return _eventManager;}
+
 	private:
 		std::list<naobi::workflow_context::sptr> _contexts;
-
-		const int MAX_TIME_PER_CONTEXT = 5;
+		event_manager _eventManager;
 	};
 }
 

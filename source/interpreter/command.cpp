@@ -175,7 +175,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 				}},
 		{naobi::command::names::ARISE,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					event_manager::pushEvent(args[0]);
+					context->eventManager->pushEvent(args[0]);
 				}},
 		{naobi::command::names::MOD,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{

@@ -15,9 +15,11 @@ namespace naobi
 		using uptr = std::unique_ptr<workflow>;
 		using sptr = std::shared_ptr<workflow>;
 	public:
-		explicit workflow(std::string name, module::sptr parentModule);
+		explicit workflow(std::string name, std::string target, module::sptr parentModule);
 
 		[[nodiscard]] std::string name() const {return _name;}
+
+		[[nodiscard]] std::string target() const {return _target;}
 
 		[[nodiscard]] int invoke() const {return _invoke;}
 		void setInvoke(int invoke) {_invoke = invoke;}
@@ -30,6 +32,7 @@ namespace naobi
 
 	private:
 		std::string _name;
+		std::string _target;
 		naobi::module::sptr _parentModule;
 		std::vector<naobi::command> _commands;
 		int _invoke{-1};

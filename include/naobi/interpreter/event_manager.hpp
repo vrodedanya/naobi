@@ -14,13 +14,14 @@ namespace naobi
 	class event_manager
 	{
 	public:
-		static void updateContexts(std::list<workflow_context::sptr>& _contexts);
+		void updateContexts(std::list<workflow_context::sptr>& _contexts);
 
-		static void pushEvent(const std::string& event);
-		static void addWorkflow(const std::string& event, const workflow::sptr& workflow);
+		void pushEvent(const std::string& event);
+		void addWorkflow(const std::string& event, const workflow::sptr& workflow);
+		[[nodiscard]] std::size_t awaitedNumberOfWorkflows() const {return _workflows.size();};
 	private:
-		static inline std::multimap<std::string, workflow::sptr> _workflows;
-		static inline std::queue<std::string> _events;
+		std::multimap<std::string, workflow::sptr> _workflows;
+		std::queue<std::string> _events;
 	};
 }
 

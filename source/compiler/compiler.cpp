@@ -196,7 +196,7 @@ _rules(
 	// Workflow logic
 	{[](const std::vector<std::string> &line) -> bool {
 		return !line.empty() && line[0] == "workflow";
-	},[](const std::vector<std::string> &line, const naobi::module::sptr &module)
+	},[this](const std::vector<std::string> &line, const naobi::module::sptr &module)
 	{
 		std::string name;
 		std::string target;
@@ -233,8 +233,12 @@ _rules(
 		{
 			invoke = std::stoi(temp);
 		}
+		else
+		{
+			invoke = 1;
+		}
 
-		auto tempWorkflow = std::make_shared<naobi::workflow>(name, module);
+		auto tempWorkflow = std::make_shared<naobi::workflow>(name, target, module);
 		tempWorkflow->setInvoke(invoke);
 
 		std::string codeBlock = line.back().substr(1, line.back().size() - 2);
@@ -244,8 +248,7 @@ _rules(
 		tempWorkflow->setCommands(commands);
 
 		NLOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'", " and target '", target,"', invoke times = ", invoke);
-
-		event_manager::addWorkflow(target, tempWorkflow);
+		this->_workflows.push_back(tempWorkflow);
 	}},
 	// Function logic
 	{[](const std::vector<std::string> &line) -> bool{

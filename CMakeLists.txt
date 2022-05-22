@@ -35,7 +35,7 @@ target_compile_options(${CMAKE_PROJECT_NAME}_lib PUBLIC -pedantic -Wall -Wextra 
         -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations
         -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow
         -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror
-        -Wno-unused)
+        -Wno-unused -fPIC)
 
 add_executable(${CMAKE_PROJECT_NAME} source/main.cpp)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
