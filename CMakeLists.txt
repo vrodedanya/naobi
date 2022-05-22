@@ -27,8 +27,15 @@ set(NAOBI_TEST_SOURCES
         test/module/type_test.cpp
         )
 
-find_package(GTest REQUIRED)
 
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG main
+        SOURCE_DIR library/googletest
+)
+FetchContent_MakeAvailable(googletest)
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${NAOBI_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_lib PRIVATE ${CMAKE_SOURCE_DIR}/include)
