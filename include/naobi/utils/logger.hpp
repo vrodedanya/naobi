@@ -8,9 +8,14 @@
 #include <naobi/utils/output_type_trait.hpp>
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/color.hpp>
+#include <naobi/utils/errors.hpp>
 
-#define LOG(addressee, level, ...) \
+#define NLOG(addressee, level, ...) \
 	naobi::logger::log(#addressee, level, ##__VA_ARGS__)
+
+#define NCRITICAL(addressee, error, ...) \
+	naobi::logger::log(#addressee, naobi::logger::CRITICAL, ##__VA_ARGS__); \
+	std::exit(error)
 
 namespace naobi
 {

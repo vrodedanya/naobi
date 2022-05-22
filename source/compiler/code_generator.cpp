@@ -11,13 +11,13 @@
 
 std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::string> lines)
 {
-	LOG(code_generator, naobi::logger::BASIC, "Code lines:\n", lines);
+	NLOG(code_generator, naobi::logger::BASIC, "Code lines:\n", lines);
 	std::vector<naobi::command> commands;
 
 	for (auto it = lines.begin() ; it != lines.end() ; it++)
 	{
 		auto words = parser::split(*it, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {}, {{'"', '"'}, {'{','}'}});
-		LOG(code_generator, logger::LOW, "words:\n", words);
+		NLOG(code_generator, logger::LOW, "words:\n", words);
 		if (words.empty()) continue;
 
 		bool isCompiled = false;
@@ -40,8 +40,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 		}
 		if (!isCompiled)
 		{
-			LOG(compiler.processModule, logger::CRITICAL, "CRITICAL failed to identify line:\n", *it);
-			std::exit(EXIT_FAILURE);
+			NCRITICAL(compiler.processModule, errors::UNKNOWN_LINE, "CRITICAL failed to identify line:\n", *it);
 		}
 	}
 
@@ -61,8 +60,7 @@ naobi::code_generator::createCommand(naobi::command::names name, const naobi::co
 	}
 	else
 	{
-		LOG(code_generator, naobi::logger::CRITICAL, "CRITICAL BROKEN COMMAND");
-		std::exit(1);
+		NCRITICAL(code_generator, errors::NOT_SPECIFIED, "CRITICAL BROKEN COMMAND");
 	}
 	return command;
 }
@@ -266,8 +264,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		{
 			if (_variablesTemp.find(*it) != _variablesTemp.cend())
 			{
-				LOG(code_generator, logger::CRITICAL, "CRITICAL '", *it, "' is already exist");
-				std::exit(1);
+				NCRITICAL(code_generator, errors::ALREADY_EXIST, "CRITICAL '", *it, "' is already exist");
 			}
 			auto var = std::make_shared<naobi::variable>(*it, type);
 			commands.emplace_back(
@@ -276,21 +273,25 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			it++;
 			if (it == wordsTemp.cend() || *it != "=")
 			{
-				LOG(code_generator, logger::CRITICAL, "CRITICAL '", *(it - 1), "' is not initialized");
-				std::exit(1);
+				NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL '", *(it - 1), "' is not initialized");
 			}
 			it++;
 			if (it == wordsTemp.cend())
 			{
-				LOG(code_generator, logger::CRITICAL, "CRITICAL '", *(it - 1), "' has empty literal");
-				std::exit(1);
+				NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL '", *(it - 1), "' has empty literal");
 			}
 			if (!utils::type::isLiteral(*it))
-			{ // TODO for type safety need to check type of loading variable
-				if (_variablesTemp.find(*it) == _variablesTemp.cend())
+			{
+				auto varIterator = _variablesTemp.find(*it);
+				if (varIterator == _variablesTemp.cend())
 				{
-					LOG(code_generator, logger::CRITICAL, "CRITICAL '", *it, "' doesn't exist");
-					std::exit(1);
+					NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL '", *it, "' doesn't exist");
+				}
+				if (varIterator->second->type() != type)
+				{
+					NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL can't assign '",
+							 utils::type::fromNameToString(varIterator->second->type()), "' type to '",
+							 utils::type::fromNameToString(type), "' type");
 				}
 				commands.emplace_back(createCommand(naobi::command::names::LOAD, {*it}));
 			}
@@ -305,13 +306,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 					}
 					commands.emplace_back(
 							naobi::code_generator::createCommand(
-									naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), value}));
+									naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), value})); // todo can be expression
 				}
 				else
 				{
-					LOG(code_generator, logger::CRITICAL, "CRITICAL variable type ('", utils::type::fromNameToString(type),
+					NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL variable type ('", utils::type::fromNameToString(type),
 						"') is not matching literal type which is '", utils::type::fromNameToString(utils::type::checkType(*it)), "'");
-					std::exit(1);
 				}
 			}
 			// TODO add assigning value for providing some checks in compile time
@@ -328,7 +328,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		return words[0] == "if" && words[1] == "(";
 	},
 	[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		LOG(code_generator, logger::LOW, "if block:\n", words);
+		NLOG(code_generator, logger::LOW, "if block:\n", words);
 		auto bodyIt = findEndBracket(words.begin() + 1, words.end());
 		processExpression(std::vector<std::string>(words.begin() + 2 , bodyIt), commands);
 
@@ -354,11 +354,11 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		{
 			std::string elseBlock = *(bodyIt + 3);
 			elseBlock = elseBlock.substr(1, elseBlock.size() - 2);
-			LOG(code_generator, logger::IMPORTANT, "Else block:\n", elseBlock);
+			NLOG(code_generator, logger::IMPORTANT, "Else block:\n", elseBlock);
 
 			auto elseLines = naobi::parser::split(elseBlock, parser::isAnyOf(";}"), {}, {{'{','}',},{'"','"'}});
 
-			LOG(code_generator, logger::IMPORTANT, "Else lines:\n", elseLines);
+			NLOG(code_generator, logger::IMPORTANT, "Else lines:\n", elseLines);
 
 			auto tempElseCommands = generate(elseLines);
 			std::size_t tempElseCommandsSize = tempElseCommands.size();
@@ -374,16 +374,15 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		return words[0] == "for" && words.size() >= 10;
 	},
 	[this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		LOG(code_generator, logger::LOW, "for:\n", words);
+		NLOG(code_generator, logger::LOW, "for:\n", words);
 		utils::type::names type = utils::type::fromStringToName(words[1]);
 
 		std::string gen = parser::join(words.begin() + 4, findEndBracket(words.begin() + 4, words.end()) + 1, "");
-		LOG(code_generator, logger::IMPORTANT, "for generator: ", gen);
+		NLOG(code_generator, logger::IMPORTANT, "for generator: ", gen);
 		auto pairs = parser::split(gen.substr(1, gen.size() - 2), parser::isAnyOf(","), {}, {{'"','"'}, {'{', '}'}, {'(',')'}});
 		if (pairs.empty())
 		{
-			LOG(code_generator, logger::CRITICAL, "CRITICAL wrong for generator format: ", gen);
-			std::exit(EXIT_FAILURE);
+			NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL wrong for generator format: ", gen);
 		}
 
 		commands.push_back(createCommand(command::names::NEW, {words[2], std::to_string(static_cast<int>(type))}));
@@ -404,10 +403,10 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		commands.push_back(createCommand(command::names::LESS, {}));
 
 		std::string codeBlock = *(findEndBracket(words.begin() + 4, words.end()) + 1);
-		LOG(code_generator.forBlock, logger::BASIC, "for block:\n", codeBlock);
+		NLOG(code_generator.forBlock, logger::BASIC, "for block:\n", codeBlock);
 
 		auto lines = parser::split(codeBlock.substr(1, codeBlock.size() - 2), parser::isAnyOf(";}"), {}, {{'"', '"'},{'{','}'}});
-		LOG(code_generator.forBlock, logger::LOW, "for block lines:\n", lines);
+		NLOG(code_generator.forBlock, logger::LOW, "for block lines:\n", lines);
 
 		auto tempCommands = generate(lines);
 		commands.push_back(createCommand(command::names::JUMP_IF, {std::to_string(tempCommands.size() + 4)}));
@@ -446,14 +445,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 	 [this](const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		if (words.size() < 3)
 		{
-			LOG(code_generator, logger::CRITICAL, "CRITICAL bad assignment operator format");
-			std::exit(1);
+			NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL bad assignment operator format");
 		}
 
 		if (_variablesTemp.find(words[0]) == _variablesTemp.cend())
 		{
-			LOG(code_generator, logger::CRITICAL, "CRITICAL '", words[0], "' doesn't exist");
-			std::exit(1);
+			NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL '", words[0], "' doesn't exist");
 		}
 		processExpression(std::vector<std::string>(words.begin() + 2, words.end()), commands);
 		commands.emplace_back(
@@ -468,10 +465,10 @@ void
 naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
 {
 	std::stack<naobi::command> stack;
-	LOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
+	NLOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
 	for (auto it = words.cbegin(); it != words.cend(); it++)
 	{
-		LOG(processExpression, logger::IMPORTANT, "Word: ", *it);
+		NLOG(processExpression, logger::IMPORTANT, "Word: ", *it);
 		if (!utils::type::isLiteral(*it))
 		{
 			if (isOperation(*it))
@@ -562,8 +559,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 				}
 				else
 				{
-					LOG(processExpression, logger::CRITICAL, "CRITICAL Bad operator '", *it, "'");
-					std::exit(EXIT_FAILURE);
+					NCRITICAL(processExpression, errors::UNKNOWN_OPERATOR, "CRITICAL Bad operator '", *it, "'");
 				}
 			}
 			else if ((it + 1) != words.cend() && *(it + 1) == "(")
@@ -592,8 +588,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 					}
 					if (!isBracket)
 					{
-						LOG(processExpression, logger::CRITICAL, "CRITICAL brackets in ", words, " are not correct");
-						std::exit(EXIT_FAILURE);
+						NCRITICAL(processExpression, errors::INCORRECT_BRACKETS, "CRITICAL brackets in ", words, " are not correct");
 					}
 				}
 			}
@@ -601,8 +596,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 			{
 				if (_variablesTemp.find(*it) == _variablesTemp.cend())
 				{
-					LOG(processExpression, logger::CRITICAL, "CRITICAL variable '", *it, "' not found");
-					std::exit(EXIT_FAILURE);
+					NCRITICAL(processExpression, errors::DOESNT_EXIST, "CRITICAL variable '", *it, "' not found");
 				}
 				commands.emplace_back(code_generator::createCommand(naobi::command::names::LOAD, {*it}));
 			}
@@ -638,21 +632,19 @@ bool naobi::code_generator::addVariable(const std::string &name, const naobi::va
 
 void naobi::code_generator::callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands)
 {
-	LOG(code_generator, logger::IMPORTANT, "Function: ", functionCallWords);
+	NLOG(code_generator, logger::IMPORTANT, "Function: ", functionCallWords);
 	auto it = _module->findFunction(functionCallWords[0]);
 	if (it == nullptr)
 	{
-		LOG(code_generator, logger::CRITICAL, "CRITICAL function '", functionCallWords[0], "' not found");
-		std::exit(EXIT_FAILURE);
+		NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL function '", functionCallWords[0], "' not found");
 	}
 	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
 	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(',')'}});
-	LOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
+	NLOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
 	if (args.size() != it->getArguments().size())
 	{
-		LOG(code_generator, logger::CRITICAL, "CRITICAL number of function '", functionCallWords[0], "' arguments is ",
+		NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL number of function '", functionCallWords[0], "' arguments is ",
 			it->getArguments().size(), " but provided ", args.size());
-		std::exit(EXIT_FAILURE);
 	}
 	std::size_t pos = 0;
 	for (const auto& arg : args)
@@ -666,8 +658,7 @@ void naobi::code_generator::callFunction(const std::vector<std::string>& functio
 			auto argInFunctionOpt = it->getArgument(pos);
 			if (!argInFunctionOpt.has_value())
 			{
-				LOG(code_generator, logger::CRITICAL, "CRITICAL argument with position ", pos, " doesn't exist");
-				std::exit(EXIT_FAILURE);
+				NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL argument with position ", pos, " doesn't exist");
 			}
 			argInFunction = argInFunctionOpt.value();
 		}
@@ -678,14 +669,13 @@ void naobi::code_generator::callFunction(const std::vector<std::string>& functio
 			auto argInFunctionOpt = it->getArgument(name);
 			if (!argInFunctionOpt.has_value())
 			{
-				LOG(code_generator, logger::CRITICAL, "CRITICAL argument with name ", name, " doesn't exist");
-				std::exit(EXIT_FAILURE);
+				NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL argument with name ", name, " doesn't exist");
 			}
 			argInFunction = argInFunctionOpt.value();
 		}
 		else
 		{
-			LOG(code_generator, logger::CRITICAL, "CRITICAL invalid argument ", pair);
+			NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL invalid argument ", pair);
 			std::exit(EXIT_FAILURE);
 		}
 		auto valueSplitter = parser::split(value, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},

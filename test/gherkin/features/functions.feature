@@ -23,7 +23,7 @@ Feature: Users functions
       printMessage();
     }
     """
-    Then ends with the code 1
+    Then fails with compilation error and code 52
   Scenario: Function takes integer and prints it
     Given script:
     """
@@ -112,4 +112,27 @@ Feature: Users functions
       println(sum(10));
     }
     """
-    Then ends with the code 1
+    Then fails with compilation error and code 57
+  Scenario: Multiple return in function
+    Given script:
+    """
+    import standard;
+    function number(integer var) -> integer
+    {
+      if (var == 1)
+      {
+        return 1;
+      }
+      else
+      {
+        return 2;
+      }
+      return 3;
+    }
+    workflow main
+    {
+      println(number(2));
+    }
+    """
+    Then got integer 2
+    Then ends with the code 0

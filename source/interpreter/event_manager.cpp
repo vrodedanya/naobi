@@ -5,11 +5,11 @@ void naobi::event_manager::updateContexts(std::list<workflow_context::sptr>&_con
 {
 	while (!_events.empty())
 	{
-		LOG(event_manager.updateContexts, logger::LOW, "Event: ", _events.front());
+		NLOG(event_manager.updateContexts, logger::LOW, "Event: ", _events.front());
 		auto range = _workflows.equal_range(_events.front());
 		for (auto workflowIterator = range.first ; workflowIterator != range.second ; workflowIterator++)
 		{
-			LOG(event_manager.updateContexts, logger::LOW, "Find workflow ", workflowIterator->second->name());
+			NLOG(event_manager.updateContexts, logger::LOW, "Find workflow ", workflowIterator->second->name());
 			auto context = std::make_shared<naobi::workflow_context>();
 			context->workflow = workflowIterator->second;
 			context->ip = context->workflow->commands().begin();
@@ -22,7 +22,7 @@ void naobi::event_manager::updateContexts(std::list<workflow_context::sptr>&_con
 
 void naobi::event_manager::addWorkflow(const std::string &event, const naobi::workflow::sptr& workflow)
 {
-	LOG(event_manager.addWorkflow, logger::IMPORTANT, "Add workflow ", workflow->name(), " on target ", event);
+	NLOG(event_manager.addWorkflow, logger::IMPORTANT, "Add workflow ", workflow->name(), " on target ", event);
 	_workflows.emplace(event, workflow);
 }
 

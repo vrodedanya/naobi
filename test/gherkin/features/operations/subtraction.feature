@@ -41,7 +41,7 @@ Feature: Subtract operation
       println(true - false);
     }
     """
-    Then ends with the code 1
+    Then fails with compilation error and code 53
 
 # Floats
   Scenario: Subtracting two floats

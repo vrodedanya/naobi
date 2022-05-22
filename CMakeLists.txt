@@ -9,29 +9,22 @@ include(FetchContent)
 set(NAOBI_SOURCES
         source/compiler/compiler.cpp
         source/compiler/code_generator.cpp
-        source/interpreter/handler.cpp
-        source/interpreter/event_manager.cpp
         source/data/module.cpp
         source/data/function.cpp
         source/data/variable.cpp
         source/data/workflow.cpp
+        source/interpreter/handler.cpp
+        source/interpreter/event_manager.cpp
+        source/standard/standard_module.cpp
         source/utils/type.cpp
         source/utils/arguments.cpp
         source/utils/parser.cpp
-        source/standard/standard_module.cpp
         )
 
 set(NAOBI_TEST_SOURCES
         test/module/parser_test.cpp
-        test/module/type_test.cpp)
-
-FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest
-        GIT_TAG main
-        SOURCE_DIR library
-)
-FetchContent_MakeAvailable(googletest)
+        test/module/type_test.cpp
+        )
 
 find_package(GTest REQUIRED)
 

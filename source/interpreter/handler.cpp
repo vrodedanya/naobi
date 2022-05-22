@@ -35,6 +35,6 @@ void naobi::handler::execute()
 			(*context)->ip++;
 		}
 		event_manager::updateContexts(_contexts);
-		LOG(handler.execute, logger::IMPORTANT, "Contexts at the moment: ", _contexts.size());
+		NLOG(handler.execute, logger::IMPORTANT, "Contexts at the moment: ", _contexts.size());
 	}
 }

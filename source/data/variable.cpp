@@ -24,7 +24,7 @@ naobi::variable::variable(std::string name, utils::type::names type) :
 			break;
 		case utils::type::names::UNDEFINED:
 		default:
-			LOG(varible.constructor, logger::CRITICAL, "CRITICAL variable with undefined type");
+			NLOG(varible.constructor, logger::CRITICAL, "CRITICAL variable with undefined type");
 			std::exit(1);
 	}
 }
@@ -63,7 +63,7 @@ naobi::variable::sptr naobi::operator+=(naobi::variable::sptr& variable1, const 
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -104,7 +104,7 @@ naobi::variable::sptr naobi::operator -= (naobi::variable::sptr& variable1, cons
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -143,7 +143,7 @@ naobi::variable::sptr naobi::operator *= (naobi::variable::sptr& variable1, cons
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -172,7 +172,7 @@ naobi::variable::sptr naobi::operator /= (naobi::variable::sptr& variable1, cons
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME wrong types for division operator: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME wrong types for division operator: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -195,7 +195,7 @@ naobi::variable::sptr naobi::operator %= (naobi::variable::sptr& variable1, cons
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -231,7 +231,7 @@ naobi::variable::sptr naobi::operator > (const naobi::variable::sptr& variable1,
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -265,7 +265,7 @@ naobi::variable::sptr naobi::operator < (const naobi::variable::sptr& variable1,
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -299,7 +299,7 @@ naobi::variable::sptr naobi::operator >= (const naobi::variable::sptr& variable1
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -333,7 +333,7 @@ naobi::variable::sptr naobi::operator <= (const naobi::variable::sptr& variable1
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -367,7 +367,7 @@ naobi::variable::sptr naobi::operator == (const naobi::variable::sptr& variable1
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
@@ -379,7 +379,7 @@ bool naobi::operator == (const naobi::variable::sptr& var1, bool var2)
 	{
 		return std::get<bool>(var1->value()) == var2;
 	}
-	LOG(variable, logger::CRITICAL, "RUNTIME CRITICAL Variable should be boolean type!\n",
+	NLOG(variable, logger::CRITICAL, "RUNTIME CRITICAL Variable should be boolean type!\n",
 		"Please, report this error to https://github.com/vrodedanya/naobi/issues");
 	std::exit(EXIT_FAILURE);
 }
@@ -412,7 +412,7 @@ naobi::variable::sptr naobi::operator != (const naobi::variable::sptr& variable1
 	}
 	else
 	{
-		LOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
+		NLOG(variable, logger::CRITICAL, "CRITICAL RUNTIME variable are not the same types: ",
 			utils::type::fromNameToString(variable1->type()), " and ", utils::type::fromNameToString(variable2->type()));
 		std::exit(1);
 	}
