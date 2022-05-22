@@ -29,6 +29,7 @@ set(NAOBI_TEST_SOURCES
 
 find_package(GTest REQUIRED)
 
+
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${NAOBI_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_lib PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -pedantic -Wall -Wextra -Wcast-align -Wcast-qual
@@ -45,7 +46,11 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
         VERSION_MINOR=${CMAKE_PROJECT_VERSION_MINOR}
         VERSION_PATCH=${CMAKE_PROJECT_VERSION_PATCH}
         )
-set(USE_ASAN 1)
+
+add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
+target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
+target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gtest_main pthread ${CMAKE_PROJECT_NAME}_lib)
 
 if (DEFINED USE_ASAN)
     message(STATUS "Build with asan")
@@ -54,9 +59,7 @@ if (DEFINED USE_ASAN)
 
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address)
     target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address)
-endif ()
 
-add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
-target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
-target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread ${CMAKE_PROJECT_NAME}_lib)
+    target_compile_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address)
+    target_link_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address)
+endif ()

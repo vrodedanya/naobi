@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include <naobi/utils/parser.hpp>
 #include <set>
+#include <gmock/gmock-matchers.h>
 
 using namespace naobi::parser;
 
