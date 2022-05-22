@@ -21,8 +21,10 @@ jobs:
 
     - name: Build naobi
       run: |
-        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -DUSE_ASAN=1
+        mkdir build
         cd build
+        cmake .. -DUSE_ASAN=1
+        make -j
         ./naobi -v
 
     - name: Run unit tests
