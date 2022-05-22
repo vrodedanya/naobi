@@ -2,6 +2,9 @@
 #define NAOBI_COMMAND_HPP
 
 #include <functional>
+#include <map>
+#include <memory>
+
 
 namespace naobi
 {
@@ -10,7 +13,9 @@ namespace naobi
 	struct command
 	{
 		using argumentsList = std::vector<std::string>;
+
 		using implementation = std::function<void(std::shared_ptr<workflow_context> ptr, const argumentsList& arguments)>;
+
 		enum class names
 		{
 		// CommandName <-> argumentsCount
@@ -43,9 +48,13 @@ namespace naobi
 			ARISE,
 		};
 
+		static naobi::command createCommand(command::names com, const command::argumentsList& arguments);
+
 		names name;
 		implementation impl;
 		argumentsList arguments;
+
+		static std::map<command::names, implementation> commands;
 	};
 }
 

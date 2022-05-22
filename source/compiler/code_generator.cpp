@@ -47,203 +47,6 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 	return commands;
 }
 
-naobi::command
-naobi::code_generator::createCommand(naobi::command::names name, const naobi::command::argumentsList &arguments)
-{
-	naobi::command command;
-	command.name = name;
-	command.arguments = arguments;
-	auto it = _commands.find(name);
-	if (it != _commands.cend())
-	{
-		command.impl = it->second;
-	}
-	else
-	{
-		NCRITICAL(code_generator, errors::NOT_SPECIFIED, "CRITICAL BROKEN COMMAND");
-	}
-	return command;
-}
-
-
-std::map<naobi::command::names, naobi::command::implementation> naobi::code_generator::_commands =
-{
-	{naobi::command::names::ADD,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto top = context->stack.top();
-		context->stack.pop();
-		context->stack.top() += top;
-	}},
-	{naobi::command::names::SUB,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto top = context->stack.top();
-		context->stack.pop();
-		context->stack.top() -= top;
-	}},
-	{naobi::command::names::MUL,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto top = context->stack.top();
-		context->stack.pop();
-		context->stack.top() *= top;
-	}},
-	{naobi::command::names::DIV,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto top = context->stack.top();
-		context->stack.pop();
-		context->stack.top() /= top;
-	}},
-	{naobi::command::names::NEW,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto type = utils::type::toType(arguments[1]);
-		auto var = std::make_shared<naobi::variable>(arguments[0], type);
-		context->variables[var->name()] = var;
-	}},
-	{naobi::command::names::LOAD,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){ //
-		context->stack.push(context->variables[arguments[0]]->copy());
-	}},
-	{naobi::command::names::SAVE,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		context->variables[arguments[0]]->value() = context->stack.top()->value();
-		context->stack.pop();
-	}},
-	{naobi::command::names::PLACE,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto type = utils::type::toType(arguments[0]);
-		auto var = std::make_shared<naobi::variable>("temp", type);
-		var->value() = utils::type::getValueFrom(type, arguments[1]);
-		context->stack.push(var);
-	}},
-	{naobi::command::names::PRINTLN,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto val = context->stack.top();
-		std::cout << *val << std::endl;
-		context->stack.pop();
-	}},
-	{naobi::command::names::PRINT,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto val = context->stack.top();
-		std::cout << *val;
-		context->stack.pop();
-	}},
-	{naobi::command::names::INPUT,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		std::string str;
-		std::cin >> str;
-		utils::type::names type = utils::type::checkTypeFromInput(str);
-		auto var = std::make_shared<naobi::variable>("temp", type);
-		var->value() = utils::type::getValueFrom(type, str);
-		context->stack.push(var);
-	}},
-	{naobi::command::names::RETURN,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto address = context->returnPoints.top();
-		context->ip = address;
-		context->returnPoints.pop();
-	}},
-	{naobi::command::names::CALL,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments){
-		auto address = context->ip;
-		context->returnPoints.push(address);
-		auto it = context->workflow->module()->findFunction(arguments[0]);
-		context->ip = it->commands().begin();
-	}},
-	{naobi::command::names::JUMP,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments)
-	{
-		context->ip += std::stoi(arguments[0]);
-	}},
-	{naobi::command::names::JUMP_IF,
-	[](const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments)
-	{
-		if (context->stack.top() != true)
-		{
-			context->ip += std::stoi(arguments[0]);
-		}
-		context->stack.pop();
-	}},
-	{naobi::command::names::NOPE,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-	}},
-	{naobi::command::names::EQ,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto first = context->stack.top();
-		context->stack.pop();
-		auto second = context->stack.top();
-		context->stack.pop();
-		context->stack.push(first == second);
-	}},
-	{naobi::command::names::GREATER,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto first = context->stack.top();
-		context->stack.pop();
-		auto second = context->stack.top();
-		context->stack.pop();
-		context->stack.push(second > first);
-	}},
-	{naobi::command::names::LESS,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto first = context->stack.top();
-		context->stack.pop();
-		auto second = context->stack.top();
-		context->stack.pop();
-		context->stack.push(second < first);
-	}},
-	{naobi::command::names::GREATER_OR_EQ,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto first = context->stack.top();
-		context->stack.pop();
-		auto second = context->stack.top();
-		context->stack.pop();
-		context->stack.push(second >= first);
-	}},
-	{naobi::command::names::LESS_OR_EQ,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto first = context->stack.top();
-		context->stack.pop();
-		auto second = context->stack.top();
-		context->stack.pop();
-		context->stack.push(second <= first);
-	}},
-	{naobi::command::names::NOT_EQ,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto first = context->stack.top();
-		context->stack.pop();
-		auto second = context->stack.top();
-		context->stack.pop();
-		context->stack.push(second != first);
-	}},
-	{naobi::command::names::EXIT,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto top = context->stack.top();
-		std::exit(std::get<int>(top->value()));
-	}},
-	{naobi::command::names::INC,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto top = context->stack.top();
-		auto var = std::make_shared<naobi::variable>("temp", top->type());
-		var->value() = 1;
-		context->stack.top() += var;
-	}},
-	{naobi::command::names::DEC,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto top = context->stack.top();
-		auto var = std::make_shared<naobi::variable>("temp", top->type());
-		var->value() = 1;
-		context->stack.top() -= var;
-	}},
-	{naobi::command::names::ARISE,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		event_manager::pushEvent(arguments[0]);
-	}},
-	{naobi::command::names::MOD,
-	[]([[maybe_unused]]const workflow_context::sptr& context, [[maybe_unused]]const command::argumentsList& arguments) noexcept{
-		auto top = context->stack.top();
-		context->stack.pop();
-		context->stack.top() %= top;
-	}},
-};
-
 
 naobi::code_generator::code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp) :
 	_module(std::move(module)),
@@ -268,7 +71,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			}
 			auto var = std::make_shared<naobi::variable>(*it, type);
 			commands.emplace_back(
-					naobi::code_generator::createCommand(
+					naobi::command::createCommand(
 							naobi::command::names::NEW, {*it, std::to_string(static_cast<int>(type))}));
 			it++;
 			if (it == wordsTemp.cend() || *it != "=")
@@ -293,7 +96,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 							 utils::type::fromNameToString(varIterator->second->type()), "' type to '",
 							 utils::type::fromNameToString(type), "' type");
 				}
-				commands.emplace_back(createCommand(naobi::command::names::LOAD, {*it}));
+				commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {*it}));
 			}
 			else
 			{
@@ -305,7 +108,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 						value = value.substr(1, value.size() - 2);
 					}
 					commands.emplace_back(
-							naobi::code_generator::createCommand(
+							naobi::command::createCommand(
 									naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), value})); // todo can be expression
 				}
 				else
@@ -316,7 +119,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			}
 			// TODO add assigning value for providing some checks in compile time
 			commands.emplace_back(
-					naobi::code_generator::createCommand(
+					naobi::command::createCommand(
 							naobi::command::names::SAVE, {var->name()}));
 			_variablesTemp[var->name()] = var;
 			it++;
@@ -344,7 +147,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			tempCommandsSize++;
 		}
 
-		commands.emplace_back(createCommand(naobi::command::names::JUMP_IF, {std::to_string(tempCommandsSize)}));
+		commands.emplace_back(command::createCommand(naobi::command::names::JUMP_IF, {std::to_string(tempCommandsSize)}));
 		for (const auto& command : tempCommands)
 		{
 			commands.push_back(command);
@@ -362,7 +165,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 
 			auto tempElseCommands = generate(elseLines);
 			std::size_t tempElseCommandsSize = tempElseCommands.size();
-			commands.emplace_back(createCommand(naobi::command::names::JUMP, {std::to_string(tempElseCommandsSize)}));
+			commands.emplace_back(command::createCommand(naobi::command::names::JUMP, {std::to_string(tempElseCommandsSize)}));
 			for (const auto& command : tempElseCommands)
 			{
 				commands.push_back(command);
@@ -385,22 +188,22 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL wrong for generator format: ", gen);
 		}
 
-		commands.push_back(createCommand(command::names::NEW, {words[2], std::to_string(static_cast<int>(type))}));
+		commands.push_back(command::createCommand(command::names::NEW, {words[2], std::to_string(static_cast<int>(type))}));
 		processExpression(parser::split(pairs[0], parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
 										{{'"', '"'},
 										 {'{', '}'}}), commands);
-		commands.push_back(createCommand(command::names::SAVE, {words[2]}));
+		commands.push_back(command::createCommand(command::names::SAVE, {words[2]}));
 
 		auto var = std::make_shared<naobi::variable>(words[2], type);
 		_variablesTemp[var->name()] = var;
 
-		commands.push_back(createCommand(command::names::LOAD, {words[2]}));
-		int tempSize = commands.size();
+		commands.push_back(command::createCommand(command::names::LOAD, {words[2]}));
+		int tempSize = static_cast<int>(commands.size());
 		processExpression(parser::split(pairs[1], parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
 										{{'"', '"'},
 										 {'{', '}'}}), commands);
 		tempSize = static_cast<int>(commands.size()) - tempSize - 1;
-		commands.push_back(createCommand(command::names::LESS, {}));
+		commands.push_back(command::createCommand(command::names::LESS, {}));
 
 		std::string codeBlock = *(findEndBracket(words.begin() + 4, words.end()) + 1);
 		NLOG(code_generator.forBlock, logger::BASIC, "for block:\n", codeBlock);
@@ -409,13 +212,13 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		NLOG(code_generator.forBlock, logger::LOW, "for block lines:\n", lines);
 
 		auto tempCommands = generate(lines);
-		commands.push_back(createCommand(command::names::JUMP_IF, {std::to_string(tempCommands.size() + 4)}));
+		commands.push_back(command::createCommand(command::names::JUMP_IF, {std::to_string(tempCommands.size() + 4)}));
 		commands.insert(commands.cend(), tempCommands.begin(), tempCommands.end());
-		commands.push_back(createCommand(command::names::LOAD, {words[2]}));
-		commands.push_back(createCommand(command::names::INC, {}));
-		commands.push_back(createCommand(command::names::SAVE, {words[2]}));
+		commands.push_back(command::createCommand(command::names::LOAD, {words[2]}));
+		commands.push_back(command::createCommand(command::names::INC, {}));
+		commands.push_back(command::createCommand(command::names::SAVE, {words[2]}));
 		int size = -(8 + static_cast<int>(tempCommands.size()) + tempSize);
-		commands.push_back(createCommand(command::names::JUMP, {std::to_string(size)}));
+		commands.push_back(command::createCommand(command::names::JUMP, {std::to_string(size)}));
 	}},
 	// Function calling
 	{[](const std::vector<std::string>& words) -> bool{
@@ -429,14 +232,14 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		return words[0] == "arise" && words.size() == 2;
 	},
 	[]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
-		commands.push_back(createCommand(command::names::ARISE, {words[1]}));
+		commands.push_back(command::createCommand(command::names::ARISE, {words[1]}));
 	}},
 	{[](const std::vector<std::string>& words) -> bool{
 		return words[0] == "return" && words.size() >= 2;
 	},
 	[this]([[maybe_unused]]const std::vector<std::string>& words, std::vector<naobi::command>& commands){
 		processExpression(std::vector<std::string>(words.begin() + 1, words.end()), commands);
-		commands.emplace_back(code_generator::createCommand(command::names::RETURN,{}));
+		commands.emplace_back(command::createCommand(command::names::RETURN,{}));
 	}},
 	// Create assignment logic (LOW priority )
 	{[](const std::vector<std::string>& words) -> bool{
@@ -454,7 +257,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		}
 		processExpression(std::vector<std::string>(words.begin() + 2, words.end()), commands);
 		commands.emplace_back(
-				naobi::code_generator::createCommand(
+				naobi::command::createCommand(
 						naobi::command::names::SAVE, {words[0]}));
 	}},
 })
@@ -494,31 +297,31 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 					}
 					if (*it == "=" && *(it + 1) == "=")
 					{
-						stack.push(createCommand(command::names::EQ, {}));
+						stack.push(command::createCommand(command::names::EQ, {}));
 						it++;
 					}
 					else if (*it == "<" && *(it + 1) == "=")
 					{
-						stack.push(createCommand(command::names::LESS_OR_EQ, {}));
+						stack.push(command::createCommand(command::names::LESS_OR_EQ, {}));
 						it++;
 					}
 					else if (*it == ">" && *(it + 1) == "=")
 					{
-						stack.push(createCommand(command::names::GREATER_OR_EQ, {}));
+						stack.push(command::createCommand(command::names::GREATER_OR_EQ, {}));
 						it++;
 					}
 					else if (*it == "!" && *(it + 1) == "=")
 					{
-						stack.push(createCommand(command::names::NOT_EQ, {}));
+						stack.push(command::createCommand(command::names::NOT_EQ, {}));
 						it++;
 					}
 					else if (*it == ">")
 					{
-						stack.push(createCommand(command::names::GREATER, {}));
+						stack.push(command::createCommand(command::names::GREATER, {}));
 					}
 					else if (*it == "<")
 					{
-						stack.push(createCommand(command::names::LESS, {}));
+						stack.push(command::createCommand(command::names::LESS, {}));
 					}
 				}
 				else if (*it == "+" || *it == "-")
@@ -532,7 +335,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 						commands.emplace_back(stack.top());
 						stack.pop();
 					}
-					stack.push(createCommand(*it == "+" ? naobi::command::names::ADD : naobi::command::names::SUB, {}));
+					stack.push(command::createCommand(*it == "+" ? naobi::command::names::ADD : naobi::command::names::SUB, {}));
 				}
 				else if (*it == "*" || *it == "/" || *it == "%")
 				{
@@ -545,16 +348,16 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 					}
 					if (*it == "*")
 					{
-						stack.push(createCommand(naobi::command::names::MUL, {}));
+						stack.push(command::createCommand(naobi::command::names::MUL, {}));
 
 					}
 					else if (*it == "/")
 					{
-						stack.push(createCommand(naobi::command::names::DIV, {}));
+						stack.push(command::createCommand(naobi::command::names::DIV, {}));
 					}
 					else if (*it == "%")
 					{
-						stack.push(createCommand(naobi::command::names::MOD, {}));
+						stack.push(command::createCommand(naobi::command::names::MOD, {}));
 					}
 				}
 				else
@@ -571,7 +374,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 			{
 				if (*it == "(")
 				{
-					stack.push(code_generator::createCommand(naobi::command::names::NOPE, {}));
+					stack.push(command::createCommand(naobi::command::names::NOPE, {}));
 				}
 				else
 				{
@@ -598,7 +401,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 				{
 					NCRITICAL(processExpression, errors::DOESNT_EXIST, "CRITICAL variable '", *it, "' not found");
 				}
-				commands.emplace_back(code_generator::createCommand(naobi::command::names::LOAD, {*it}));
+				commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {*it}));
 			}
 		}
 		else
@@ -610,7 +413,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 				temp = temp.substr(1, temp.size() - 2);
 			}
 			commands.emplace_back(
-					createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), temp}));
+					command::createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), temp}));
 		}
 	}
 	while (!stack.empty())
@@ -682,13 +485,13 @@ void naobi::code_generator::callFunction(const std::vector<std::string>& functio
 										   {{'"', '"'},
 											{'{', '}'}});
 		processExpression(valueSplitter, commands);
-		commands.emplace_back(code_generator::createCommand(command::names::NEW,
+		commands.emplace_back(command::createCommand(command::names::NEW,
 															{argInFunction.first, std::to_string(
 																	static_cast<int>(argInFunction.second))}));
-		commands.emplace_back(code_generator::createCommand(command::names::SAVE,
+		commands.emplace_back(command::createCommand(command::names::SAVE,
 															{argInFunction.first}));
 		pos++;
 	}
 
-	commands.emplace_back(code_generator::createCommand(naobi::command::names::CALL, {functionCallWords[0]}));
+	commands.emplace_back(command::createCommand(naobi::command::names::CALL, {functionCallWords[0]}));
 }

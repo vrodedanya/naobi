@@ -15,6 +15,7 @@ set(NAOBI_SOURCES
         source/data/workflow.cpp
         source/interpreter/handler.cpp
         source/interpreter/event_manager.cpp
+        source/interpreter/command.cpp
         source/standard/standard_module.cpp
         source/utils/type.cpp
         source/utils/arguments.cpp

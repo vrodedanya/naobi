@@ -25,8 +25,6 @@ namespace naobi
 
 		bool addVariable(const std::string& name, const variable::sptr& var);
 
-		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
-
 		static bool isOperation(const std::string& string){return std::string("+-*/=%<>!").find(string) != std::string::npos;}
 
 		void callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
@@ -41,8 +39,6 @@ namespace naobi
 		naobi::module::sptr _module;
 		std::map<std::string, variable::sptr> _variablesTemp;
 		std::vector<generatorRule> _generatorRules; // rules to generate code
-
-		static std::map<command::names, command::implementation> _commands; // commands implementation
 	};
 }
 

@@ -1,5 +1,5 @@
 #include <naobi/data/function.hpp>
-#include <naobi/compiler/code_generator.hpp>
+
 #include <optional>
 
 naobi::function::function(std::string name) :
@@ -10,9 +10,9 @@ naobi::function::function(std::string name) :
 void naobi::function::setCommands(const std::vector<naobi::command> &commands)
 {
 	_commands.clear();
-	_commands.emplace_back(code_generator::createCommand(command::names::NOPE,{}));
+	_commands.emplace_back(command::createCommand(command::names::NOPE,{}));
 	_commands.insert(_commands.end(), commands.begin(), commands.end());
-	_commands.emplace_back(code_generator::createCommand(command::names::RETURN,{}));
+	_commands.emplace_back(command::createCommand(command::names::RETURN,{}));
 }
 
 bool naobi::function::addArgument(const std::string& name, utils::type::names type)
