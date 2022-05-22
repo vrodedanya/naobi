@@ -57,7 +57,7 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gtest_main pthread ${CMAKE_PROJECT_NAME}_lib)
+target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread ${CMAKE_PROJECT_NAME}_lib)
 
 if (DEFINED USE_ASAN)
     message(STATUS "Build with asan")
