@@ -5,3 +5,4 @@ theme:
     primary: blue grey
 nav:
   - Home: index.md
+  - Return codes: return_codes.md
