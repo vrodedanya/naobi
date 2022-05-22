@@ -23,26 +23,23 @@ target begin
 
 workflow invokingAlways
 target begin
-invoke always
 {
 }
 
 workflow invokingOnce
 target begin
-invoke once
 {
 
 }
 
 workflow invokingTwice
-target onBegin
-invoke 2
+target begin
 {
 
 }
 
 workflow invokingDefault
-target onBegin
+target begin
 {
 
 }

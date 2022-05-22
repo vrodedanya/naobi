@@ -34,7 +34,7 @@ namespace naobi
 	{
 		if (_checker(line))
 		{
-			_action(line, std::forward<AArgs...>(aargs)...);
+			_action(line, std::forward<AArgs>(aargs)...);
 			return true;
 		}
 		return false;

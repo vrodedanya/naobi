@@ -34,6 +34,7 @@ void naobi::event_manager::updateContexts(std::list<workflow_context::sptr>&_con
 					auto next = std::next(workflowIterator);
 					_workflows.erase(workflowIterator);
 					if (next == range.second) break;
+					workflowIterator = next;
 					continue;
 				}
 			}

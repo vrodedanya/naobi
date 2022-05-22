@@ -142,7 +142,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		auto tempCommands = generate(lines);
 		std::size_t tempCommandsSize = tempCommands.size();
 
-		if (*(bodyIt + 2) == "else")
+		if ((bodyIt + 2) != words.end() && *(bodyIt + 2) == "else")
 		{
 			tempCommandsSize++;
 		}
@@ -153,7 +153,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 			commands.push_back(command);
 		}
 
-		if (*(bodyIt + 2) == "else")
+		if ((bodyIt + 2) != words.end() && *(bodyIt + 2) == "else")
 		{
 			std::string elseBlock = *(bodyIt + 3);
 			elseBlock = elseBlock.substr(1, elseBlock.size() - 2);
