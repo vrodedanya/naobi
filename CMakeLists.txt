@@ -30,8 +30,8 @@ set(NAOBI_TEST_SOURCES
 find_package(GTest REQUIRED)
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${NAOBI_SOURCES})
-target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_compile_options(${CMAKE_PROJECT_NAME}_lib PUBLIC -pedantic -Wall -Wextra -Wcast-align -Wcast-qual
+target_include_directories(${CMAKE_PROJECT_NAME}_lib PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -pedantic -Wall -Wextra -Wcast-align -Wcast-qual
         -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations
         -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow
         -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror
@@ -45,6 +45,16 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
         VERSION_MINOR=${CMAKE_PROJECT_VERSION_MINOR}
         VERSION_PATCH=${CMAKE_PROJECT_VERSION_PATCH}
         )
+set(USE_ASAN 1)
+
+if (DEFINED USE_ASAN)
+    message(STATUS "Build with asan")
+    target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address)
+    target_link_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address)
+
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address)
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address)
+endif ()
 
 add_executable(${CMAKE_PROJECT_NAME}_test ${NAOBI_TEST_SOURCES})
 target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIRS})
