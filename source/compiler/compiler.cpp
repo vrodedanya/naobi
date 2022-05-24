@@ -137,7 +137,13 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 	{
 		NLOG(compiler.processModule, logger::LOW, "process line '",line,"'");
 
-		auto words = parser::split(line, parser::isAnyOf(" "), {}, {{'"', '"'}}, {{'{','}'},{'(',')'}});
+		auto words = parser::split(line, parser::isEnds(" >"), {}, {{'"', '"'}}, {{'{','}'},{'(',')'}});
+		std::for_each(words.begin(),words.end(), [](auto& elem){
+			if (elem.back() == ' ')
+			{
+				elem = elem.substr(0, elem.size() - 1);
+			}
+		});
 		NLOG(compiler.processModule, logger::LOW, "words:\n", words);
 
 		if (words.empty()) continue;

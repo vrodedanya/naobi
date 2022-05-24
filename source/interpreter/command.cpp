@@ -17,7 +17,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("+")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("+")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::SUB,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
@@ -26,7 +26,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("-")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("-")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::MUL,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
@@ -35,7 +35,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("*")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("*")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::DIV,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
@@ -44,7 +44,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("/")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("/")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::NEW,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
@@ -126,7 +126,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("==")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("==")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::GREATER,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
@@ -135,7 +135,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get(">")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get(">")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::LESS,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
@@ -144,7 +144,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("<")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("<")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::GREATER_OR_EQ,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
@@ -153,7 +153,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get(">=")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get(">=")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::LESS_OR_EQ,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
@@ -162,7 +162,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("<=")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("<=")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::NOT_EQ,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
@@ -171,7 +171,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("!=")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("!=")->call(first->type(), second->type()).second(first, second));
 				}},
 		{naobi::command::names::EXIT,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
@@ -203,7 +203,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					auto first = context->stack.top();
 					context->stack.pop();
 
-					context->stack.push(naobi::operation_manager::get("%")->call(first->type(), second->type())(first, second));
+					context->stack.push(naobi::operation_manager::get("%")->call(first->type(), second->type()).second(first, second));
 				}},
 };
 
