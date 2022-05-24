@@ -269,7 +269,7 @@ naobi::utils::type::names
 naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
 {
 	std::stack<naobi::utils::type::names> types;
-	std::stack<naobi::command> stack;
+	std::stack<naobi::operation::sptr> stack;
 	NLOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
 	for (auto it = words.cbegin(); it != words.cend(); it++)
 	{
@@ -278,94 +278,24 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		{
 			if (isOperation(*it))
 			{
+				std::string op = *it;
 				if ((*it == "=" && *(it + 1) == "=") || *it == "<" || *it == ">" || (*it == "<" && *(it + 1) == "=") ||
 					(*it == ">" && *(it + 1) == "=") || (*it == "!" && *(it + 1) == "="))
 				{
-					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
-											  stack.top().name == naobi::command::names::SUB ||
-											  stack.top().name == naobi::command::names::MUL ||
-											  stack.top().name == naobi::command::names::DIV ||
-											  stack.top().name == naobi::command::names::MOD ||
-											  stack.top().name == naobi::command::names::EQ ||
-											  stack.top().name == naobi::command::names::GREATER ||
-											  stack.top().name == naobi::command::names::LESS ||
-											  stack.top().name == naobi::command::names::GREATER_OR_EQ ||
-											  stack.top().name == naobi::command::names::LESS_OR_EQ ||
-											  stack.top().name == naobi::command::names::NOT_EQ
-											  ))
-					{
-						commands.emplace_back(stack.top());
-						stack.pop();
-					}
-					if (*it == "=" && *(it + 1) == "=")
-					{
-						stack.push(command::createCommand(command::names::EQ, {}));
-						it++;
-					}
-					else if (*it == "<" && *(it + 1) == "=")
-					{
-						stack.push(command::createCommand(command::names::LESS_OR_EQ, {}));
-						it++;
-					}
-					else if (*it == ">" && *(it + 1) == "=")
-					{
-						stack.push(command::createCommand(command::names::GREATER_OR_EQ, {}));
-						it++;
-					}
-					else if (*it == "!" && *(it + 1) == "=")
-					{
-						stack.push(command::createCommand(command::names::NOT_EQ, {}));
-						it++;
-					}
-					else if (*it == ">")
-					{
-						stack.push(command::createCommand(command::names::GREATER, {}));
-					}
-					else if (*it == "<")
-					{
-						stack.push(command::createCommand(command::names::LESS, {}));
-					}
+					op += *(it + 1);
+					it++;
 				}
-				else if (*it == "+" || *it == "-")
+				auto operation = operation_manager::get(op);
+				if (operation == nullptr)
 				{
-					while (!stack.empty() && (stack.top().name == naobi::command::names::ADD ||
-											  stack.top().name == naobi::command::names::SUB ||
-											  stack.top().name == naobi::command::names::MUL ||
-											  stack.top().name == naobi::command::names::DIV ||
-											  stack.top().name == naobi::command::names::MOD))
-					{
-						commands.emplace_back(stack.top());
-						stack.pop();
-					}
-					stack.push(command::createCommand(*it == "+" ? naobi::command::names::ADD : naobi::command::names::SUB, {}));
+					NCRITICAL(processExpression, errors::UNKNOWN_OPERATOR, "CRITICAL Bad operator '", op, "'");
 				}
-				else if (*it == "*" || *it == "/" || *it == "%")
+				while (!stack.empty() && *stack.top() >= *operation)
 				{
-					while (!stack.empty() && (stack.top().name == naobi::command::names::MUL ||
-											  stack.top().name == naobi::command::names::DIV ||
-											  stack.top().name == naobi::command::names::MOD))
-					{
-						commands.emplace_back(stack.top());
-						stack.pop();
-					}
-					if (*it == "*")
-					{
-						stack.push(command::createCommand(naobi::command::names::MUL, {}));
-
-					}
-					else if (*it == "/")
-					{
-						stack.push(command::createCommand(naobi::command::names::DIV, {}));
-					}
-					else if (*it == "%")
-					{
-						stack.push(command::createCommand(naobi::command::names::MOD, {}));
-					}
+					commands.emplace_back(command::createCommand(stack.top()->getCommandAnalogue(), {}));
+					stack.pop();
 				}
-				else
-				{
-					NCRITICAL(processExpression, errors::UNKNOWN_OPERATOR, "CRITICAL Bad operator '", *it, "'");
-				}
+				stack.push(operation);
 			}
 			else if ((it + 1) != words.cend() && *(it + 1) == "(")
 			{
@@ -376,19 +306,20 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 			{
 				if (*it == "(")
 				{
-					stack.push(command::createCommand(naobi::command::names::NOPE, {}));
+					stack.push(nullptr);
 				}
 				else
 				{
 					bool isBracket = false;
 					while (!stack.empty())
 					{
-						if (stack.top().name == naobi::command::names::NOPE)
+						if (stack.top() == nullptr)
 						{
 							stack.pop();
 							isBracket = true;
+							break;
 						}
-						commands.emplace_back(stack.top());
+						commands.emplace_back(command::createCommand(stack.top()->getCommandAnalogue(), {}));
 						stack.pop();
 					}
 					if (!isBracket)
@@ -421,7 +352,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 	}
 	while (!stack.empty())
 	{
-		commands.emplace_back(stack.top());
+		commands.emplace_back(command::createCommand(stack.top()->getCommandAnalogue(), {}));
 		stack.pop();
 	}
 	return utils::type::names::INTEGER;

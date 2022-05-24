@@ -49,22 +49,22 @@ void naobi::operation::setCommandAnalogue(naobi::command::names commandAnalogue)
 
 bool naobi::operation::operator<(const naobi::operation &rhs) const
 {
-	return _priority < rhs._priority;
+	return _priority > rhs._priority;
 }
 
 bool naobi::operation::operator>(const naobi::operation &rhs) const
 {
-	return rhs < *this;
+	return _priority < rhs._priority;
 }
 
 bool naobi::operation::operator<=(const naobi::operation &rhs) const
 {
-	return !(rhs < *this);
+	return _priority >= rhs._priority;
 }
 
 bool naobi::operation::operator>=(const naobi::operation &rhs) const
 {
-	return !(*this < rhs);
+	return _priority <= rhs._priority;
 }
 
 naobi::operation::sptr naobi::operation_manager::get(const std::string &operation)
@@ -366,7 +366,7 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 				 return result;
 			 }},
 	 })),
-		std::make_shared<naobi::operation>("%", 3, naobi::command::names::MOD, naobi::operation::implementations({
+		std::make_shared<naobi::operation>("%", 1, naobi::command::names::MOD, naobi::operation::implementations({
 			{std::make_pair(utils::type::names::INTEGER, utils::type::names::INTEGER),
 			  [](const naobi::variable::sptr& first, const naobi::variable::sptr& second) -> naobi::variable::sptr
 			  {
