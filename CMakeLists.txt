@@ -20,6 +20,7 @@ set(NAOBI_SOURCES
         source/utils/type.cpp
         source/utils/arguments.cpp
         source/utils/parser.cpp
+        source/utils/operation.cpp
         )
 
 set(NAOBI_TEST_SOURCES
@@ -61,12 +62,12 @@ target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread 
 
 if (DEFINED USE_ASAN)
     message(STATUS "Build with asan")
-    target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address)
-    target_link_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address)
+    target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address -fsanitize=undefined)
+    target_link_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address -fsanitize=undefined)
 
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address)
-    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address)
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined)
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined)
 
-    target_compile_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address)
-    target_link_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address)
+    target_compile_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address -fsanitize=undefined)
+    target_link_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address -fsanitize=undefined)
 endif ()

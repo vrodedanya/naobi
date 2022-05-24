@@ -19,7 +19,7 @@ namespace naobi
 				std::function<void(const std::vector<std::string>& words, std::vector<naobi::command>& commands)>>;
 
 	public:
-		explicit code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp = std::map<std::string, variable::sptr>());
+		explicit code_generator(naobi::module::sptr module, std::map<std::string, variable::sptr>  variablesTemp = std::map<std::string, variable::sptr>());
 
 		std::vector<naobi::command> generate(std::vector<std::string> line);
 
@@ -30,7 +30,7 @@ namespace naobi
 		void callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
 
 	private:
-		void processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+		naobi::utils::type::names processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
 
 		template<typename ITERATOR>
 		ITERATOR findEndBracket(ITERATOR begin, ITERATOR end);

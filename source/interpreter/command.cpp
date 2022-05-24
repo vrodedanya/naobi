@@ -5,33 +5,46 @@
 #include <naobi/utils/logger.hpp>
 #include <naobi/interpreter/workflow_context.hpp>
 #include <naobi/interpreter/event_manager.hpp>
+#include <naobi/utils/operation.hpp>
 
 
 std::map<naobi::command::names, naobi::command::implementation> naobi::command::commands =
 {
 		{naobi::command::names::ADD,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
-					auto top = context->stack.top();
+					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.top() += top;
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("+")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::SUB,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
-					auto top = context->stack.top();
+					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.top() -= top;
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("-")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::MUL,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
-					auto top = context->stack.top();
+					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.top() *= top;
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("*")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::DIV,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
-					auto top = context->stack.top();
+					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.top() /= top;
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("/")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::NEW,
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
@@ -108,51 +121,57 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 				}},
 		{naobi::command::names::EQ,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					auto first = context->stack.top();
-					context->stack.pop();
 					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.push(first == second);
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("==")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::GREATER,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					auto first = context->stack.top();
-					context->stack.pop();
 					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.push(second > first);
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get(">")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::LESS,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					auto first = context->stack.top();
-					context->stack.pop();
 					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.push(second < first);
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("<")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::GREATER_OR_EQ,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					auto first = context->stack.top();
-					context->stack.pop();
 					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.push(second >= first);
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get(">=")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::LESS_OR_EQ,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					auto first = context->stack.top();
-					context->stack.pop();
 					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.push(second <= first);
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("<=")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::NOT_EQ,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					auto first = context->stack.top();
-					context->stack.pop();
 					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.push(second != first);
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("!=")->call(first->type(), second->type())(first, second));
 				}},
 		{naobi::command::names::EXIT,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
@@ -179,9 +198,12 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 				}},
 		{naobi::command::names::MOD,
 				[]([[maybe_unused]]const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args) noexcept{
-					auto top = context->stack.top();
+					auto second = context->stack.top();
 					context->stack.pop();
-					context->stack.top() %= top;
+					auto first = context->stack.top();
+					context->stack.pop();
+
+					context->stack.push(naobi::operation_manager::get("%")->call(first->type(), second->type())(first, second));
 				}},
 };
 

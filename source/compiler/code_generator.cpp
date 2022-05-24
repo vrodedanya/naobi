@@ -7,6 +7,7 @@
 #include <naobi/interpreter/workflow_context.hpp>
 #include <naobi/utils/keywords.hpp>
 #include <naobi/interpreter/event_manager.hpp>
+#include <naobi/utils/operation.hpp>
 
 
 std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::string> lines)
@@ -16,7 +17,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 
 	for (auto it = lines.begin() ; it != lines.end() ; it++)
 	{
-		auto words = parser::split(*it, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {}, {{'"', '"'}, {'{','}'}});
+		auto words = parser::split(*it, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {}, {{'"', '"'}, {'{','}'}});
 		NLOG(code_generator, logger::LOW, "words:\n", words);
 		if (words.empty()) continue;
 
@@ -27,7 +28,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 			{
 				if (words[0] == "if" && (it+1) != lines.end() && (it+1)->substr(0, std::strlen("else")) == "else")
 				{
-					auto temp = parser::split(*(it + 1), parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {}, {{'"', '"'}, {'{','}'}});
+					auto temp = parser::split(*(it + 1), parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {}, {{'"', '"'}, {'{','}'}});
 					words.insert(words.end(), temp.begin(), temp.end());
 					lines.erase(it + 1);
 				}
@@ -48,9 +49,9 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 }
 
 
-naobi::code_generator::code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp) :
+naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::string, variable::sptr>  variablesTemp) :
 	_module(std::move(module)),
-	_variablesTemp(variablesTemp),
+	_variablesTemp(std::move(variablesTemp)),
 	_generatorRules({
 	// Variable creating logic
 	{[](const std::vector<std::string>& words) -> bool{
@@ -189,7 +190,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 		}
 
 		commands.push_back(command::createCommand(command::names::NEW, {words[2], std::to_string(static_cast<int>(type))}));
-		processExpression(parser::split(pairs[0], parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
+		processExpression(parser::split(pairs[0], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 										{{'"', '"'},
 										 {'{', '}'}}), commands);
 		commands.push_back(command::createCommand(command::names::SAVE, {words[2]}));
@@ -199,7 +200,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 
 		commands.push_back(command::createCommand(command::names::LOAD, {words[2]}));
 		int tempSize = static_cast<int>(commands.size());
-		processExpression(parser::split(pairs[1], parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
+		processExpression(parser::split(pairs[1], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 										{{'"', '"'},
 										 {'{', '}'}}), commands);
 		tempSize = static_cast<int>(commands.size()) - tempSize - 1;
@@ -264,9 +265,10 @@ naobi::code_generator::code_generator(naobi::module::sptr module, const std::map
 {
 }
 
-void
+naobi::utils::type::names
 naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
 {
+	std::stack<naobi::utils::type::names> types;
 	std::stack<naobi::command> stack;
 	NLOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
 	for (auto it = words.cbegin(); it != words.cend(); it++)
@@ -414,6 +416,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 			}
 			commands.emplace_back(
 					command::createCommand(naobi::command::names::PLACE, {std::to_string(static_cast<int>(type)), temp}));
+			types.push(type);
 		}
 	}
 	while (!stack.empty())
@@ -421,6 +424,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 		commands.emplace_back(stack.top());
 		stack.pop();
 	}
+	return utils::type::names::INTEGER;
 }
 
 bool naobi::code_generator::addVariable(const std::string &name, const naobi::variable::sptr& var)
@@ -481,7 +485,7 @@ void naobi::code_generator::callFunction(const std::vector<std::string>& functio
 			NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL invalid argument ", pair);
 			std::exit(EXIT_FAILURE);
 		}
-		auto valueSplitter = parser::split(value, parser::isAnyOf(" "), parser::isAnyOf("+-*/=!<>,()"), {},
+		auto valueSplitter = parser::split(value, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 										   {{'"', '"'},
 											{'{', '}'}});
 		processExpression(valueSplitter, commands);
