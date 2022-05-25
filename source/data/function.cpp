@@ -59,3 +59,13 @@ void naobi::function::setReturnType(const naobi::utils::type::names &returnType)
 {
 	_returnType = returnType;
 }
+
+std::size_t naobi::function::getNumber() const
+{
+	return number;
+}
+
+void naobi::function::setNumber(std::size_t n)
+{
+	function::number = n;
+}

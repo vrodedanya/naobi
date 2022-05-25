@@ -136,3 +136,39 @@ Feature: Users functions
     """
     Then got integer 2
     Then ends with the code 0
+  Scenario: Function overload
+    Given script:
+    """
+    import standard;
+    function printValue(integer val)
+    {
+      println("Integer");
+    }
+    function printValue(float val)
+    {
+      println("Float");
+    }
+    workflow main
+    {
+      printValue(5);
+      printValue(5.0);
+    }
+    """
+    Then got string "Integer"
+    Then got string "Float"
+    Then ends with the code 0
+
+  Scenario: Wrong argument type
+    Given script:
+    """
+    import standard;
+    function printValue(integer val)
+    {
+      println("Integer");
+    }
+    workflow main
+    {
+      printValue(5.0);
+    }
+    """
+    Then fails with compilation error and code 53

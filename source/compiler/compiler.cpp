@@ -138,12 +138,15 @@ void naobi::compiler::processModule(const std::vector<std::string> &lines, const
 		NLOG(compiler.processModule, logger::LOW, "process line '",line,"'");
 
 		auto words = parser::split(line, parser::isEnds(" >"), {}, {{'"', '"'}}, {{'{','}'},{'(',')'}});
-		std::for_each(words.begin(),words.end(), [](auto& elem){
-			if (elem.back() == ' ')
+		std::for_each(words.begin(),words.end(), [](std::string& elem){
+			if (!elem.empty() && elem.back() == ' ')
 			{
 				elem = elem.substr(0, elem.size() - 1);
 			}
 		});
+		words.erase(std::remove_if(words.begin(), words.end(), [](const std::string& str){
+			return str.empty() || (str.size() == 1 && str[0] == ' ');
+		}), words.end());
 		NLOG(compiler.processModule, logger::LOW, "words:\n", words);
 
 		if (words.empty()) continue;
@@ -284,9 +287,10 @@ _rules(
 			function->addArgument(argName, type);
 		}
 
-		if (std::find(line.begin(), line.end(),"->") != line.end())
+		auto retIterator = std::find(line.begin(), line.end(),"->");
+		if (retIterator != line.end() && (retIterator + 1) != line.end())
 		{
-			auto returnType = utils::type::fromStringToName(line[4]);
+			auto returnType = utils::type::fromStringToName(*(retIterator + 1));
 			function->setReturnType(returnType);
 		}
 		else

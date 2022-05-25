@@ -4,7 +4,7 @@ naobi::standard::standard() : module("standard")
 {
 	{
 		auto function = std::make_shared<naobi::function>("println");
-		function->addArgument("variable", utils::type::names::DYNAMIC);
+		function->addArgument("variable", utils::type::names::STRING);
 		std::vector<command> commands;
 		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
 		commands.emplace_back(command::createCommand(command::names::PRINTLN, {}));

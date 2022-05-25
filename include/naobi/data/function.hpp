@@ -22,15 +22,19 @@ namespace naobi
 
 		[[nodiscard]] std::string name() const {return _name;}
 
+		[[nodiscard]] std::size_t getNumber() const;
+
+		void setNumber(std::size_t number);
+
 		bool addArgument(const std::string& name, utils::type::names type);
 		std::optional<argument_type> getArgument(const std::string& name);
 		std::optional<argument_type> getArgument(std::size_t pos);
 
-		const utils::type::names &getReturnType() const;
+		[[nodiscard]] const utils::type::names &getReturnType() const;
 
 		void setReturnType(const utils::type::names &returnType);
 
-		const std::vector<argument_type> &getArguments() const;
+		[[nodiscard]] const std::vector<argument_type> &getArguments() const;
 
 		void setCommands(const std::vector<naobi::command>& commands);
 
@@ -42,6 +46,7 @@ namespace naobi
 		std::vector<argument_type> _arguments;
 		utils::type::names _returnType;
 		std::string _name;
+		std::size_t number{};
 	};
 }
 

@@ -22,12 +22,13 @@ namespace naobi
 		bool addConst(const naobi::variable::sptr& newConst);
 		bool addModule(const naobi::module::sptr& newModule);
 
-		naobi::function::sptr getFunction(const std::string& functionName);
+		std::vector<naobi::function::sptr> getFunction(const std::string& functionName);
 		naobi::variable::sptr getConst(const std::string& constName);
 		naobi::module::sptr getModule(const std::string& moduleName);
 
 		naobi::module::sptr findModule(const std::string& moduleName);
-		naobi::function::sptr findFunction(const std::string& functionName);
+		std::vector<naobi::function::sptr> findFunction(const std::string& functionName);
+		naobi::function::sptr findFunctionWithNumber(const std::string& functionName, std::size_t num);
 
 		[[nodiscard]] std::string name() const {return _name;}
 

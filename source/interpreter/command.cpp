@@ -99,7 +99,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 				[](const naobi::workflow_context::sptr& context, [[maybe_unused]]const naobi::command::argumentsList& args){
 					auto address = context->ip;
 					context->returnPoints.push(address);
-					auto it = context->workflow->module()->findFunction(args[0]);
+					auto it = context->workflow->module()->findFunctionWithNumber(args[0], std::stoull(args[1]));
 					context->ip = it->commands().begin();
 				}},
 		{naobi::command::names::JUMP,
