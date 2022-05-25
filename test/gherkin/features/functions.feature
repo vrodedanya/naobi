@@ -136,7 +136,7 @@ Feature: Users functions
     """
     Then got integer 2
     Then ends with the code 0
-  Scenario: Function overload
+  Scenario: Function overload simple
     Given script:
     """
     import standard;
@@ -157,7 +157,46 @@ Feature: Users functions
     Then got string "Integer"
     Then got string "Float"
     Then ends with the code 0
-
+  Scenario: Function overload named arguments
+    Given script:
+    """
+    import standard;
+    function printValue(integer val, float second)
+    {
+      println("Integer");
+    }
+    function printValue(integer val, integer second)
+    {
+      println("Float");
+    }
+    workflow main
+    {
+      printValue(second: 5, val: 6);
+      printValue(second: 5.0, val: 1);
+    }
+    """
+    Then got string "Float"
+    Then got string "Integer"
+    Then ends with the code 0
+  Scenario: Function overload wrong types
+    Given script:
+    """
+    import standard;
+    function printValue(integer val, float second)
+    {
+      println("Integer");
+    }
+    function printValue(integer val, integer second)
+    {
+      println("Float");
+    }
+    workflow main
+    {
+      printValue(second: 5, val: "String");
+      printValue(second: 5.0, val: 1);
+    }
+    """
+    Then fails with compilation error and code 53
   Scenario: Wrong argument type
     Given script:
     """
