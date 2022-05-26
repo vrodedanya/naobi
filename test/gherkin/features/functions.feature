@@ -136,6 +136,20 @@ Feature: Users functions
     """
     Then got integer 2
     Then ends with the code 0
+  Scenario: Wrong argument type
+    Given script:
+    """
+    import standard;
+    function printValue(integer val)
+    {
+      println("Integer");
+    }
+    workflow main
+    {
+      printValue(5.0);
+    }
+    """
+    Then fails with compilation error and code 53
   Scenario: Function overload simple
     Given script:
     """
@@ -197,17 +211,45 @@ Feature: Users functions
     }
     """
     Then fails with compilation error and code 53
-  Scenario: Wrong argument type
+  Scenario: Function already exists
     Given script:
     """
     import standard;
-    function printValue(integer val)
+    function printValue(integer val, float second)
     {
       println("Integer");
     }
+    function printValue(integer val, float second)
+    {
+      println("Float");
+    }
     workflow main
     {
-      printValue(5.0);
+      printValue(second: 5, val: "String");
+      printValue(second: 5.0, val: 1);
     }
     """
-    Then fails with compilation error and code 53
+    Then fails with compilation error and code 51
+  Scenario: Function overloading with return type
+    Given script:
+    """
+    import standard;
+    function return_value(integer val) -> integer
+    {
+      println("Integer");
+      return val;
+    }
+    function return_value(float val) -> float
+    {
+      println("Float");
+      return val;
+    }
+    workflow main
+    {
+      return_value(10);
+      return_value(5.0);
+    }
+    """
+    Then got string "Integer"
+    Then got string "Float"
+    Then ends with the code 0
