@@ -21,12 +21,15 @@ namespace naobi
 		using impl = std::pair<utils::type::names, std::function<variable::sptr(variable::sptr, variable::sptr)>>;
 		using implementations = std::map<key, impl>;
 
-		operation(std::string  operatorName, int priority, naobi::command::names commandAnalogue, implementations implement);
+		operation(std::string operatorName, int priority, naobi::command::names commandAnalogue,
+				  implementations implement);
 
 		[[nodiscard]] const std::string& getOperator() const;
-		void setOperator(const std::string & operatorName);
+
+		void setOperator(const std::string& operatorName);
 
 		[[nodiscard]] int getPriority() const;
+
 		void setPriority(int priority);
 
 		impl call(utils::type::names first, utils::type::names second);
@@ -35,13 +38,13 @@ namespace naobi
 
 		void setCommandAnalogue(command::names commandAnalogue);
 
-		bool operator<(const operation &rhs) const;
+		bool operator <(const operation& rhs) const;
 
-		bool operator>(const operation &rhs) const;
+		bool operator >(const operation& rhs) const;
 
-		bool operator<=(const operation &rhs) const;
+		bool operator <=(const operation& rhs) const;
 
-		bool operator>=(const operation &rhs) const;
+		bool operator >=(const operation& rhs) const;
 
 	private:
 		std::string _operator;
@@ -54,6 +57,7 @@ namespace naobi
 	{
 	public:
 		static operation::sptr get(const std::string& operation);
+
 	private:
 		static std::vector<operation::sptr> _operations;
 	};

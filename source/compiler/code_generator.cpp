@@ -15,7 +15,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 	NLOG(code_generator, naobi::logger::BASIC, "Code lines:\n", lines);
 	std::vector<naobi::command> commands;
 
-	for (auto it = lines.begin(); it != lines.end(); it++)
+	for (auto it = lines.begin() ; it != lines.end() ; it++)
 	{
 		auto words = parser::split(*it, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {}, {{'"', '"'},
 																									{'{', '}'}});
@@ -23,7 +23,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 		if (words.empty()) continue;
 
 		bool isCompiled = false;
-		for (const auto &rule: _generatorRules)
+		for (const auto& rule : _generatorRules)
 		{
 			if (!isCompiled)
 			{
@@ -57,12 +57,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 		_variablesTemp(std::move(variablesTemp)),
 		_generatorRules({
 								// Variable creating logic
-								{[](const std::vector<std::string> &words) -> bool
+								{[](const std::vector<std::string>& words) -> bool
 								 {
 									 return utils::type::fromStringToName(words[0]) != utils::type::names::UNDEFINED;
 								 },
-										[this](const std::vector<std::string> &words,
-											   std::vector<naobi::command> &commands)
+										[this](const std::vector<std::string>& words,
+											   std::vector<naobi::command>& commands)
 										{
 											std::vector<std::string> wordsTemp = words;
 											wordsTemp = naobi::parser::removeEmpty(wordsTemp);
@@ -117,12 +117,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 
 										}},
 								// If else statement
-								{[](const std::vector<std::string> &words) -> bool
+								{[](const std::vector<std::string>& words) -> bool
 								 {
 									 return words[0] == "if" && words[1] == "(";
 								 },
-										[this](const std::vector<std::string> &words,
-											   std::vector<naobi::command> &commands)
+										[this](const std::vector<std::string>& words,
+											   std::vector<naobi::command>& commands)
 										{
 											NLOG(code_generator, logger::LOW, "if block:\n", words);
 											auto bodyIt = findEndBracket(words.begin() + 1, words.end());
@@ -146,7 +146,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 											commands.emplace_back(command::createCommand(naobi::command::names::JUMP_IF,
 																						 {std::to_string(
 																								 tempCommandsSize)}));
-											for (const auto &command: tempCommands)
+											for (const auto& command : tempCommands)
 											{
 												commands.push_back(command);
 											}
@@ -168,19 +168,19 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 												commands.emplace_back(
 														command::createCommand(naobi::command::names::JUMP,
 																			   {std::to_string(tempElseCommandsSize)}));
-												for (const auto &command: tempElseCommands)
+												for (const auto& command : tempElseCommands)
 												{
 													commands.push_back(command);
 												}
 											}
 										}},
 								// For
-								{[](const std::vector<std::string> &words) -> bool
+								{[](const std::vector<std::string>& words) -> bool
 								 {
 									 return words[0] == "for" && words.size() >= 10;
 								 },
-										[this](const std::vector<std::string> &words,
-											   std::vector<naobi::command> &commands)
+										[this](const std::vector<std::string>& words,
+											   std::vector<naobi::command>& commands)
 										{
 											NLOG(code_generator, logger::LOW, "for:\n", words);
 											utils::type::names type = utils::type::fromStringToName(words[1]);
@@ -247,46 +247,46 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 																					  {std::to_string(size)}));
 										}},
 								// Function calling
-								{[](const std::vector<std::string> &words) -> bool
+								{[](const std::vector<std::string>& words) -> bool
 								 {
 									 return words[1] == "(" &&
 											std::find(words.begin() + 2, words.end(), ")") != words.end() &&
 											!keywords::check(words[0]);
 								 },
-										[this]([[maybe_unused]]const std::vector<std::string> &words,
-											   std::vector<naobi::command> &commands)
+										[this]([[maybe_unused]]const std::vector<std::string>& words,
+											   std::vector<naobi::command>& commands)
 										{
 											callFunction(words, commands);
 										}},
 								// Raise
-								{[](const std::vector<std::string> &words) -> bool
+								{[](const std::vector<std::string>& words) -> bool
 								 {
 									 return words[0] == "arise" && words.size() == 2;
 								 },
-										[]([[maybe_unused]]const std::vector<std::string> &words,
-										   std::vector<naobi::command> &commands)
+										[]([[maybe_unused]]const std::vector<std::string>& words,
+										   std::vector<naobi::command>& commands)
 										{
 											commands.push_back(
 													command::createCommand(command::names::ARISE, {words[1]}));
 										}},
-								{[](const std::vector<std::string> &words) -> bool
+								{[](const std::vector<std::string>& words) -> bool
 								 {
 									 return words[0] == "return" && words.size() >= 2;
 								 },
-										[this]([[maybe_unused]]const std::vector<std::string> &words,
-											   std::vector<naobi::command> &commands)
+										[this]([[maybe_unused]]const std::vector<std::string>& words,
+											   std::vector<naobi::command>& commands)
 										{
 											processExpression(std::vector<std::string>(words.begin() + 1, words.end()),
 															  commands);
 											commands.emplace_back(command::createCommand(command::names::RETURN, {}));
 										}},
 								// Create assignment logic (LOW priority )
-								{[](const std::vector<std::string> &words) -> bool
+								{[](const std::vector<std::string>& words) -> bool
 								 {
 									 return words[1] == "=";
 								 },
-										[this](const std::vector<std::string> &words,
-											   std::vector<naobi::command> &commands)
+										[this](const std::vector<std::string>& words,
+											   std::vector<naobi::command>& commands)
 										{
 											if (words.size() < 3)
 											{
@@ -319,12 +319,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 }
 
 naobi::utils::type::names
-naobi::code_generator::processExpression(const std::vector<std::string> &words, std::vector<naobi::command> &commands)
+naobi::code_generator::processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands)
 {
 	std::stack<naobi::utils::type::names> types;
 	std::stack<naobi::operation::sptr> stack;
 	NLOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
-	for (auto it = words.cbegin(); it != words.cend(); it++)
+	for (auto it = words.cbegin() ; it != words.cend() ; it++)
 	{
 		NLOG(processExpression, logger::IMPORTANT, "Word: ", *it);
 		if (!utils::type::isLiteral(*it))
@@ -446,7 +446,7 @@ naobi::code_generator::processExpression(const std::vector<std::string> &words, 
 	return types.top();
 }
 
-bool naobi::code_generator::addVariable(const std::string &name, const naobi::variable::sptr &var)
+bool naobi::code_generator::addVariable(const std::string& name, const naobi::variable::sptr& var)
 {
 	if (_variablesTemp.find(name) != _variablesTemp.cend())
 	{
@@ -457,7 +457,7 @@ bool naobi::code_generator::addVariable(const std::string &name, const naobi::va
 }
 
 naobi::utils::type::names
-naobi::code_generator::callFunction(const std::vector<std::string> &functionCallWords, std::vector<command> &commands)
+naobi::code_generator::callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands)
 {
 	NLOG(code_generator, logger::IMPORTANT, "Function: ", functionCallWords);
 	auto functions = _module->findFunction(functionCallWords[0]);
@@ -468,7 +468,7 @@ naobi::code_generator::callFunction(const std::vector<std::string> &functionCall
 	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
 	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}});
 	NLOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
-	if (!std::any_of(functions.begin(), functions.end(), [size = args.size()](const function::sptr &func)
+	if (!std::any_of(functions.begin(), functions.end(), [size = args.size()](const function::sptr& func)
 	{
 		return func->getArguments().size() == size;
 	}))
@@ -480,7 +480,7 @@ naobi::code_generator::callFunction(const std::vector<std::string> &functionCall
 	auto functionIterator = functions.begin();
 
 	std::vector<command> temp;
-	for (auto arg = args.begin(); arg != args.end();)
+	for (auto arg = args.begin() ; arg != args.end() ;)
 	{
 		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}});
 		std::string value;

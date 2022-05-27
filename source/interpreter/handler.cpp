@@ -12,7 +12,7 @@ void naobi::handler::execute()
 	using namespace std::chrono;
 	_eventManager.updateContexts(_contexts);
 
-	for (auto context = _contexts.begin() ; !_contexts.empty() || _eventManager.awaitedNumberOfWorkflows() != 0;)
+	for (auto context = _contexts.begin() ; !_contexts.empty() || _eventManager.awaitedNumberOfWorkflows() != 0 ;)
 	{
 		if (_contexts.empty())
 		{
@@ -27,7 +27,8 @@ void naobi::handler::execute()
 		if (context == _contexts.end()) context = _contexts.begin();
 		(*context)->beginClock = high_resolution_clock::now();
 
-		while (duration_cast<microseconds>(high_resolution_clock::now() - (*context)->beginClock).count() < MAX_TIME_PER_CONTEXT)
+		while (duration_cast<microseconds>(high_resolution_clock::now() - (*context)->beginClock).count() <
+			   MAX_TIME_PER_CONTEXT)
 		{
 			if ((*context)->ip == (*context)->workflow->commands().cend())
 			{

@@ -17,18 +17,29 @@ namespace naobi
 	public:
 		explicit workflow(std::string name, std::string target, module::sptr parentModule);
 
-		[[nodiscard]] std::string name() const {return _name;}
+		[[nodiscard]] std::string name() const
+		{ return _name; }
 
-		[[nodiscard]] std::string target() const {return _target;}
+		[[nodiscard]] std::string target() const
+		{ return _target; }
 
-		[[nodiscard]] int invoke() const {return _invoke;}
-		void setInvoke(int invoke) {_invoke = invoke;}
+		[[nodiscard]] int invoke() const
+		{ return _invoke; }
 
-		[[nodiscard]] const std::vector<naobi::command>& commands() const {return _commands;}
-		void setCommands(const std::vector<naobi::command>& commands){_commands = commands;}
+		void setInvoke(int invoke)
+		{ _invoke = invoke; }
 
-		naobi::module::sptr module(){return _parentModule;}
-		[[nodiscard]] naobi::module::sptr module() const {return _parentModule;}
+		[[nodiscard]] const std::vector<naobi::command>& commands() const
+		{ return _commands; }
+
+		void setCommands(const std::vector<naobi::command>& commands)
+		{ _commands = commands; }
+
+		naobi::module::sptr module()
+		{ return _parentModule; }
+
+		[[nodiscard]] naobi::module::sptr module() const
+		{ return _parentModule; }
 
 	private:
 		std::string _name;

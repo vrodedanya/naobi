@@ -19,7 +19,6 @@ namespace naobi::utils
 			BOOLEAN,
 			STRING,
 			FLOAT,
-			DYNAMIC,
 			UNDEFINED,
 		};
 

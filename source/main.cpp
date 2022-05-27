@@ -56,7 +56,8 @@ int main(int argc, char* argv[])
 		}
 		catch (const std::exception& exception)
 		{
-			NCRITICAL(handler.execute, naobi::errors::NOT_SPECIFIED, "CRITICAL got exception in runtime: ", exception.what());
+			NCRITICAL(handler.execute, naobi::errors::NOT_SPECIFIED, "CRITICAL got exception in runtime: ",
+					  exception.what());
 			return EXIT_FAILURE;
 		}
 	}

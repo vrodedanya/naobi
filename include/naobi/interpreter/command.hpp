@@ -14,11 +14,12 @@ namespace naobi
 	{
 		using argumentsList = std::vector<std::string>;
 
-		using implementation = std::function<void(std::shared_ptr<workflow_context> ptr, const argumentsList& arguments)>;
+		using implementation = std::function<void(std::shared_ptr<workflow_context> ptr,
+												  const argumentsList& arguments)>;
 
 		enum class names
 		{
-		// CommandName <-> argumentsCount
+			// CommandName <-> argumentsCount
 			NEW, // 2 - name, type
 			INC,
 			DEC,

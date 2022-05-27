@@ -16,7 +16,8 @@ namespace naobi
 
 		void execute();
 
-		event_manager& eventManager() {return _eventManager;}
+		event_manager& eventManager()
+		{ return _eventManager; }
 
 	private:
 		std::list<naobi::workflow_context::sptr> _contexts;

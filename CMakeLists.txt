@@ -11,6 +11,7 @@ set(NAOBI_SOURCES
         source/compiler/code_generator.cpp
         source/data/module.cpp
         source/data/function.cpp
+        source/data/template_function.cpp
         source/data/variable.cpp
         source/data/workflow.cpp
         source/interpreter/handler.cpp

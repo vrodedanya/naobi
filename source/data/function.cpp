@@ -3,16 +3,16 @@
 #include <optional>
 
 naobi::function::function(std::string name) :
-	_name(std::move(name))
+		_name(std::move(name))
 {
 }
 
-void naobi::function::setCommands(const std::vector<naobi::command> &commands)
+void naobi::function::setCommands(const std::vector<naobi::command>& commands)
 {
 	_commands.clear();
-	_commands.emplace_back(command::createCommand(command::names::NOPE,{}));
+	_commands.emplace_back(command::createCommand(command::names::NOPE, {}));
 	_commands.insert(_commands.end(), commands.begin(), commands.end());
-	_commands.emplace_back(command::createCommand(command::names::RETURN,{}));
+	_commands.emplace_back(command::createCommand(command::names::RETURN, {}));
 }
 
 bool naobi::function::addArgument(const std::string& name, utils::type::names type)
@@ -45,27 +45,27 @@ std::optional<naobi::function::argument_type> naobi::function::getArgument(std::
 	return _arguments[pos];
 }
 
-const std::vector<naobi::function::argument_type> &naobi::function::getArguments() const
+const std::vector<naobi::function::argument_type>& naobi::function::getArguments() const
 {
 	return _arguments;
 }
 
-const naobi::utils::type::names &naobi::function::getReturnType() const
+const naobi::utils::type::names& naobi::function::getReturnType() const
 {
 	return _returnType;
 }
 
-void naobi::function::setReturnType(const naobi::utils::type::names &returnType)
+void naobi::function::setReturnType(const naobi::utils::type::names& returnType)
 {
 	_returnType = returnType;
 }
 
 std::size_t naobi::function::getNumber() const
 {
-	return number;
+	return _number;
 }
 
 void naobi::function::setNumber(std::size_t n)
 {
-	function::number = n;
+	function::_number = n;
 }

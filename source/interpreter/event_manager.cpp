@@ -3,13 +3,13 @@
 #include <naobi/utils/logger.hpp>
 
 
-void naobi::event_manager::updateContexts(std::list<workflow_context::sptr>&_contexts)
+void naobi::event_manager::updateContexts(std::list<workflow_context::sptr>& _contexts)
 {
 	while (!_events.empty())
 	{
 		NLOG(event_manager.updateContexts, logger::LOW, "Event: ", _events.front());
 		auto range = _workflows.equal_range(_events.front());
-		for (auto workflowIterator = range.first ; workflowIterator != range.second ; )
+		for (auto workflowIterator = range.first ; workflowIterator != range.second ;)
 		{
 			NLOG(event_manager.updateContexts, logger::LOW, "Find workflow ", workflowIterator->second->name());
 
@@ -45,13 +45,13 @@ void naobi::event_manager::updateContexts(std::list<workflow_context::sptr>&_con
 }
 
 
-void naobi::event_manager::addWorkflow(const std::string &event, const naobi::workflow::sptr& workflow)
+void naobi::event_manager::addWorkflow(const std::string& event, const naobi::workflow::sptr& workflow)
 {
 	NLOG(event_manager.addWorkflow, logger::IMPORTANT, "Add workflow ", workflow->name(), " on target ", event);
 	_workflows.emplace(event, workflow);
 }
 
-void naobi::event_manager::pushEvent(const std::string &event)
+void naobi::event_manager::pushEvent(const std::string& event)
 {
 	_events.push(event);
 }
