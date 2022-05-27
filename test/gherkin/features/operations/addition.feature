@@ -17,7 +17,7 @@ Feature: Add operation
     import standard;
     workflow main
     {
-      println(input() + input());
+      println(int(input()) + int(input()));
     }
     """
     When pass integer <number1>
@@ -49,7 +49,7 @@ Feature: Add operation
     import standard;
     workflow main
     {
-      println(input() + input());
+      println(bool(input()) + bool(input()));
     }
     """
     When pass boolean <first>
@@ -81,7 +81,7 @@ Feature: Add operation
     import standard;
     workflow main
     {
-      println(input() + input());
+      println(float(input()) + float(input()));
     }
     """
     When pass float <first>
@@ -92,6 +92,8 @@ Feature: Add operation
       | first | second | result |
       | 0.5  | 0.5   | 1.0   |
       | 1.24  | 1.76  | 3.0   |
+      | 1.24  | 1.5  | 2.74   |
+      | -1.24  | 1.5  | 0.26  |
 
 # Strings
   Scenario: Adding two strings

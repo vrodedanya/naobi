@@ -19,30 +19,32 @@ namespace naobi
 				std::function<void(const std::vector<std::string>& words, std::vector<naobi::command>& commands)>>;
 
 	public:
-		explicit code_generator(naobi::module::sptr module, const std::map<std::string, variable::sptr>& variablesTemp = std::map<std::string, variable::sptr>());
+		explicit code_generator(naobi::module::sptr module,
+								std::map<std::string, variable::sptr> variablesTemp = std::map<std::string, variable::sptr>());
 
 		std::vector<naobi::command> generate(std::vector<std::string> line);
 
 		bool addVariable(const std::string& name, const variable::sptr& var);
 
-		static naobi::command createCommand(command::names name, const command::argumentsList& arguments);
-
-		static bool isOperation(const std::string& string){return std::string("+-*/=%<>!").find(string) != std::string::npos;}
-
-		void callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
+		static bool isOperation(const std::string& string)
+		{ return std::string("+-*/=%<>!").find(string) != std::string::npos; }
 
 	private:
-		void processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+		naobi::utils::type::names
+		processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
 
-		template<typename ITERATOR>
+		naobi::utils::type::names
+		callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
+
+		bool generateFunction(const std::vector<std::string>& functionCallWords);
+
+		template <typename ITERATOR>
 		ITERATOR findEndBracket(ITERATOR begin, ITERATOR end);
 
 	private:
 		naobi::module::sptr _module;
 		std::map<std::string, variable::sptr> _variablesTemp;
 		std::vector<generatorRule> _generatorRules; // rules to generate code
-
-		static std::map<command::names, command::implementation> _commands; // commands implementation
 	};
 }
 

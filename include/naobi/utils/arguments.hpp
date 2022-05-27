@@ -15,7 +15,7 @@ namespace naobi
 
 		[[nodiscard]] std::optional<int> find_int(const std::string& name) const;
 
-		std::optional<std::string> find_str(const std::string& name) const;
+		[[nodiscard]] std::optional<std::string> find_str(const std::string& name) const;
 
 	private:
 		char** _begin;

@@ -13,10 +13,14 @@
 
 namespace naobi
 {
+
+	class event_manager;
+
 	struct workflow_context
 	{
 		using sptr = std::shared_ptr<workflow_context>;
 
+		event_manager* eventManager;
 		std::map<std::string, naobi::variable::sptr> variables;
 		std::stack<naobi::variable::sptr> stack;
 		std::stack<std::vector<command>::const_iterator> returnPoints;

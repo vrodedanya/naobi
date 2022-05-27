@@ -6,8 +6,8 @@ target begin
     integer a = 5, b = 3;
     a = b / 3 + a - b * 4;
     println(a);
-    a = input();
-    b = input();
+    a = int(input());
+    b = int(input());
     println(a + b);
     println(a - b);
     println(a * b);

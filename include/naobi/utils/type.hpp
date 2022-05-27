@@ -19,9 +19,10 @@ namespace naobi::utils
 			BOOLEAN,
 			STRING,
 			FLOAT,
-			DYNAMIC,
 			UNDEFINED,
 		};
+
+		static bool isStandardType(const std::string& type);
 
 		static names fromStringToName(const std::string& type);
 		static std::string fromNameToString(const names& name);

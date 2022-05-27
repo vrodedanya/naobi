@@ -1,30 +1,33 @@
 #include "naobi/utils/type.hpp"
+
 #include <algorithm>
+#include <set>
 
 
-bool naobi::utils::type::isLiteral(const std::string &string)
+bool naobi::utils::type::isLiteral(const std::string& string)
 {
 	return isInteger(string) || isBoolean(string) || isString(string) || isFloat(string);
 }
 
-bool naobi::utils::type::isInteger(const std::string &string)
+bool naobi::utils::type::isInteger(const std::string& string)
 {
 	if (string.empty()) return false;
-	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem){return isdigit(elem);});
+	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem)
+	{ return isdigit(elem); });
 	return isAllNumbers && ((string[0] == '-' && string.size() >= 2) || std::isdigit(string[0]));
 }
 
-bool naobi::utils::type::isBoolean(const std::string &string)
+bool naobi::utils::type::isBoolean(const std::string& string)
 {
 	return string == "true" || string == "false";
 }
 
-bool naobi::utils::type::isString(const std::string &string)
+bool naobi::utils::type::isString(const std::string& string)
 {
 	return string.front() == '"' && string.back() == '"';
 }
 
-bool naobi::utils::type::isFloat(const std::string &string)
+bool naobi::utils::type::isFloat(const std::string& string)
 {
 	if (string.empty()) return false;
 
@@ -51,12 +54,13 @@ naobi::utils::type::names naobi::utils::type::checkType(const std::string& strin
 	else return names::UNDEFINED;
 }
 
-naobi::utils::type::names naobi::utils::type::toType(const std::string &string)
+naobi::utils::type::names naobi::utils::type::toType(const std::string& string)
 {
 	return static_cast<names>(std::stoi(string));
 }
 
-std::variant<int, bool, std::string, double> naobi::utils::type::getValueFrom(naobi::utils::type::names type, const std::string &string)
+std::variant<int, bool, std::string, double>
+naobi::utils::type::getValueFrom(naobi::utils::type::names type, const std::string& string)
 {
 	if (type == type::names::INTEGER) return std::stoi(string);
 	else if (type == type::names::BOOLEAN) return (string == "true");
@@ -65,7 +69,7 @@ std::variant<int, bool, std::string, double> naobi::utils::type::getValueFrom(na
 	else return nullptr;
 }
 
-naobi::utils::type::names naobi::utils::type::checkTypeFromInput(const std::string &string)
+naobi::utils::type::names naobi::utils::type::checkTypeFromInput(const std::string& string)
 {
 	if (isInteger(string)) return names::INTEGER;
 	else if (isBoolean(string)) return names::BOOLEAN;
@@ -73,13 +77,12 @@ naobi::utils::type::names naobi::utils::type::checkTypeFromInput(const std::stri
 	else return names::STRING;
 }
 
-naobi::utils::type::names naobi::utils::type::fromStringToName(const std::string &type)
+naobi::utils::type::names naobi::utils::type::fromStringToName(const std::string& type)
 {
 	if (type == "integer") return names::INTEGER;
 	else if (type == "boolean") return names::BOOLEAN;
 	else if (type == "float") return names::FLOAT;
 	else if (type == "string") return names::STRING;
-	else if (type == "dynamic") return names::DYNAMIC;
 	else return names::UNDEFINED;
 }
 
@@ -94,6 +97,11 @@ std::string naobi::utils::type::fromNameToString(const names& name)
 	else if (name == names::BOOLEAN) return "boolean";
 	else if (name == names::FLOAT) return "float";
 	else if (name == names::STRING) return "string";
-	else if (name == names::DYNAMIC) return "dynamic";
 	else return "undefined";
+}
+
+bool naobi::utils::type::isStandardType(const std::string& type)
+{
+	static std::set<std::string> types = {"integer", "boolean", "float", "string"};
+	return static_cast<bool>(types.count(type));
 }

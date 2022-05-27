@@ -20,28 +20,41 @@ namespace naobi
 	public:
 		explicit function(std::string name);
 
-		[[nodiscard]] std::string name() const {return _name;}
+		[[nodiscard]] std::string name() const
+		{ return _name; }
+
+		[[nodiscard]] std::size_t getNumber() const;
+
+		void setNumber(std::size_t number);
 
 		bool addArgument(const std::string& name, utils::type::names type);
+
 		std::optional<argument_type> getArgument(const std::string& name);
+
 		std::optional<argument_type> getArgument(std::size_t pos);
 
-		const utils::type::names &getReturnType() const;
+		[[nodiscard]] const utils::type::names& getReturnType() const;
 
-		void setReturnType(const utils::type::names &returnType);
+		void setReturnType(const utils::type::names& returnType);
 
-		const std::vector<argument_type> &getArguments() const;
+		void setArguments(const std::vector<argument_type>& arguments);
+
+		[[nodiscard]] const std::vector<argument_type>& getArguments() const;
 
 		void setCommands(const std::vector<naobi::command>& commands);
 
-		std::vector<naobi::command>& commands(){return _commands;}
-		[[nodiscard]] const std::vector<naobi::command>& commands() const {return _commands;}
+		std::vector<naobi::command>& commands()
+		{ return _commands; }
+
+		[[nodiscard]] const std::vector<naobi::command>& commands() const
+		{ return _commands; }
 
 	private:
 		std::vector<naobi::command> _commands;
 		std::vector<argument_type> _arguments;
-		utils::type::names _returnType;
+		utils::type::names _returnType{utils::type::names::UNDEFINED};
 		std::string _name;
+		std::size_t _number{};
 	};
 }
 

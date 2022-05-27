@@ -23,7 +23,7 @@ Feature: Users functions
       printMessage();
     }
     """
-    Then ends with the code 1
+    Then fails with compilation error and code 52
   Scenario: Function takes integer and prints it
     Given script:
     """
@@ -112,4 +112,144 @@ Feature: Users functions
       println(sum(10));
     }
     """
-    Then ends with the code 1
+    Then fails with compilation error and code 57
+  Scenario: Multiple return in function
+    Given script:
+    """
+    import standard;
+    function number(integer var) -> integer
+    {
+      if (var == 1)
+      {
+        return 1;
+      }
+      else
+      {
+        return 2;
+      }
+      return 3;
+    }
+    workflow main
+    {
+      println(number(2));
+    }
+    """
+    Then got integer 2
+    Then ends with the code 0
+  Scenario: Wrong argument type
+    Given script:
+    """
+    import standard;
+    function printValue(integer val)
+    {
+      println("Integer");
+    }
+    workflow main
+    {
+      printValue(5.0);
+    }
+    """
+    Then fails with compilation error and code 53
+  Scenario: Function overload simple
+    Given script:
+    """
+    import standard;
+    function printValue(integer val)
+    {
+      println("Integer");
+    }
+    function printValue(float val)
+    {
+      println("Float");
+    }
+    workflow main
+    {
+      printValue(5);
+      printValue(5.0);
+    }
+    """
+    Then got string "Integer"
+    Then got string "Float"
+    Then ends with the code 0
+  Scenario: Function overload named arguments
+    Given script:
+    """
+    import standard;
+    function printValue(integer val, float second)
+    {
+      println("Integer");
+    }
+    function printValue(integer val, integer second)
+    {
+      println("Float");
+    }
+    workflow main
+    {
+      printValue(second: 5, val: 6);
+      printValue(second: 5.0, val: 1);
+    }
+    """
+    Then got string "Float"
+    Then got string "Integer"
+    Then ends with the code 0
+  Scenario: Function overload wrong types
+    Given script:
+    """
+    import standard;
+    function printValue(integer val, float second)
+    {
+      println("Integer");
+    }
+    function printValue(integer val, integer second)
+    {
+      println("Float");
+    }
+    workflow main
+    {
+      printValue(second: 5, val: "String");
+      printValue(second: 5.0, val: 1);
+    }
+    """
+    Then fails with compilation error and code 53
+  Scenario: Function already exists
+    Given script:
+    """
+    import standard;
+    function printValue(integer val, float second)
+    {
+      println("Integer");
+    }
+    function printValue(integer val, float second)
+    {
+      println("Float");
+    }
+    workflow main
+    {
+      printValue(second: 5, val: "String");
+      printValue(second: 5.0, val: 1);
+    }
+    """
+    Then fails with compilation error and code 51
+  Scenario: Function overloading with return type
+    Given script:
+    """
+    import standard;
+    function return_value(integer val) -> integer
+    {
+      println("Integer");
+      return val;
+    }
+    function return_value(float val) -> float
+    {
+      println("Float");
+      return val;
+    }
+    workflow main
+    {
+      return_value(10);
+      return_value(5.0);
+    }
+    """
+    Then got string "Integer"
+    Then got string "Float"
+    Then ends with the code 0

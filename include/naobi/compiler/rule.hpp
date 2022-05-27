@@ -14,7 +14,7 @@ namespace naobi
 		rule(CHECKER checker, ACTION action);
 
 		template <typename CHECKING_VALUE, typename... AArgs>
-		bool checkLineAndRun(const CHECKING_VALUE& line, AArgs&&... aargs) const;
+		bool checkLineAndRun(const CHECKING_VALUE& line, AArgs&& ... aargs) const;
 
 	private:
 		CHECKER _checker;
@@ -23,18 +23,18 @@ namespace naobi
 
 	template <typename CHECKER, typename ACTION>
 	rule<CHECKER, ACTION>::rule(CHECKER checker, ACTION action) :
-		_checker(checker),
-		_action(action)
+			_checker(checker),
+			_action(action)
 	{
 	}
 
 	template <typename CHECKER, typename ACTION>
 	template <typename CHECKING_VALUE, typename... AArgs>
-	bool rule<CHECKER, ACTION>::checkLineAndRun(const CHECKING_VALUE &line, AArgs&&... aargs) const
+	bool rule<CHECKER, ACTION>::checkLineAndRun(const CHECKING_VALUE& line, AArgs&& ... aargs) const
 	{
 		if (_checker(line))
 		{
-			_action(line, std::forward<AArgs...>(aargs)...);
+			_action(line, std::forward<AArgs>(aargs)...);
 			return true;
 		}
 		return false;

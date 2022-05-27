@@ -2,7 +2,6 @@
 #include <naobi/utils/logger.hpp>
 #include <naobi/utils/arguments.hpp>
 #include <naobi/interpreter/handler.hpp>
-#include <naobi/interpreter/event_manager.hpp>
 
 int main(int argc, char* argv[])
 {
@@ -28,7 +27,6 @@ int main(int argc, char* argv[])
 		if (arguments.find_flag("--enable-level"))
 			naobi::logger::enableLevel();
 
-
 		naobi::compiler compiler;
 
 		auto script = arguments.find_str("--script");
@@ -40,14 +38,17 @@ int main(int argc, char* argv[])
 		{
 			compiler.compile(argv[argc - 1]);
 		}
-		
-		naobi::event_manager::pushEvent("begin");
 		if (arguments.find_flag("--print-compile-end"))
 		{
 			std::cerr << "compile_end" << std::endl;
 		}
 
 		naobi::handler handler;
+		handler.eventManager().pushEvent("begin");
+		for (const auto& workflow : compiler.getWorkflows())
+		{
+			handler.eventManager().addWorkflow(workflow->target(), workflow);
+		}
 
 		try
 		{
@@ -55,7 +56,8 @@ int main(int argc, char* argv[])
 		}
 		catch (const std::exception& exception)
 		{
-			LOG(handler.execute, naobi::logger::CRITICAL, "CRITICAL got exception in runtime: ", exception.what());
+			NCRITICAL(handler.execute, naobi::errors::NOT_SPECIFIED, "CRITICAL got exception in runtime: ",
+					  exception.what());
 			return EXIT_FAILURE;
 		}
 	}

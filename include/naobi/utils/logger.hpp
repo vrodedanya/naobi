@@ -8,9 +8,14 @@
 #include <naobi/utils/output_type_trait.hpp>
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/color.hpp>
+#include <naobi/utils/errors.hpp>
 
-#define LOG(addressee, level, ...) \
-	naobi::logger::log(#addressee, level, ##__VA_ARGS__)
+#define NLOG(addressee, level, ...) \
+    naobi::logger::log(#addressee, level, ##__VA_ARGS__)
+
+#define NCRITICAL(addressee, error, ...) \
+    naobi::logger::log(#addressee, naobi::logger::CRITICAL, ##__VA_ARGS__); \
+    std::exit(error)
 
 namespace naobi
 {
@@ -29,29 +34,50 @@ namespace naobi
 		logger() = delete;
 
 		template <typename... AArgs>
-		static void log(const std::string& addressee, int level, AArgs&&... aargs);
+		static void log(const std::string& addressee, int level, AArgs&& ... aargs);
+
 		static inline void setLoggingFile(const std::string& fileName);
 
-		static void enable(){_isEnabled = true;}
-		static void disable(){_isEnabled = false;}
-		static void enableLoggingToStdErr(){ _useStdErr = true;}
-		static void disableLoggingToStdErr(){ _useStdErr = false;}
-		static void enableDate(){_printDate = true;}
-		static void disableDate(){_printDate = false;}
-		static void enableLevel(){_printLevel = true;}
-		static void disableLevel(){_printLevel = false;}
-		static void setLevel(int level){_currentLevel = level;}
+		static void enable()
+		{ _isEnabled = true; }
+
+		static void disable()
+		{ _isEnabled = false; }
+
+		static void enableLoggingToStdErr()
+		{ _useStdErr = true; }
+
+		static void disableLoggingToStdErr()
+		{ _useStdErr = false; }
+
+		static void enableDate()
+		{ _printDate = true; }
+
+		static void disableDate()
+		{ _printDate = false; }
+
+		static void enableLevel()
+		{ _printLevel = true; }
+
+		static void disableLevel()
+		{ _printLevel = false; }
+
+		static void setLevel(int level)
+		{ _currentLevel = level; }
+
 	private:
 		template <typename T, typename... AArgs>
-		static void log_rec(T&& type, AArgs&&... aargs);
+		static void log_rec(T&& type, AArgs&& ... aargs);
 
 		template <typename T>
 		static void log_rec(T&& type);
 
 		template <typename T>
 		static inline void print(T&& text);
+
 		template <typename T>
 		static inline void println(T&& text);
+
 	private:
 		static inline std::string _currentAddressee;
 		static inline std::ofstream _file;
@@ -63,14 +89,14 @@ namespace naobi
 		static inline bool _printLevel{};
 	};
 
-	void logger::setLoggingFile(const std::string &fileName)
+	void logger::setLoggingFile(const std::string& fileName)
 	{
 		if (_file.is_open()) _file.close();
 		_file.open(fileName, std::ios_base::out);
 	}
 
 	template <typename... AArgs>
-	void logger::log(const std::string &addressee, int level, AArgs&&... aargs)
+	void logger::log(const std::string& addressee, int level, AArgs&& ... aargs)
 	{
 		if (!_isEnabled) return;
 		if (level > _currentLevel) return;
@@ -95,12 +121,19 @@ namespace naobi
 		_currentColor.color = color::RESET;
 		print(" -> ");
 
-		switch(level)
+		switch (level)
 		{
-			case CRITICAL: _currentColor.color = color::BOLDRED; break;
-			case SUCCESS: _currentColor.color = color::BOLDGREEN; break;
-			case IMPORTANT: _currentColor.color = color::BOLDBLUE; break;
-			default: _currentColor.color = color::RESET;
+			case CRITICAL:
+				_currentColor.color = color::BOLDRED;
+				break;
+			case SUCCESS:
+				_currentColor.color = color::BOLDGREEN;
+				break;
+			case IMPORTANT:
+				_currentColor.color = color::BOLDBLUE;
+				break;
+			default:
+				_currentColor.color = color::RESET;
 
 		}
 
@@ -108,14 +141,14 @@ namespace naobi
 	}
 
 	template <typename T, typename... AArgs>
-	void logger::log_rec(T &&type, AArgs &&... aargs)
+	void logger::log_rec(T&& type, AArgs&& ... aargs)
 	{
 		print(std::forward<T>(type));
 		log_rec(std::forward<AArgs>(aargs)...);
 	}
 
 	template <typename T>
-	void logger::log_rec(T &&type)
+	void logger::log_rec(T&& type)
 	{
 		println(std::forward<T>(type));
 	}

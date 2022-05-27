@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 
 from radish import given, then, when
 
@@ -14,7 +15,8 @@ def is_process_running(process):
     return process.poll() is None
 
 
-logs = ""
+logs: str = ""
+isCompiled: bool = False
 
 
 def take_logs(byte_lines):
@@ -34,6 +36,8 @@ def take_logs(byte_lines):
 
 @given("script:")
 def take_script(step):
+    global isCompiled
+    isCompiled = False
     args = ["--script", step.text, "--print-compile-end"]
     if is_exist("../../cmake-build-debug/naobi"):
         args.insert(0, "../../cmake-build-debug/./naobi")
@@ -45,6 +49,7 @@ def take_script(step):
         if is_process_running(step.context.process):
             out = step.context.process.stderr.readline().decode().replace('\n', '')
             if out == "compile_end":
+                isCompiled = True
                 break
             else:
                 global logs
@@ -108,7 +113,7 @@ def take_result(step, number):
         raise AssertionError(f"Expected {number} got {integer}")
 
 
-@then("got float {number:d}")
+@then("got float {number:f}")
 def take_result(step, number):
     if not is_process_running(step.context.process):
         if step.context.process.returncode != 0:
@@ -132,7 +137,7 @@ def take_result(step, string):
                                     f"{take_logs(step.context.process.stderr.readlines())}")
     out = step.context.process.stdout.readline().decode().replace('\n', '')
     if len(out) == 0:
-        raise AssertionError("Empty output")
+        raise AssertionError("Empty output. Logs: " + take_logs(step.context.process.stderr.readlines()))
     temp = out
     if temp != string:
         raise AssertionError(f"Expected {string} got {temp}")
@@ -153,11 +158,25 @@ def take_result(step, var):
         raise AssertionError(f"Expected {var} got {temp}")
 
 
+@then("fails with compilation error and code {number:d}")
+def compile_error(step, number):
+    global isCompiled
+    if isCompiled:
+        raise AssertionError("Program passed compilation stage successfully")
+    if step.context.process.returncode != number:
+        raise AssertionError(f"Expected {number} got {step.context.process.returncode} with logs\n"
+                             f"{take_logs(step.context.process.stderr.readlines())}")
+
+
 @then("ends with the code {number:d}")
 def finish_with(step, number):
+    global isCompiled
+    if not isCompiled:
+        raise AssertionError(f"Program failed on compile stage with code {step.context.process.returncode}")
     if is_process_running(step.context.process):
         step.context.process.wait()
     if step.context.process.returncode != number:
-        raise AssertionError(f"Expected {number} got {step.context.process.returncode} with logs\n{take_logs(step.context.process.stderr.readlines())}")
+        raise AssertionError(f"Expected {number} got {step.context.process.returncode} with logs\n"
+                             f"{take_logs(step.context.process.stderr.readlines())}")
     else:
         take_logs(step.context.process.stderr.readlines())

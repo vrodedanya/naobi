@@ -26,22 +26,32 @@ bool naobi::module::addFunction(const naobi::function::sptr& newFunction)
 {
 	auto it = std::find_if(_functions.begin(), _functions.end(), [newFunction](function::sptr& function)
 	{
-		return newFunction->name() == function->name() && std::equal(newFunction->getArguments().cbegin(),newFunction->getArguments().cend(),
-																	 function->getArguments().cbegin());
+		return newFunction->name() == function->name() &&
+			   std::equal(newFunction->getArguments().cbegin(), newFunction->getArguments().cend(),
+						  function->getArguments().cbegin(),
+						  [](const function::argument_type& first, const function::argument_type& second)
+						  {
+							  return first.second == second.second;
+						  });
 	});
 	if (it != _functions.end()) return false;
+	auto functions = findFunction(newFunction->name());
+	newFunction->setNumber(functions.empty() ? 0 : functions.size());
 	_functions.emplace_back(newFunction);
 	return true;
 }
 
-naobi::function::sptr naobi::module::getFunction(const std::string& functionName)
+std::vector<naobi::function::sptr> naobi::module::getFunction(const std::string& functionName)
 {
-	auto it = std::find_if(_functions.cbegin(), _functions.cend(), [functionName](const naobi::function::sptr& ptr)
+	std::vector<naobi::function::sptr> buffer;
+	for (const auto& function : _functions)
 	{
-		return ptr->name() == functionName;
-	});
-	if (it == _functions.cend()) return nullptr;
-	return *it;
+		if (function->name() == functionName)
+		{
+			buffer.push_back(function);
+		}
+	}
+	return buffer;
 }
 
 naobi::variable::sptr naobi::module::getConst(const std::string& constName)
@@ -54,7 +64,7 @@ naobi::variable::sptr naobi::module::getConst(const std::string& constName)
 	return *it;
 }
 
-naobi::module::sptr	 naobi::module::getModule(const std::string& moduleName)
+naobi::module::sptr naobi::module::getModule(const std::string& moduleName)
 {
 	auto it = std::find_if(_modules.cbegin(), _modules.cend(), [moduleName](const naobi::module::sptr& ptr)
 	{
@@ -76,14 +86,71 @@ naobi::module::sptr naobi::module::findModule(const std::string& moduleName)
 	return nullptr;
 }
 
-naobi::function::sptr naobi::module::findFunction(const std::string &functionName)
+std::vector<naobi::function::sptr> naobi::module::findFunction(const std::string& functionName)
 {
-	auto function_ptr = getFunction(functionName);
-	if (function_ptr != nullptr) return function_ptr;
+	auto functions = getFunction(functionName);
 	for (const auto& element : _modules)
 	{
-		auto ptr = element->findFunction(functionName);
-		if (ptr != nullptr) return ptr;
+		auto inner_functions = element->findFunction(functionName);
+		functions.insert(functions.end(), inner_functions.begin(), inner_functions.end());
+	}
+	return functions;
+}
+
+naobi::function::sptr naobi::module::findFunctionWithNumber(const std::string& functionName, std::size_t num)
+{
+	auto functions = getFunction(functionName);
+	for (const auto& element : _modules)
+	{
+		auto inner_functions = element->findFunction(functionName);
+		functions.insert(functions.end(), inner_functions.begin(), inner_functions.end());
+	}
+	return *std::find_if(functions.begin(), functions.end(), [num](function::sptr& func)
+	{
+		return num == func->getNumber();
+	});
+}
+
+bool naobi::module::addTemplateFunction(const naobi::template_function::sptr& newTemplate)
+{
+	auto it = std::find_if(_templateFunctions.begin(), _templateFunctions.end(),
+						   [name = newTemplate->getName()](const template_function::sptr& func)
+						   {
+							   return name == func->getName();
+						   });
+	if (it != _templateFunctions.end())
+	{
+		return false;
+	}
+	_templateFunctions.push_back(newTemplate);
+	return true;
+}
+
+naobi::template_function::sptr naobi::module::getTemplateFunction(const std::string& functionName)
+{
+	auto it = std::find_if(_templateFunctions.begin(), _templateFunctions.end(),
+						   [name = functionName](const template_function::sptr& func)
+						   {
+							   return name == func->getName();
+						   });
+	if (it == _templateFunctions.end())
+	{
+		return nullptr;
+	}
+	return *it;
+}
+
+naobi::template_function::sptr naobi::module::findTemplateFunction(const std::string& functionName)
+{
+	auto temp = getTemplateFunction(functionName);
+	if (temp != nullptr)
+	{
+		return temp;
+	}
+	for (const auto& element : _modules)
+	{
+		temp = element->findTemplateFunction(functionName);
+		if (temp != nullptr) return temp;
 	}
 	return nullptr;
 }

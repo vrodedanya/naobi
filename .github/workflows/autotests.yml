@@ -11,21 +11,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install googletest
-      run: cd test/module && sudo chmod +x install_googletest.sh && ./install_googletest.sh
 
     - name: Install radish
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install radish-bdd
-    
-    - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_FLAGS="-Werror"
+
+    - name: Install gcc
+      run: |
+        sudo apt update
+        sudo apt install gcc-10 g++-10
 
     - name: Build naobi
+      env:
+        CC: gcc-10
+        CXX: g++-10
       run: |
-        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        mkdir build
         cd build
+        cmake .. -DUSE_ASAN=1
+        make -j
         ./naobi -v
 
     - name: Run unit tests
