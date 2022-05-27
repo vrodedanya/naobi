@@ -44,7 +44,7 @@ void naobi::template_function::setCode(const std::string& code)
 	_code = code;
 }
 
-void naobi::template_function::addArgument(const naobi::template_function::argument_type& argument)
+void naobi::template_function::addArgument(const std::string& name, const std::string& type)
 {
-	_arguments.push_back(argument);
+	_arguments.emplace_back(name, type);
 }

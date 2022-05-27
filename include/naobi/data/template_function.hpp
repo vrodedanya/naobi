@@ -22,7 +22,7 @@ namespace naobi
 
 		void setName(const std::string& name);
 
-		void addArgument(const argument_type& argument);
+		void addArgument(const std::string& name, const std::string& type);
 
 		[[nodiscard]] const std::vector<argument_type>& getArguments() const;
 
