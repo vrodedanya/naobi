@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 
 from radish import given, then, when
 
@@ -135,6 +136,7 @@ def take_result(step, string):
                                     f"{step.context.process.returncode} \n Logs:\n"
                                     f"{take_logs(step.context.process.stderr.readlines())}")
     out = step.context.process.stdout.readline().decode().replace('\n', '')
+    time.sleep(0.1)
     if len(out) == 0:
         raise AssertionError("Empty output")
     temp = out
