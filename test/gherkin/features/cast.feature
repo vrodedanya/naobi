@@ -54,7 +54,7 @@ Feature: Functions for casting types to each other
     """
     Then got string "Float 5.5"
     Then ends with the code 0
-  Scenario: Cast boolean to string
+  Scenario: Cast boolean to string # Doesn't pass on Ubuntu sometimes
     Given script:
     """
     import standard;
