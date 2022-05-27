@@ -37,6 +37,8 @@ namespace naobi
 
 		void setReturnType(const utils::type::names& returnType);
 
+		void setArguments(const std::vector<argument_type>& arguments);
+
 		[[nodiscard]] const std::vector<argument_type>& getArguments() const;
 
 		void setCommands(const std::vector<naobi::command>& commands);
@@ -50,7 +52,7 @@ namespace naobi
 	private:
 		std::vector<naobi::command> _commands;
 		std::vector<argument_type> _arguments;
-		utils::type::names _returnType;
+		utils::type::names _returnType{utils::type::names::UNDEFINED};
 		std::string _name;
 		std::size_t _number{};
 	};

@@ -282,6 +282,37 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 						}},
 		};
 
+std::map<std::string, naobi::command::names> naobi::command::stringToCommand
+		{
+				{"NEW", naobi::command::names::NEW},
+				{"INC", naobi::command::names::INC},
+				{"DEC", naobi::command::names::DEC},
+				{"ADD", naobi::command::names::ADD},
+				{"SUB", naobi::command::names::SUB},
+				{"MUL", naobi::command::names::MUL},
+				{"DIV", naobi::command::names::DIV},
+				{"MOD", naobi::command::names::MOD},
+				{"EQ", naobi::command::names::EQ},
+				{"GREATER", naobi::command::names::GREATER},
+				{"LESS", naobi::command::names::LESS},
+				{"GREATER_OR_EQ", naobi::command::names::GREATER_OR_EQ},
+				{"LESS_OR_EQ", naobi::command::names::LESS_OR_EQ},
+				{"NOT_EQ", naobi::command::names::NOT_EQ},
+				{"LOAD", naobi::command::names::LOAD},
+				{"SAVE", naobi::command::names::SAVE},
+				{"PLACE", naobi::command::names::PLACE},
+				{"PRINTLN", naobi::command::names::PRINTLN},
+				{"PRINT", naobi::command::names::PRINT},
+				{"INPUT", naobi::command::names::INPUT},
+				{"RETURN", naobi::command::names::RETURN},
+				{"CALL", naobi::command::names::CALL},
+				{"JUMP", naobi::command::names::JUMP},
+				{"JUMP_IF", naobi::command::names::JUMP_IF},
+				{"EXIT", naobi::command::names::EXIT},
+				{"NOPE", naobi::command::names::NOPE},
+				{"ARISE", naobi::command::names::ARISE}
+		};
+
 naobi::command
 naobi::command::createCommand(naobi::command::names com, const naobi::command::argumentsList& args)
 {

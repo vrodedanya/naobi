@@ -271,6 +271,25 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 										}},
 								{[](const std::vector<std::string>& words) -> bool
 								 {
+									 return words[0] == "__insert" && words.size() >= 2;
+								 },
+										[](const std::vector<std::string>& words,
+										   std::vector<naobi::command>& commands)
+										{
+											auto it = command::stringToCommand.find(words[1]);
+											if (it == command::stringToCommand.end())
+											{
+												NCRITICAL(code_generator, errors::INVALID_ARGUMENT,
+														  "CRITICAL failed to find command '", words[1], "'");
+											}
+											commands.push_back(command::createCommand(it->second,
+																					  std::vector<std::string>(
+																							  words.begin() + 2,
+																							  words.end())));
+										}
+								},
+								{[](const std::vector<std::string>& words) -> bool
+								 {
 									 return words[0] == "return" && words.size() >= 2;
 								 },
 										[this]([[maybe_unused]]const std::vector<std::string>& words,
@@ -463,16 +482,26 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 	auto functions = _module->findFunction(functionCallWords[0]);
 	if (functions.empty())
 	{
+		if (generateFunction(functionCallWords))
+		{
+			return callFunction(functionCallWords, commands);
+		}
 		NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL function '", functionCallWords[0], "' not found");
 	}
 	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
 	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}});
 	NLOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
-	if (!std::any_of(functions.begin(), functions.end(), [size = args.size()](const function::sptr& func)
+	functions.erase(std::remove_if(functions.begin(), functions.end(),
+								   [size = args.size()](const naobi::function::sptr& function)
+								   {
+									   return function->getArguments().size() != size;
+								   }), functions.end());
+	if (functions.empty())
 	{
-		return func->getArguments().size() == size;
-	}))
-	{
+		if (generateFunction(functionCallWords))
+		{
+			return callFunction(functionCallWords, commands);
+		}
 		NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL can't find function with arguments number '",
 				  args.size(), "'");
 	}
@@ -494,6 +523,10 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 				functionIterator++;
 				if (functionIterator == functions.end())
 				{
+					if (generateFunction(functionCallWords))
+					{
+						return callFunction(functionCallWords, commands);
+					}
 					NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL argument with position ", pos,
 							  " doesn't exist");
 				}
@@ -517,6 +550,10 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 				functionIterator++;
 				if (functionIterator == functions.end())
 				{
+					if (generateFunction(functionCallWords))
+					{
+						return callFunction(functionCallWords, commands);
+					}
 					NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL argument with name ", name,
 							  " doesn't exist");
 				}
@@ -543,6 +580,10 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 			functionIterator++;
 			if (functionIterator == functions.end())
 			{
+				if (generateFunction(functionCallWords))
+				{
+					return callFunction(functionCallWords, commands);
+				}
 				NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL argument '", argInFunction.first, "' is '",
 						  utils::type::fromNameToString(argInFunction.second), "' provided '",
 						  utils::type::fromNameToString(type), "'");
@@ -569,4 +610,139 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 												 {functionCallWords[0],
 												  std::to_string((*functionIterator)->getNumber())}));
 	return (*functionIterator)->getReturnType();
+}
+
+bool naobi::code_generator::generateFunction(const std::vector<std::string>& functionCallWords)
+{
+	auto templateFunction = _module->findTemplateFunction(functionCallWords[0]);
+	if (templateFunction == nullptr)
+	{
+		NLOG(code_generator, logger::IMPORTANT, "WARNING can't find function template with name '",
+			 functionCallWords[0], "'");
+		return false;
+	}
+	NLOG(code_generator, logger::IMPORTANT, "begin generating function from template with name '",
+		 templateFunction->getName(), "'");
+	NLOG(code_generator, logger::LOW, "function call: ", functionCallWords);
+
+	auto newFunction = std::make_shared<naobi::function>(templateFunction->getName());
+
+	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
+	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}});
+
+	if (args.size() != templateFunction->getArguments().size())
+	{
+		NLOG(code_generator, logger::IMPORTANT, "WARNING expected number of args ",
+			 templateFunction->getArguments().size(), " and got ", args.size());
+		return false;
+	}
+	NLOG(code_generator, logger::IMPORTANT, "generating function call arguments: ", args);
+
+	std::size_t pos{};
+	std::vector<function::argument_type> arguments;
+	code_generator generator(_module);
+	arguments.resize(args.size());
+	std::map<std::string, utils::type::names> alreadySubstituted;
+	for (auto arg = args.begin() ; arg != args.end() ;)
+	{
+		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}});
+		std::string value;
+		template_function::argument_type argInFunction;
+		if (pair.size() == 1)
+		{
+			value = pair[0];
+			auto argInFunctionOpt = templateFunction->getArgument(pos);
+			if (!argInFunctionOpt.has_value())
+			{
+				NLOG(code_generator, logger::IMPORTANT, "WARNING bad ", pos, " argument");
+				return false;
+			}
+			argInFunction = argInFunctionOpt.value();
+		}
+		else if (pair.size() == 2)
+		{
+			auto name = pair[0];
+			value = pair[1];
+			auto argInFunctionOpt = templateFunction->getArgument(name);
+			if (!argInFunctionOpt.has_value())
+			{
+				NLOG(code_generator, logger::IMPORTANT, "WARNING bad ", name, " argument");
+				return false;
+			}
+			argInFunction = argInFunctionOpt.value();
+		}
+		else
+		{
+			NLOG(code_generator, logger::IMPORTANT, "WARNING invalid argument ", pair);
+			return false;
+		}
+		auto valueSplitter = parser::split(value, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
+										   {{'"', '"'},
+											{'{', '}'}});
+		std::vector<command> plug;
+		auto type = processExpression(valueSplitter, plug);
+		if (utils::type::isStandardType(argInFunction.second))
+		{
+			if (type != utils::type::fromStringToName(argInFunction.second))
+			{
+				NLOG(code_generator, logger::IMPORTANT, "WARNING wrong type provided '",
+					 utils::type::fromNameToString(type), "' expected '", argInFunction.second, "'");
+				return false;
+			}
+			arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(argInFunction.first,
+																								utils::type::fromStringToName(
+																										argInFunction.second));
+			generator.addVariable(argInFunction.first, std::make_shared<variable>(argInFunction.first, type));
+		}
+		else
+		{
+			auto it = alreadySubstituted.find(argInFunction.second);
+			if (it != alreadySubstituted.end())
+			{
+				arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(argInFunction.first,
+																									it->second);
+			}
+			else
+			{
+				alreadySubstituted[argInFunction.second] = type;
+				arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(argInFunction.first,
+																									type);
+			}
+			generator.addVariable(argInFunction.first, std::make_shared<variable>(argInFunction.first, type));
+		}
+
+		pos++;
+		arg++;
+	}
+
+	newFunction->setArguments(arguments);
+	auto lines = parser::split(templateFunction->getCode(), parser::isAnyOf(";}"), {}, {{'{', '}'},
+																						{'"', '"'}});
+	auto commands = generator.generate(lines);
+	newFunction->setCommands(commands);
+
+	if (templateFunction->getReturnType() == "undefined")
+	{
+		newFunction->setReturnType(utils::type::names::UNDEFINED);
+	}
+	else
+	{
+		if (utils::type::isStandardType(templateFunction->getReturnType()))
+		{
+			newFunction->setReturnType(utils::type::fromStringToName(templateFunction->getReturnType()));
+		}
+		else
+		{
+			auto it = alreadySubstituted.find(templateFunction->getReturnType());
+			if (it == alreadySubstituted.end())
+			{
+				NLOG(code_generator, logger::IMPORTANT, "WARNING failed to substitute type of template which is ",
+					 templateFunction->getReturnType());
+				return false;
+			}
+			newFunction->setReturnType(it->second);
+		}
+	}
+	_module->addFunction(newFunction);
+	return true;
 }

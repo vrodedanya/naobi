@@ -11,6 +11,7 @@
 #include <naobi/standard/standard_module.hpp>
 #include <naobi/interpreter/event_manager.hpp>
 
+
 void naobi::compiler::compile(const std::string& fileName)
 {
 	NLOG(compiler.compile, logger::LOW, "begin compiling program");
@@ -274,6 +275,63 @@ naobi::compiler::compiler() :
 									 " and target '", target, "', invoke times = ", invoke);
 								this->_workflows.push_back(tempWorkflow);
 							}},
+						// Template function logic
+						{[](const std::vector<std::string>& line) -> bool
+						 {
+							 return !line.empty() && line[0] == "function" && line.size() >= 4 &&
+									line[1].front() == '<';
+						 },
+							[](const std::vector<std::string>& line, const naobi::module::sptr& module)
+							{
+								std::string name = line[2];
+								auto templateFunction = std::make_shared<naobi::template_function>(name);
+
+								std::vector<std::string> types = parser::split(
+										parser::removeSym(line[1].substr(1, line[1].size() - 2), ' '),
+										parser::isAnyOf(","));
+
+								auto arguments = parser::split(line[3].substr(1, line[3].size() - 2),
+															   parser::isAnyOf(","));
+								NLOG(compiler.compile, logger::IMPORTANT, "Arguments of function: ", arguments);
+								for (const auto& argument : arguments)
+								{
+									auto words = parser::split(argument, parser::isAnyOf(" "));
+									if (words.size() != 2)
+									{
+										NCRITICAL(compiler.compile, errors::INVALID_ARGUMENT,
+												  "CRITICAL wrong argument: ", words);
+									}
+									auto type = words[0];
+									auto argName = words[1];
+									templateFunction->addArgument(argName, type);
+								}
+
+
+								auto retIterator = std::find(line.begin(), line.end(), "->");
+								if (retIterator != line.end() && (retIterator + 1) != line.end())
+								{
+									auto returnType = (*(retIterator + 1));
+									templateFunction->setReturnType(returnType);
+								}
+								else
+								{
+									templateFunction->setReturnType("undefined");
+								}
+								templateFunction->setCode(line.back().substr(1, line.back().size() - 2));
+
+								if (module->addTemplateFunction(templateFunction))
+								{
+									NLOG(compiler.compile, logger::IMPORTANT, "Added template function with name ",
+										 name);
+								}
+								else
+								{
+									NCRITICAL(compiler.compile, errors::ALREADY_EXIST,
+											  "CRITICAL template function with name ",
+											  name, " is already exist");
+								}
+							}
+						},
 						// Function logic
 						{[](const std::vector<std::string>& line) -> bool
 						 {

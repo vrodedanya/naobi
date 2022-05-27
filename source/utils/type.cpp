@@ -1,5 +1,7 @@
 #include "naobi/utils/type.hpp"
+
 #include <algorithm>
+#include <set>
 
 
 bool naobi::utils::type::isLiteral(const std::string& string)
@@ -96,4 +98,10 @@ std::string naobi::utils::type::fromNameToString(const names& name)
 	else if (name == names::FLOAT) return "float";
 	else if (name == names::STRING) return "string";
 	else return "undefined";
+}
+
+bool naobi::utils::type::isStandardType(const std::string& type)
+{
+	static std::set<std::string> types = {"integer", "boolean", "float", "string"};
+	return static_cast<bool>(types.count(type));
 }

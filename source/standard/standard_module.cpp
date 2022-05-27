@@ -3,44 +3,13 @@
 naobi::standard::standard() : module("standard")
 {
 	{
-		auto function = std::make_shared<naobi::function>("println");
-		function->addArgument("variable", utils::type::names::STRING);
-		std::vector<command> commands;
-		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
-		commands.emplace_back(command::createCommand(command::names::PRINTLN, {}));
-		function->setCommands(commands);
-		addFunction(function);
-	}
-	{
-		auto function = std::make_shared<naobi::function>("println");
-		function->addArgument("variable", utils::type::names::FLOAT);
-		std::vector<command> commands;
-		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
-		commands.emplace_back(command::createCommand(command::names::PRINTLN, {}));
-		function->setCommands(commands);
-		addFunction(function);
-	}
-	{
-		auto function = std::make_shared<naobi::function>("println");
-		function->addArgument("variable", utils::type::names::BOOLEAN);
-		std::vector<command> commands;
-		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
-		commands.emplace_back(command::createCommand(command::names::PRINTLN, {}));
-		function->setCommands(commands);
-		addFunction(function);
-	}
-	{
-		auto function = std::make_shared<naobi::function>("println");
-		function->addArgument("variable", utils::type::names::INTEGER);
-		std::vector<command> commands;
-		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
-		commands.emplace_back(command::createCommand(command::names::PRINTLN, {}));
-		function->setCommands(commands);
-		addFunction(function);
+		auto templateFunction = std::make_shared<naobi::template_function>("println");
+		templateFunction->addArgument("variable", "TYPE");
+		templateFunction->setCode("__insert LOAD variable;__insert PRINTLN;");
+		addTemplateFunction(templateFunction);
 	}
 	{
 		auto function = std::make_shared<naobi::function>("print");
-		function->addArgument("variable", utils::type::names::TEMPLATE);
 		std::vector<command> commands;
 		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
 		commands.emplace_back(command::createCommand(command::names::PRINT, {}));

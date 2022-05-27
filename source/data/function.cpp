@@ -69,3 +69,8 @@ void naobi::function::setNumber(std::size_t n)
 {
 	function::_number = n;
 }
+
+void naobi::function::setArguments(const std::vector<argument_type>& arguments)
+{
+	_arguments = arguments;
+}

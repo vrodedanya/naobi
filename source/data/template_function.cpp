@@ -1,5 +1,5 @@
 #include <naobi/data/template_function.hpp>
-#include <utility>
+#include <algorithm>
 
 naobi::template_function::template_function(std::string name) : _name(std::move(name))
 {}
@@ -47,4 +47,30 @@ void naobi::template_function::setCode(const std::string& code)
 void naobi::template_function::addArgument(const std::string& name, const std::string& type)
 {
 	_arguments.emplace_back(name, type);
+}
+
+std::optional<naobi::template_function::argument_type> naobi::template_function::getArgument(const std::string& name)
+{
+	auto it = std::find_if(_arguments.begin(), _arguments.end(), [name](const auto& pair)
+	{
+		return name == pair.first;
+	});
+	if (it == _arguments.end()) return {};
+	else return *it;
+}
+
+std::optional<naobi::template_function::argument_type> naobi::template_function::getArgument(std::size_t pos)
+{
+	if (pos >= _arguments.size()) return {};
+	return _arguments[pos];
+}
+
+std::size_t naobi::template_function::getPosOfArgument(const std::string& name)
+{
+	auto it = std::find_if(_arguments.begin(), _arguments.end(), [name](const auto& pair)
+	{
+		return name == pair.first;
+	});
+	if (it == _arguments.end()) return {};
+	else return static_cast<size_t>(std::distance(_arguments.begin(), it));
 }

@@ -56,6 +56,7 @@ namespace naobi
 		argumentsList arguments;
 
 		static std::map<command::names, implementation> commands;
+		static std::map<std::string, command::names> stringToCommand;
 	};
 }
 

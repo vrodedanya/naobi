@@ -6,7 +6,9 @@
 #include <memory>
 
 #include <naobi/data/function.hpp>
+#include <naobi/data/template_function.hpp>
 #include <naobi/data/variable.hpp>
+
 
 namespace naobi
 {
@@ -20,11 +22,15 @@ namespace naobi
 
 		bool addFunction(const naobi::function::sptr& newFunction);
 
+		bool addTemplateFunction(const naobi::template_function::sptr& newTemplate);
+
 		bool addConst(const naobi::variable::sptr& newConst);
 
 		bool addModule(const naobi::module::sptr& newModule);
 
 		std::vector<naobi::function::sptr> getFunction(const std::string& functionName);
+
+		naobi::template_function::sptr getTemplateFunction(const std::string& functionName);
 
 		naobi::variable::sptr getConst(const std::string& constName);
 
@@ -36,6 +42,8 @@ namespace naobi
 
 		naobi::function::sptr findFunctionWithNumber(const std::string& functionName, std::size_t num);
 
+		naobi::template_function::sptr findTemplateFunction(const std::string& functionName);
+
 		[[nodiscard]] std::string name() const
 		{ return _name; }
 
@@ -43,6 +51,7 @@ namespace naobi
 	private:
 		std::string _name;
 		std::vector<naobi::function::sptr> _functions;
+		std::vector<naobi::template_function::sptr> _templateFunctions;
 		std::vector<naobi::variable::sptr> _consts;
 		std::vector<naobi::module::sptr> _modules;
 	};

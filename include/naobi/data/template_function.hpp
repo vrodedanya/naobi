@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
+
 
 namespace naobi
 {
@@ -28,6 +30,12 @@ namespace naobi
 
 		void setArguments(const std::vector<argument_type>& arguments);
 
+		std::optional<argument_type> getArgument(const std::string& name);
+
+		std::optional<argument_type> getArgument(std::size_t pos);
+
+		std::size_t getPosOfArgument(const std::string& name);
+
 		[[nodiscard]] const std::string& getReturnType() const;
 
 		void setReturnType(const std::string& returnType);
@@ -39,7 +47,7 @@ namespace naobi
 	private:
 		std::string _name;
 		std::vector<argument_type> _arguments;
-		std::string _returnType;
+		std::string _returnType{"undefined"};
 		std::string _code;
 	};
 }

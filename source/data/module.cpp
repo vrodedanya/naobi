@@ -110,3 +110,47 @@ naobi::function::sptr naobi::module::findFunctionWithNumber(const std::string& f
 		return num == func->getNumber();
 	});
 }
+
+bool naobi::module::addTemplateFunction(const naobi::template_function::sptr& newTemplate)
+{
+	auto it = std::find_if(_templateFunctions.begin(), _templateFunctions.end(),
+						   [name = newTemplate->getName()](const template_function::sptr& func)
+						   {
+							   return name == func->getName();
+						   });
+	if (it != _templateFunctions.end())
+	{
+		return false;
+	}
+	_templateFunctions.push_back(newTemplate);
+	return true;
+}
+
+naobi::template_function::sptr naobi::module::getTemplateFunction(const std::string& functionName)
+{
+	auto it = std::find_if(_templateFunctions.begin(), _templateFunctions.end(),
+						   [name = functionName](const template_function::sptr& func)
+						   {
+							   return name == func->getName();
+						   });
+	if (it == _templateFunctions.end())
+	{
+		return nullptr;
+	}
+	return *it;
+}
+
+naobi::template_function::sptr naobi::module::findTemplateFunction(const std::string& functionName)
+{
+	auto temp = getTemplateFunction(functionName);
+	if (temp != nullptr)
+	{
+		return temp;
+	}
+	for (const auto& element : _modules)
+	{
+		temp = element->findTemplateFunction(functionName);
+		if (temp != nullptr) return temp;
+	}
+	return nullptr;
+}
