@@ -47,6 +47,16 @@ namespace naobi
 			EXIT,
 			NOPE,
 			ARISE,
+			I2S,
+			F2S,
+			B2S,
+			S2I,
+			F2I,
+			B2I,
+			I2F,
+			S2F,
+			I2B,
+			S2B,
 		};
 
 		static naobi::command createCommand(command::names com, const command::argumentsList& arguments);

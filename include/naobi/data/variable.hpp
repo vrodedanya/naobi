@@ -24,7 +24,10 @@ namespace naobi
 		[[nodiscard]] std::string name() const
 		{ return _name; }
 
-		[[nodiscard]] utils::type::names type() const
+		[[nodiscard]] utils::type::names& type()
+		{ return _type; }
+
+		[[nodiscard]] const utils::type::names& type() const
 		{ return _type; }
 
 		utils::type::variable_type& value()

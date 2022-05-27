@@ -17,7 +17,7 @@ Feature: Add operation
     import standard;
     workflow main
     {
-      println(input() + input());
+      println(int(input()) + int(input()));
     }
     """
     When pass integer <number1>
@@ -49,7 +49,7 @@ Feature: Add operation
     import standard;
     workflow main
     {
-      println(input() + input());
+      println(bool(input()) + bool(input()));
     }
     """
     When pass boolean <first>
@@ -81,7 +81,7 @@ Feature: Add operation
     import standard;
     workflow main
     {
-      println(input() + input());
+      println(float(input()) + float(input()));
     }
     """
     When pass float <first>

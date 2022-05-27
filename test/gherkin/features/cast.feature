@@ -38,10 +38,10 @@ Feature: Functions for casting types to each other
     import standard;
     workflow main
     {
-      println("Integer: " + str(5));
+      println("Integer " + str(5));
     }
     """
-    Then got string "Integer: 5"
+    Then got string "Integer 5"
     Then ends with the code 0
   Scenario: Cast float to string
     Given script:
@@ -49,10 +49,10 @@ Feature: Functions for casting types to each other
     import standard;
     workflow main
     {
-      println("Float: " + str(5.5));
+      println("Float " + str(5.5));
     }
     """
-    Then got string "Float: 5.5"
+    Then got string "Float 5.5"
     Then ends with the code 0
   Scenario: Cast boolean to string
     Given script:
@@ -60,10 +60,10 @@ Feature: Functions for casting types to each other
     import standard;
     workflow main
     {
-      println("Boolean: " + str(true));
+      println("Boolean " + str(true));
     }
     """
-    Then got string "Boolean: true"
+    Then got string "Boolean true"
     Then ends with the code 0
   Scenario: Cast integer to float
     Given script:

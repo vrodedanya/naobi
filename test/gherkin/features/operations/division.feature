@@ -17,7 +17,7 @@ Feature: Division operation
     import standard;
     workflow main
     {
-      println(input() / input());
+      println(int(input()) / int(input()));
     }
     """
     When pass integer <number1>
@@ -60,7 +60,7 @@ Feature: Division operation
     import standard;
     workflow main
     {
-      println(input() / input());
+      println(float(input()) / float(input()));
     }
     """
     When pass float <first>

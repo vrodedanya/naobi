@@ -12,10 +12,10 @@ target begin
 
     // Testing input
 
-    testing = input();
+    testing = int(input());
     println(testing);
 
-    testing = input();
+    testing = int(input());
     variable = testing;
     println(variable);
 
