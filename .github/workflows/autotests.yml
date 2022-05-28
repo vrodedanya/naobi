@@ -1,6 +1,14 @@
 name: autotests
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+  push:
+    branches:
+      - master
+      - develop
 
 env:
   BUILD_TYPE: Release
