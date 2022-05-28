@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <map>
 
-std::vector<std::string> naobi::parser::split(const std::string& text, const std::function<int(char)>& isSplitter,
-											  const std::function<bool(char)>& isSingle,
-											  const std::map<char, char>& blocks,
-											  const std::map<char, char>& separatedBlocks)
+
+std::vector<std::string> naobi::parser::split(
+	const std::string& text, const std::function<int(char)>& isSplitter,
+	const std::function<bool(char)>& isSingle,
+	const std::map<char, char>& blocks,
+	const std::map<char, char>& separatedBlocks)
 {
 	assert(isSplitter);
 	std::vector<std::string> resultVector;
@@ -98,8 +100,9 @@ std::vector<std::string> naobi::parser::split(const std::string& text, const std
 	{
 		resultVector.emplace_back(stringBuffer);
 	}
-	std::for_each(resultVector.begin(), resultVector.end(), [](auto& str)
-	{ str = parser::removeFirstSym(str, ' '); });
+	std::for_each(
+		resultVector.begin(), resultVector.end(), [](auto& str)
+		{ str = parser::removeFirstSym(str, ' '); });
 	return resultVector;
 }
 

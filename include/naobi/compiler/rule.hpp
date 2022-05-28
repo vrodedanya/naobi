@@ -4,6 +4,7 @@
 #include <functional>
 #include "naobi/data/module.hpp"
 
+
 namespace naobi
 {
 
@@ -23,8 +24,8 @@ namespace naobi
 
 	template <typename CHECKER, typename ACTION>
 	rule<CHECKER, ACTION>::rule(CHECKER checker, ACTION action) :
-			_checker(checker),
-			_action(action)
+		_checker(checker),
+		_action(action)
 	{
 	}
 

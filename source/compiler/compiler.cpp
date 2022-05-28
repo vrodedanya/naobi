@@ -42,8 +42,9 @@ void naobi::compiler::compileText(const std::string& text)
 	NLOG(compiler.compile, logger::LOW, "after removing comments:\n", fileContent);
 
 	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileContent), '\n', ' ');
-	auto lines = parser::split(temp, parser::isEnds(";}"), {}, {{'{', '}'},
-																{'"', '"'}});
+	auto lines = parser::split(
+		temp, parser::isEnds(";}"), {}, {{'{', '}'},
+										 {'"', '"'}});
 	NLOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
 	processImportingModules(lines, module);
@@ -89,8 +90,9 @@ void naobi::compiler::compile(const std::string& fileName, const naobi::module::
 	NLOG(compiler.compile, logger::LOW, "after removing comments:\n", fileContent);
 
 	auto temp = parser::replaceSym(parser::removeExtraSpaces(fileContent), '\n', ' ');
-	auto lines = parser::split(temp, parser::isEnds(";}"), {}, {{'{', '}'},
-																{'"', '"'}});
+	auto lines = parser::split(
+		temp, parser::isEnds(";}"), {}, {{'{', '}'},
+										 {'"', '"'}});
 	NLOG(compiler.compile, logger::LOW, "lines:\n", lines);
 
 	processImportingModules(lines, module);
@@ -142,20 +144,24 @@ void naobi::compiler::processModule(const std::vector<std::string>& lines, const
 	{
 		NLOG(compiler.processModule, logger::LOW, "process line '", line, "'");
 
-		auto words = parser::split(line, parser::isEnds(" >"), {}, {{'"', '"'}}, {{'{', '}'},
-																				  {'(', ')'},
-																				  {'<', '>'}});
-		std::for_each(words.begin(), words.end(), [](std::string& elem)
-		{
-			if (!elem.empty() && elem.back() == ' ')
+		auto words = parser::split(
+			line, parser::isEnds(" >"), {}, {{'"', '"'}}, {{'{', '}'},
+														   {'(', ')'},
+														   {'<', '>'}});
+		std::for_each(
+			words.begin(), words.end(), [](std::string& elem)
 			{
-				elem = elem.substr(0, elem.size() - 1);
-			}
-		});
-		words.erase(std::remove_if(words.begin(), words.end(), [](const std::string& str)
-		{
-			return str.empty() || (str.size() == 1 && str[0] == ' ');
-		}), words.end());
+				if (!elem.empty() && elem.back() == ' ')
+				{
+					elem = elem.substr(0, elem.size() - 1);
+				}
+			});
+		words.erase(
+			std::remove_if(
+				words.begin(), words.end(), [](const std::string& str)
+				{
+					return str.empty() || (str.size() == 1 && str[0] == ' ');
+				}), words.end());
 		NLOG(compiler.processModule, logger::LOW, "words:\n", words);
 
 		if (words.empty()) continue;
@@ -209,199 +215,204 @@ static std::string getParamValue(const std::vector<std::string>& line, const std
 }
 
 naobi::compiler::compiler() :
-		_rules(
-				{
-						// Workflow logic
-						{[](const std::vector<std::string>& line) -> bool
-						 {
-							 return !line.empty() && line[0] == "workflow";
-						 }, [this](const std::vector<std::string>& line, const naobi::module::sptr& module)
-							{
-								std::string name;
-								std::string target;
-								int invoke = -1;
+	_rules(
+		{
+			// Workflow logic
+			{[](const std::vector<std::string>& line) -> bool
+			 {
+				 return !line.empty() && line[0] == "workflow";
+			 }, [this](const std::vector<std::string>& line, const naobi::module::sptr& module)
+			 {
+				 std::string name;
+				 std::string target;
+				 int invoke = -1;
 
-								name = getParamValue(line, "workflow");
-								if (name.empty())
-								{
-									NCRITICAL(compiler.compile, errors::NOT_SPECIFIED,
-											  "CRITICAL failed to create workflow '", name, "'\n",
-											  "Can't find workflow name");
-								}
-								if (naobi::keywords::check(name))
-								{
-									NCRITICAL(compiler.compile, errors::KEYWORD_AS_NAME, "CRITICAL '", name,
-											  "' is keyword!");
-								}
-								target = getParamValue(line, "target");
-								if (target.empty())
-								{
-									target = "begin";
-								}
-								if (naobi::keywords::check(target))
-								{
-									NCRITICAL(compiler.compile, errors::KEYWORD_AS_NAME, "CRITICAL '", target,
-											  "' is keyword!");
-								}
-								auto temp = getParamValue(line, "invoke");
-								if (temp == "always")
-								{
-									invoke = -1;
-								}
-								else if (temp == "once")
-								{
-									invoke = 1;
-								}
-								else if (!temp.empty())
-								{
-									invoke = std::stoi(temp);
-								}
-								else
-								{
-									invoke = 1;
-								}
+				 name = getParamValue(line, "workflow");
+				 if (name.empty())
+				 {
+					 NCRITICAL(compiler.compile, errors::NOT_SPECIFIED,
+							   "CRITICAL failed to create workflow '", name, "'\n",
+							   "Can't find workflow name");
+				 }
+				 if (naobi::keywords::check(name))
+				 {
+					 NCRITICAL(compiler.compile, errors::KEYWORD_AS_NAME, "CRITICAL '", name,
+							   "' is keyword!");
+				 }
+				 target = getParamValue(line, "target");
+				 if (target.empty())
+				 {
+					 target = "begin";
+				 }
+				 if (naobi::keywords::check(target))
+				 {
+					 NCRITICAL(compiler.compile, errors::KEYWORD_AS_NAME, "CRITICAL '", target,
+							   "' is keyword!");
+				 }
+				 auto temp = getParamValue(line, "invoke");
+				 if (temp == "always")
+				 {
+					 invoke = -1;
+				 }
+				 else if (temp == "once")
+				 {
+					 invoke = 1;
+				 }
+				 else if (!temp.empty())
+				 {
+					 invoke = std::stoi(temp);
+				 }
+				 else
+				 {
+					 invoke = 1;
+				 }
 
-								auto tempWorkflow = std::make_shared<naobi::workflow>(name, target, module);
-								tempWorkflow->setInvoke(invoke);
+				 auto tempWorkflow = std::make_shared<naobi::workflow>(name, target, module);
+				 tempWorkflow->setInvoke(invoke);
 
-								std::string codeBlock = line.back().substr(1, line.back().size() - 2);
-								auto lines = parser::split(codeBlock, parser::isAnyOf(";}"), {}, {{'{', '}'},
-																								  {'"', '"'}});
-								naobi::code_generator generator(module);
-								auto commands = generator.generate(lines);
-								tempWorkflow->setCommands(commands);
+				 std::string codeBlock = line.back().substr(1, line.back().size() - 2);
+				 auto lines = parser::split(
+					 codeBlock, parser::isAnyOf(";}"), {}, {{'{', '}'},
+															{'"', '"'}});
+				 naobi::code_generator generator(module);
+				 auto commands = generator.generate(lines);
+				 tempWorkflow->setCommands(commands);
 
-								NLOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'",
-									 " and target '", target, "', invoke times = ", invoke);
-								this->_workflows.push_back(tempWorkflow);
-							}},
-						// Template function logic
-						{[](const std::vector<std::string>& line) -> bool
-						 {
-							 return !line.empty() && line[0] == "function" && line.size() >= 4 &&
-									line[1].front() == '<';
-						 },
-							[](const std::vector<std::string>& line, const naobi::module::sptr& module)
-							{
-								std::string name = line[2];
-								auto templateFunction = std::make_shared<naobi::template_function>(name);
+				 NLOG(compiler.compile, naobi::logger::BASIC, "Create workflow with name '", name, "'",
+					  " and target '", target, "', invoke times = ", invoke);
+				 this->_workflows.push_back(tempWorkflow);
+			 }},
+			// Template function logic
+			{[](const std::vector<std::string>& line) -> bool
+			 {
+				 return !line.empty() && line[0] == "function" && line.size() >= 4 &&
+						line[1].front() == '<';
+			 },
+			 [](const std::vector<std::string>& line, const naobi::module::sptr& module)
+			 {
+				 std::string name = line[2];
+				 auto templateFunction = std::make_shared<naobi::template_function>(name);
 
-								std::vector<std::string> types = parser::split(
-										parser::removeSym(line[1].substr(1, line[1].size() - 2), ' '),
-										parser::isAnyOf(","));
+				 std::vector<std::string> types = parser::split(
+					 parser::removeSym(line[1].substr(1, line[1].size() - 2), ' '),
+					 parser::isAnyOf(","));
 
-								auto arguments = parser::split(line[3].substr(1, line[3].size() - 2),
-															   parser::isAnyOf(","));
-								NLOG(compiler.compile, logger::IMPORTANT, "Arguments of function: ", arguments);
-								for (const auto& argument : arguments)
-								{
-									auto words = parser::split(argument, parser::isAnyOf(" "));
-									if (words.size() != 2)
-									{
-										NCRITICAL(compiler.compile, errors::INVALID_ARGUMENT,
-												  "CRITICAL wrong argument: ", words);
-									}
-									auto type = words[0];
-									auto argName = words[1];
-									templateFunction->addArgument(argName, type);
-								}
+				 auto arguments = parser::split(
+					 line[3].substr(1, line[3].size() - 2),
+					 parser::isAnyOf(","));
+				 NLOG(compiler.compile, logger::IMPORTANT, "Arguments of function: ", arguments);
+				 for (const auto& argument : arguments)
+				 {
+					 auto words = parser::split(argument, parser::isAnyOf(" "));
+					 if (words.size() != 2)
+					 {
+						 NCRITICAL(compiler.compile, errors::INVALID_ARGUMENT,
+								   "CRITICAL wrong argument: ", words);
+					 }
+					 auto type = words[0];
+					 auto argName = words[1];
+					 templateFunction->addArgument(argName, type);
+				 }
 
 
-								auto retIterator = std::find(line.begin(), line.end(), "->");
-								if (retIterator != line.end() && (retIterator + 1) != line.end())
-								{
-									auto returnType = (*(retIterator + 1));
-									templateFunction->setReturnType(returnType);
-								}
-								else
-								{
-									templateFunction->setReturnType("undefined");
-								}
-								templateFunction->setCode(line.back().substr(1, line.back().size() - 2));
+				 auto retIterator = std::find(line.begin(), line.end(), "->");
+				 if (retIterator != line.end() && (retIterator + 1) != line.end())
+				 {
+					 auto returnType = (*(retIterator + 1));
+					 templateFunction->setReturnType(returnType);
+				 }
+				 else
+				 {
+					 templateFunction->setReturnType("undefined");
+				 }
+				 templateFunction->setCode(line.back().substr(1, line.back().size() - 2));
 
-								if (module->addTemplateFunction(templateFunction))
-								{
-									NLOG(compiler.compile, logger::IMPORTANT, "Added template function with name ",
-										 name);
-								}
-								else
-								{
-									NCRITICAL(compiler.compile, errors::ALREADY_EXIST,
-											  "CRITICAL template function with name ",
-											  name, " is already exist");
-								}
-							}
-						},
-						// Function logic
-						{[](const std::vector<std::string>& line) -> bool
-						 {
-							 return !line.empty() && line[0] == "function" && line.size() >= 4;
-						 }, [](const std::vector<std::string>& line, const naobi::module::sptr& module)
-							{
-								std::string name = getParamValue(line, "function");
-								if (name.empty())
-								{
-									NCRITICAL(compiler.compile, errors::NOT_SPECIFIED,
-											  "CRITICAL failed to get function name");
-								}
-								auto function = std::make_shared<naobi::function>(name);
-								code_generator generator(module);
+				 if (module->addTemplateFunction(templateFunction))
+				 {
+					 NLOG(compiler.compile, logger::IMPORTANT, "Added template function with name ",
+						  name);
+				 }
+				 else
+				 {
+					 NCRITICAL(compiler.compile, errors::ALREADY_EXIST,
+							   "CRITICAL template function with name ",
+							   name, " is already exist");
+				 }
+			 }
+			},
+			// Function logic
+			{[](const std::vector<std::string>& line) -> bool
+			 {
+				 return !line.empty() && line[0] == "function" && line.size() >= 4;
+			 }, [](const std::vector<std::string>& line, const naobi::module::sptr& module)
+			 {
+				 std::string name = getParamValue(line, "function");
+				 if (name.empty())
+				 {
+					 NCRITICAL(compiler.compile, errors::NOT_SPECIFIED,
+							   "CRITICAL failed to get function name");
+				 }
+				 auto function = std::make_shared<naobi::function>(name);
+				 code_generator generator(module);
 
-								auto arguments = parser::split(line[2].substr(1, line[2].size() - 2),
-															   parser::isAnyOf(","));
-								NLOG(compiler.compile, logger::IMPORTANT, "Arguments of function: ", arguments);
-								for (const auto& argument : arguments)
-								{
-									auto words = parser::split(argument, parser::isAnyOf(" "));
-									if (words.size() != 2)
-									{
-										NCRITICAL(compiler.compile, errors::INVALID_ARGUMENT,
-												  "CRITICAL wrong argument: ", words);
-									}
-									auto type = utils::type::fromStringToName(words[0]);
-									auto argName = words[1];
-									auto variable = std::make_shared<naobi::variable>(argName, type);
-									generator.addVariable(argName, variable);
-									function->addArgument(argName, type);
-								}
+				 auto arguments = parser::split(
+					 line[2].substr(1, line[2].size() - 2),
+					 parser::isAnyOf(","));
+				 NLOG(compiler.compile, logger::IMPORTANT, "Arguments of function: ", arguments);
+				 for (const auto& argument : arguments)
+				 {
+					 auto words = parser::split(argument, parser::isAnyOf(" "));
+					 if (words.size() != 2)
+					 {
+						 NCRITICAL(compiler.compile, errors::INVALID_ARGUMENT,
+								   "CRITICAL wrong argument: ", words);
+					 }
+					 auto type = utils::type::fromStringToName(words[0]);
+					 auto argName = words[1];
+					 auto variable = std::make_shared<naobi::variable>(argName, type);
+					 generator.addVariable(argName, variable);
+					 function->addArgument(argName, type);
+				 }
 
-								auto retIterator = std::find(line.begin(), line.end(), "->");
-								if (retIterator != line.end() && (retIterator + 1) != line.end())
-								{
-									auto returnType = utils::type::fromStringToName(*(retIterator + 1));
-									function->setReturnType(returnType);
-								}
-								else
-								{
-									function->setReturnType(utils::type::names::UNDEFINED);
-								}
+				 auto retIterator = std::find(line.begin(), line.end(), "->");
+				 if (retIterator != line.end() && (retIterator + 1) != line.end())
+				 {
+					 auto returnType = utils::type::fromStringToName(*(retIterator + 1));
+					 function->setReturnType(returnType);
+				 }
+				 else
+				 {
+					 function->setReturnType(utils::type::names::UNDEFINED);
+				 }
 
-								std::string codeBlock = line.back().substr(1, line.back().size() - 2);
-								auto lines = parser::split(codeBlock, parser::isAnyOf(";}"), {}, {{'{', '}'},
-																								  {'"', '"'}});
+				 std::string codeBlock = line.back().substr(1, line.back().size() - 2);
+				 auto lines = parser::split(
+					 codeBlock, parser::isAnyOf(";}"), {}, {{'{', '}'},
+															{'"', '"'}});
 
-								auto commands = generator.generate(lines);
-								function->setCommands(commands);
+				 auto commands = generator.generate(lines);
+				 function->setCommands(commands);
 
-								if (module->addFunction(function))
-								{
-									NLOG(compiler.compile, logger::IMPORTANT, "Added function with name ", name);
-								}
-								else
-								{
-									NCRITICAL(compiler.compile, errors::ALREADY_EXIST, "CRITICAL function with name ",
-											  name, " and this arguments ", line[2], " is already exist");
-								}
-							}},
-						// Import plug
-						{[](const std::vector<std::string>& line) -> bool
-						 {
-							 return !line.empty() && line[0] == "import";
-						 },
-							[]([[maybe_unused]]const std::vector<std::string>& line,
-							   [[maybe_unused]]const naobi::module::sptr& module) noexcept
-							{
-							}},
-				}
-		)
+				 if (module->addFunction(function))
+				 {
+					 NLOG(compiler.compile, logger::IMPORTANT, "Added function with name ", name);
+				 }
+				 else
+				 {
+					 NCRITICAL(compiler.compile, errors::ALREADY_EXIST, "CRITICAL function with name ",
+							   name, " and this arguments ", line[2], " is already exist");
+				 }
+			 }},
+			// Import plug
+			{[](const std::vector<std::string>& line) -> bool
+			 {
+				 return !line.empty() && line[0] == "import";
+			 },
+			 [](
+				 [[maybe_unused]]const std::vector<std::string>& line,
+				 [[maybe_unused]]const naobi::module::sptr& module) noexcept
+			 {
+			 }},
+		}
+		  )
 {}

@@ -11,6 +11,7 @@
 #include <naobi/data/variable.hpp>
 #include <naobi/interpreter/command.hpp>
 
+
 namespace naobi
 {
 

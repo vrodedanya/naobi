@@ -10,6 +10,7 @@
 #include <naobi/data/variable.hpp>
 #include <naobi/interpreter/command.hpp>
 
+
 namespace naobi
 {
 	class operation
@@ -21,8 +22,9 @@ namespace naobi
 		using impl = std::pair<utils::type::names, std::function<variable::sptr(variable::sptr, variable::sptr)>>;
 		using implementations = std::map<key, impl>;
 
-		operation(std::string operatorName, int priority, naobi::command::names commandAnalogue,
-				  implementations implement);
+		operation(
+			std::string operatorName, int priority, naobi::command::names commandAnalogue,
+			implementations implement);
 
 		[[nodiscard]] const std::string& getOperator() const;
 

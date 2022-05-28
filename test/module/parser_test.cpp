@@ -4,6 +4,7 @@
 #include <set>
 #include <gmock/gmock-matchers.h>
 
+
 using namespace naobi::parser;
 
 TEST(parser, split)
@@ -11,25 +12,27 @@ TEST(parser, split)
 	ASSERT_THAT(split("a;b;c;d", isAnyOf(";")), testing::ElementsAre("a", "b", "c", "d"));
 	ASSERT_THAT(split("a+b-c*d/e 234", isAnyOf(" "), isAnyOf("+-*")),
 				testing::ElementsAre("a", "+", "b", "-", "c", "*", "d/e", "234"));
-	ASSERT_THAT(split("import standard;"
-									 "workflow main"
-									 "{"
-									 "println(6+6);"
-									 "}"
-									 "workflow test"
-									 "{"
-									 "println(\"Hello\");"
-									 "}"
-									 , isAnyOf(";}"),
-									 {}, {{'{', '}'}}),
-				testing::ElementsAre("import standard", "workflow main{println(6+6);}", "workflow test{println(\"Hello\");}"));
-	ASSERT_THAT(split("println(\"Hello\");"
-									 "integer a = b + c;"
-									 "string res = \"Hello\";"
-									 "testing();",
-					  				isAnyOf(";"),{},{{'(',')'},{'"', '"'}}),
+	ASSERT_THAT(split(
+		"import standard;"
+		"workflow main"
+		"{"
+		"println(6+6);"
+		"}"
+		"workflow test"
+		"{"
+		"println(\"Hello\");"
+		"}", isAnyOf(";}"),
+		{}, {{'{', '}'}}),
+				testing::ElementsAre(
+					"import standard", "workflow main{println(6+6);}", "workflow test{println(\"Hello\");}"));
+	ASSERT_THAT(split(
+		"println(\"Hello\");"
+		"integer a = b + c;"
+		"string res = \"Hello\";"
+		"testing();",
+		isAnyOf(";"), {}, {{'(', ')'}, {'"', '"'}}),
 				testing::ElementsAre("println(\"Hello\")", "integer a = b + c", "string res = \"Hello\"", "testing()"));
-	ASSERT_THAT(split("println(\"Ssss\");", isAnyOf("};"), {}, {{'"','"'}}),
+	ASSERT_THAT(split("println(\"Ssss\");", isAnyOf("};"), {}, {{'"', '"'}}),
 				testing::ElementsAre(("println(\"Ssss\")")));
 }
 
@@ -76,7 +79,7 @@ TEST(parser, fileName)
 
 TEST(parser, join)
 {
-	EXPECT_EQ(join({"test","kek","alololo","hmm"}, " "), "test kek alololo hmm");
+	EXPECT_EQ(join({"test", "kek", "alololo", "hmm"}, " "), "test kek alololo hmm");
 }
 
 TEST(parser, removeFirstSym)

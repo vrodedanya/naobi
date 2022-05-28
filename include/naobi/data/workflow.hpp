@@ -7,6 +7,7 @@
 #include <naobi/data/module.hpp>
 #include <naobi/compiler/code_generator.hpp>
 
+
 namespace naobi
 {
 	class workflow

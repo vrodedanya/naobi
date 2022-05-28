@@ -3,6 +3,7 @@
 #include <naobi/utils/arguments.hpp>
 #include <naobi/interpreter/handler.hpp>
 
+
 int main(int argc, char* argv[])
 {
 	if (argc > 1)

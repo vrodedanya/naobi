@@ -10,6 +10,7 @@
 #include <naobi/utils/color.hpp>
 #include <naobi/utils/errors.hpp>
 
+
 #define NLOG(addressee, level, ...) \
     naobi::logger::log(#addressee, level, ##__VA_ARGS__)
 

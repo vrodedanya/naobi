@@ -2,9 +2,10 @@
 
 #include "naobi/utils/logger.hpp"
 
+
 naobi::variable::variable(std::string name, utils::type::names type) :
-		_name(std::move(name)),
-		_type(type)
+	_name(std::move(name)),
+	_type(type)
 {
 	switch (_type)
 	{

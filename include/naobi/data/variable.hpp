@@ -8,6 +8,7 @@
 
 #include "naobi/utils/type.hpp"
 
+
 namespace naobi
 {
 	class variable

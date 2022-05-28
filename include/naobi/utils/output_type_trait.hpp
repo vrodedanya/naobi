@@ -4,6 +4,7 @@
 #include <vector>
 #include <ostream>
 
+
 namespace naobi
 {
 	template <typename T>

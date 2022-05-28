@@ -3,6 +3,7 @@
 
 #include <naobi/utils/type.hpp>
 
+
 using namespace naobi::utils;
 
 

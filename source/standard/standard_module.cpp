@@ -1,5 +1,6 @@
 #include <naobi/standard/standard_module.hpp>
 
+
 naobi::standard::standard() : module("standard")
 {
 	{
@@ -16,7 +17,7 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("exit");
-		function->addArgument("variable",utils::type::names::INTEGER);
+		function->addArgument("variable", utils::type::names::INTEGER);
 		std::vector<command> commands;
 		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
 		commands.emplace_back(command::createCommand(command::names::EXIT, {}));

@@ -4,6 +4,7 @@
 #include <string>
 #include <array>
 
+
 namespace naobi
 {
 	class keywords
@@ -15,16 +16,16 @@ namespace naobi
 
 	private:
 		static inline std::array<std::string, 6> _keywords = {
-				"workflow",
-				"target",
-				"invoke",
-				"function",
-				"const",
-				"if",
+			"workflow",
+			"target",
+			"invoke",
+			"function",
+			"const",
+			"if",
 		};
 		static inline std::array<std::string, 2> _types = {
-				"integer",
-				"boolean",
+			"integer",
+			"boolean",
 		};
 	};
 

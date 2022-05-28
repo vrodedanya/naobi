@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 
+
 namespace naobi::utils
 {
 	class type
@@ -25,6 +26,7 @@ namespace naobi::utils
 		static bool isStandardType(const std::string& type);
 
 		static names fromStringToName(const std::string& type);
+
 		static std::string fromNameToString(const names& name);
 
 		static variable_type getValueFrom(names type, const std::string& string);
@@ -32,14 +34,19 @@ namespace naobi::utils
 		static names toType(const std::string& string);
 
 		static names checkType(const std::string& string);
+
 		static names checkTypeFromInput(const std::string& string);
 
 		static bool validate(const std::string& string, names type);
 
 		static bool isLiteral(const std::string& string);
+
 		static bool isInteger(const std::string& string);
+
 		static bool isBoolean(const std::string& string);
+
 		static bool isString(const std::string& string);
+
 		static bool isFloat(const std::string& string);
 	};
 }

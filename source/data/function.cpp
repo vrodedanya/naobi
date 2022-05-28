@@ -2,8 +2,9 @@
 
 #include <optional>
 
+
 naobi::function::function(std::string name) :
-		_name(std::move(name))
+	_name(std::move(name))
 {
 }
 
@@ -17,10 +18,11 @@ void naobi::function::setCommands(const std::vector<naobi::command>& commands)
 
 bool naobi::function::addArgument(const std::string& name, utils::type::names type)
 {
-	auto it = std::find_if(_arguments.begin(), _arguments.end(), [name](const auto& pair)
-	{
-		return name == pair.first;
-	});
+	auto it = std::find_if(
+		_arguments.begin(), _arguments.end(), [name](const auto& pair)
+		{
+			return name == pair.first;
+		});
 	if (it != _arguments.cend())
 	{
 		return false;
@@ -31,10 +33,11 @@ bool naobi::function::addArgument(const std::string& name, utils::type::names ty
 
 std::optional<naobi::function::argument_type> naobi::function::getArgument(const std::string& name)
 {
-	auto it = std::find_if(_arguments.begin(), _arguments.end(), [name](const auto& pair)
-	{
-		return name == pair.first;
-	});
+	auto it = std::find_if(
+		_arguments.begin(), _arguments.end(), [name](const auto& pair)
+		{
+			return name == pair.first;
+		});
 	if (it == _arguments.end()) return {};
 	else return *it;
 }

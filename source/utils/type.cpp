@@ -12,8 +12,9 @@ bool naobi::utils::type::isLiteral(const std::string& string)
 bool naobi::utils::type::isInteger(const std::string& string)
 {
 	if (string.empty()) return false;
-	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [](const auto& elem)
-	{ return isdigit(elem); });
+	bool isAllNumbers = std::all_of(
+		string.cbegin() + 1, string.cend(), [](const auto& elem)
+		{ return isdigit(elem); });
 	return isAllNumbers && ((string[0] == '-' && string.size() >= 2) || std::isdigit(string[0]));
 }
 
@@ -32,16 +33,17 @@ bool naobi::utils::type::isFloat(const std::string& string)
 	if (string.empty()) return false;
 
 	int dot = 0;
-	bool isAllNumbers = std::all_of(string.cbegin() + 1, string.cend(), [&dot](const auto& elem)
-	{
-		if (elem == '.')
+	bool isAllNumbers = std::all_of(
+		string.cbegin() + 1, string.cend(), [&dot](const auto& elem)
 		{
-			if (dot == 1) return 0;
-			dot++;
-			return 1;
-		}
-		return isdigit(elem);
-	});
+			if (elem == '.')
+			{
+				if (dot == 1) return 0;
+				dot++;
+				return 1;
+			}
+			return isdigit(elem);
+		});
 	return dot != 0 && isAllNumbers && ((string[0] == '-' && string.size() >= 2) || std::isdigit(string[0]));
 }
 
