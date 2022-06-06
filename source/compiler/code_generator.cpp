@@ -567,7 +567,7 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 	std::vector<command> temp;
 	for (auto arg = args.begin() ; arg != args.end() ;)
 	{
-		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}});
+		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}, {'"', '"'}});
 		std::string value;
 		function::argument_type argInFunction;
 		if (pair.size() == 1)
@@ -691,7 +691,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 	auto newFunction = std::make_shared<naobi::function>(templateFunction->getName());
 
 	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
-	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}});
+	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}, {'"', '"'}});
 
 	if (args.size() != templateFunction->getArguments().size())
 	{
