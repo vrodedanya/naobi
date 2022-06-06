@@ -45,7 +45,9 @@ int main(int argc, char* argv[])
 		}
 
 		naobi::handler handler;
-		handler.eventManager().pushEvent("begin");
+		naobi::event beginEvent;
+		beginEvent.setName("begin");
+		handler.eventManager().pushEvent(beginEvent);
 		for (const auto& workflow : compiler.getWorkflows())
 		{
 			handler.eventManager().addWorkflow(workflow->target(), workflow);

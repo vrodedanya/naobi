@@ -324,7 +324,15 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
-			 context->eventManager->pushEvent(args[0]);
+			 auto event = context->workflow->module()->findEvent(args[0]).value();
+			 for (auto& argument : event.getArguments())
+			 {
+				 auto argName = std::get<0>(argument);
+				 auto it = context->variables.find(argName);
+				 std::get<2>(argument) = it->second;
+				 context->variables.erase(it);
+			 }
+			 context->eventManager->pushEvent(event);
 		 }},
 		{naobi::command::names::MOD,
 		 [](
@@ -346,9 +354,9 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::workflow_context::sptr& context,
 			const naobi::command::argumentsList& args)
 		{
-				auto top = context->stack.top();
-				top->type() = utils::type::names::STRING;
-				top->value() = std::to_string(std::get<int>(top->value()));
+			auto top = context->stack.top();
+			top->type() = utils::type::names::STRING;
+			top->value() = std::to_string(std::get<int>(top->value()));
 		}},
 		{naobi::command::names::F2S, [](
 			const naobi::workflow_context::sptr& context,

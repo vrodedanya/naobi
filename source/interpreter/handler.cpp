@@ -32,7 +32,9 @@ void naobi::handler::execute()
 		{
 			if ((*context)->ip == (*context)->workflow->commands().cend())
 			{
-				_eventManager.pushEvent((*context)->workflow->name() + "End");
+				naobi::event event;
+				event.setName((*context)->workflow->name() + "End");
+				_eventManager.pushEvent(event);
 				if (context == _contexts.begin())
 				{
 					_contexts.erase(context);
@@ -73,7 +75,7 @@ void naobi::handler::execute()
 
 void naobi::handler::catchException(const naobi::exception& exception, naobi::workflow_context::sptr& context)
 {
-	while(!(context->ip->name == command::names::CATCH && exception.name == context->ip->arguments.front()))
+	while (!(context->ip->name == command::names::CATCH && exception.name == context->ip->arguments.front()))
 	{
 		context->ip++;
 		if (context->ip == context->workflow->commands().cend())

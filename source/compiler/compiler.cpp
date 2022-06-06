@@ -266,8 +266,12 @@ naobi::compiler::compiler() :
 				 {
 					 invoke = 1;
 				 }
-
-				 auto tempWorkflow = std::make_shared<naobi::workflow>(name, target, module);
+				 auto e = module->findEvent(target);
+				 if (!e.has_value())
+				 {
+					 NCRITICAL(compiler, errors::DOESNT_EXIST, "Target '", target, "' doesn't exist");
+				 }
+				 auto tempWorkflow = std::make_shared<naobi::workflow>(name, e.value(), module);
 				 tempWorkflow->setInvoke(invoke);
 
 				 std::string codeBlock = line.back().substr(1, line.back().size() - 2);
@@ -275,6 +279,12 @@ naobi::compiler::compiler() :
 					 codeBlock, parser::isAnyOf(";}"), {}, {{'{', '}'},
 															{'"', '"'}});
 				 naobi::code_generator generator(module);
+				 for (const auto& arg : e->getArguments())
+				 {
+					 std::string varName = e->getName() + "." + std::get<0>(arg);
+					 auto var = std::make_shared<naobi::variable>(varName, std::get<1>(arg));
+					 generator.addVariable(varName, var);
+				 }
 				 auto commands = generator.generate(lines);
 				 tempWorkflow->setCommands(commands);
 
@@ -412,6 +422,36 @@ naobi::compiler::compiler() :
 				 [[maybe_unused]]const naobi::module::sptr& module) noexcept
 			 {
 				module->addException(naobi::exception(line[1].substr(0, line[1].size() - 1), ""));
+			 }},
+			{[](const std::vector<std::string>& line) -> bool
+			 {
+				 return !line.empty() && line[0] == "event" && line.size() == 3;
+			 },
+			 [](
+				 [[maybe_unused]]const std::vector<std::string>& line,
+				 [[maybe_unused]]const naobi::module::sptr& module) noexcept
+			 {
+				NLOG(compiler, logger::IMPORTANT, "Event: ", line);
+				naobi::event event;
+				event.setName(line[1]);
+				auto args = parser::removeFirstSym(line[2].substr(1, line[2].size() - 2), ' ');
+				auto arguments = parser::removeEmpty(parser::split(args, parser::isAnyOf(";")));
+				NLOG(compiler, logger::LOW, "arguments: ", arguments);
+				for (const auto& argument : arguments)
+				{
+					auto pair = parser::split(argument, parser::isAnyOf(" "));
+					if (pair.size() != 2)
+					{
+						NCRITICAL(compiler, errors::INVALID_ARGUMENT, "CRITICAL wrong event argument: ", pair);
+					}
+					if (!event.addArgument(pair[1], utils::type::fromStringToName(pair[0]), nullptr))
+					{
+						NCRITICAL(compiler, errors::ALREADY_EXIST, "CRITICAL argument '",pair, "'", "is already exist");
+
+					}
+				}
+
+				module->addEvent(event);
 			 }},
 			// Import plug
 			{[](const std::vector<std::string>& line) -> bool

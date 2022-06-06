@@ -6,6 +6,7 @@
 #include <list>
 
 #include <naobi/data/workflow.hpp>
+#include <naobi/data/event.hpp>
 #include <naobi/interpreter/workflow_context.hpp>
 
 
@@ -16,15 +17,15 @@ namespace naobi
 	public:
 		void updateContexts(std::list<workflow_context::sptr>& _contexts);
 
-		void pushEvent(const std::string& event);
+		void pushEvent(const naobi::event& event);
 
-		void addWorkflow(const std::string& event, const workflow::sptr& workflow);
+		void addWorkflow(const naobi::event& event, const workflow::sptr& workflow);
 
 		[[nodiscard]] std::size_t awaitedNumberOfWorkflows() const
 		{ return _workflows.size(); };
 	private:
-		std::multimap<std::string, workflow::sptr> _workflows;
-		std::queue<std::string> _events;
+		std::multimap<naobi::event, workflow::sptr> _workflows;
+		std::queue<naobi::event> _events;
 	};
 }
 

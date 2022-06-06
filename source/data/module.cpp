@@ -6,7 +6,11 @@
 naobi::module::module(std::string name)
 	: _name(std::move(name))
 {
-
+	{
+		auto event = naobi::event();
+		event.setName("begin");
+		addEvent(event);
+	}
 }
 
 bool naobi::module::addModule(const naobi::module::sptr& newModule)
@@ -198,6 +202,46 @@ std::optional<naobi::exception> naobi::module::findException(const std::string& 
 	for (const auto& element : _modules)
 	{
 		temp = element->findException(exceptionName);
+		if (temp.has_value()) return temp;
+	}
+	return {};
+}
+
+bool naobi::module::addEvent(const naobi::event& event)
+{
+	if (std::find_if(
+		_events.begin(), _events.end(), [event](const naobi::event& e)
+		{
+			return e.getName() == event.getName();
+		}) != _events.end())
+	{
+		return false;
+	}
+	_events.push_back(event);
+	return true;
+}
+
+std::optional<naobi::event> naobi::module::getEvent(const std::string& eventName)
+{
+	auto it = std::find_if(
+		_events.begin(), _events.end(), [eventName](const naobi::event& excep)
+		{
+			return eventName == excep.getName();
+		});
+	if (it == _events.end()) return {};
+	else return *it;
+}
+
+std::optional<naobi::event> naobi::module::findEvent(const std::string& eventName)
+{
+	auto temp = getEvent(eventName);
+	if (temp.has_value())
+	{
+		return temp;
+	}
+	for (const auto& element : _modules)
+	{
+		temp = element->findEvent(eventName);
 		if (temp.has_value()) return temp;
 	}
 	return {};

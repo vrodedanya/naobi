@@ -306,12 +306,72 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			// Raise
 			{[](const std::vector<std::string>& words) -> bool
 			 {
-				 return words[0] == "arise" && words.size() == 2;
+				 return words[0] == "arise" && words.size() >= 2;
 			 },
-			 [](
+			 [this](
 				 [[maybe_unused]]const std::vector<std::string>& words,
 				 std::vector<naobi::command>& commands)
 			 {
+				 auto eventOpt = this->_module->findEvent(words[1]);
+				 if (!eventOpt.has_value())
+				 {
+					 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL event '", words[1], "' doesn't exist");
+				 }
+				 auto event = eventOpt.value();
+				 std::string args = parser::join(
+					 words.begin() + 3, findEndBracket(words.begin() + 3, words.end()) - 1, "");
+				 auto arguments = parser::split(args, parser::isAnyOf(","));
+				 std::size_t pos{};
+				 for (const auto& argument : arguments)
+				 {
+					 auto pair = parser::split(argument, parser::isAnyOf(":"));
+					 if (pair.size() == 2)
+					 {
+						 auto argOpt = event.getArgument(pair[0]);
+						 if (!argOpt.has_value())
+						 {
+							 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL event argument '", pair[0],
+									   "' doesn't exist");
+						 }
+						 auto arg = argOpt.value();
+						 commands.push_back(
+							 command::createCommand(
+								 command::names::NEW, {pair[0],
+													   std::to_string(
+														   static_cast<int>(std::get<1>(arg)))}));
+						 commands.push_back(
+							 command::createCommand(
+								 command::names::PLACE, {std::to_string(
+									 static_cast<int>(std::get<1>(arg))), pair[1]}));
+						 commands.push_back(
+							 command::createCommand(
+								 command::names::SAVE, {pair[0]}));
+					 }
+					 else
+					 {
+						 auto argOpt = event.getArgument(pos);
+						 if (!argOpt.has_value())
+						 {
+							 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL event argument in pos '", pos,
+									   "' doesn't exist");
+						 }
+						 auto arg = argOpt.value();
+						 commands.push_back(
+							 command::createCommand(
+								 command::names::NEW, {std::get<0>(arg),
+													   std::to_string(
+														   static_cast<int>(std::get<1>(arg)))}));
+						 commands.push_back(
+							 command::createCommand(
+								 command::names::PLACE, {std::to_string(
+									 static_cast<int>(std::get<1>(arg))), pair[0]}));
+						 commands.push_back(
+							 command::createCommand(
+								 command::names::SAVE, {std::get<0>(arg)}));
+					 }
+					 pos++;
+				 }
+
 				 commands.push_back(
 					 command::createCommand(command::names::ARISE, {words[1]}));
 			 }},
@@ -373,8 +433,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 												 {'"', '"'}});
 				 lines = parser::removeEmpty(lines);
 
-				 addVariable(words[1] + ".name", std::make_shared<naobi::variable>(words[1] + ".name", utils::type::names::STRING));
-				 addVariable(words[1] + ".description", std::make_shared<naobi::variable>(words[1] + ".description", utils::type::names::STRING));
+				 addVariable(
+					 words[1] + ".name",
+					 std::make_shared<naobi::variable>(words[1] + ".name", utils::type::names::STRING));
+				 addVariable(
+					 words[1] + ".description",
+					 std::make_shared<naobi::variable>(words[1] + ".description", utils::type::names::STRING));
 				 auto tempCommands = generate(lines);
 				 std::size_t tempCommandsSize = tempCommands.size();
 				 commands.push_back(
