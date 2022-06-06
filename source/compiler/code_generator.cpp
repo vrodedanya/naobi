@@ -137,19 +137,23 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			// If else statement
 			{[](const std::vector<std::string>& words) -> bool
 			 {
-				 return words[0] == "if" && words[1] == "(";
+				 return words[0] == "if" && words.size() >= 3;
 			 },
 			 [this](
 				 const std::vector<std::string>& words,
 				 std::vector<naobi::command>& commands)
 			 {
 				 NLOG(code_generator, logger::LOW, "if block:\n", words);
-				 auto bodyIt = findEndBracket(words.begin() + 1, words.end());
+				 auto bodyIt = std::find_if(
+					 words.begin(), words.end(), [](const std::string& str)
+					 {
+						 return str[0] == '{';
+					 });
 				 processExpression(
-					 std::vector<std::string>(words.begin() + 2, bodyIt),
+					 std::vector<std::string>(words.begin() + 1, bodyIt),
 					 commands);
 
-				 std::string codeBlock = *(bodyIt + 1);
+				 const std::string& codeBlock = *bodyIt;
 				 auto lines = parser::split(
 					 codeBlock.substr(1, codeBlock.size() - 2),
 					 parser::isAnyOf(";}"), {}, {{'{', '}'},
@@ -159,7 +163,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 auto tempCommands = generate(lines);
 				 std::size_t tempCommandsSize = tempCommands.size();
 
-				 if ((bodyIt + 2) != words.end() && *(bodyIt + 2) == "else")
+				 if ((bodyIt + 1) != words.end() && *(bodyIt + 1) == "else")
 				 {
 					 tempCommandsSize++;
 				 }
@@ -174,9 +178,9 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 commands.push_back(command);
 				 }
 
-				 if ((bodyIt + 2) != words.end() && *(bodyIt + 2) == "else")
+				 if ((bodyIt + 1) != words.end() && *(bodyIt + 1) == "else")
 				 {
-					 std::string elseBlock = *(bodyIt + 3);
+					 std::string elseBlock = *(bodyIt + 2);
 					 elseBlock = elseBlock.substr(1, elseBlock.size() - 2);
 					 NLOG(code_generator, logger::IMPORTANT, "Else block:\n", elseBlock);
 
@@ -429,16 +433,6 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 				}
 				stack.push(operation);
 			}
-			else if ((it + 1) != words.cend() && *(it + 1) == "(")
-			{
-				auto t = callFunction(std::vector<std::string>(it, findEndBracket(it, words.end()) + 1), commands);
-				if (t == utils::type::names::UNDEFINED)
-				{
-					NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL function return undefined type");
-				}
-				types.push(t);
-				it = findEndBracket(it, words.end());
-			}
 			else if (*it == "(" || *it == ")")
 			{
 				if (*it == "(")
@@ -468,6 +462,17 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 			}
 			else
 			{
+				if ((it + 1) != words.cend() && *(it + 1) == "(")
+				{
+					auto t = callFunction(std::vector<std::string>(it, findEndBracket(it, words.end()) + 1), commands);
+					if (t == utils::type::names::UNDEFINED)
+					{
+						NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL function return undefined type");
+					}
+					types.push(t);
+					it = findEndBracket(it, words.end());
+					continue;
+				}
 				auto var = _variablesTemp.find(*it);
 				if (var == _variablesTemp.cend())
 				{
@@ -788,7 +793,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 	newFunction->setArguments(arguments);
 	auto lines = parser::split(
 		code, parser::isAnyOf(";}"), {}, {{'{', '}'},
-																 {'"', '"'}});
+										  {'"', '"'}});
 	auto commands = generator.generate(lines);
 	newFunction->setCommands(commands);
 
