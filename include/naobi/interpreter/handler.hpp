@@ -20,6 +20,9 @@ namespace naobi
 		{ return _eventManager; }
 
 	private:
+		void catchException(const naobi::exception& exception, naobi::workflow_context::sptr& context);
+
+	private:
 		std::list<naobi::workflow_context::sptr> _contexts;
 		event_manager _eventManager;
 	};

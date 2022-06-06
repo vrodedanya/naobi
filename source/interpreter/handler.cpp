@@ -46,10 +46,51 @@ void naobi::handler::execute()
 				}
 				break;
 			}
-			(*context)->ip->impl(*context, (*context)->ip->arguments);
+			try
+			{
+				(*context)->ip->impl(*context, (*context)->ip->arguments);
+			}
+			catch (const naobi::naobi_exception& except)
+			{
+				auto exception = naobi::exception();
+				exception.name = except.name;
+				exception.description = except.description;
+				catchException(exception, *context);
+			}
+			catch (const std::exception& except)
+			{
+				auto exception = naobi::exception();
+				exception.name = "CppException";
+				exception.description = except.what();
+				catchException(exception, *context);
+			}
 			(*context)->ip++;
 		}
 		_eventManager.updateContexts(_contexts);
 		NLOG(handler.execute, logger::IMPORTANT, "Contexts at the moment: ", _contexts.size());
 	}
+}
+
+void naobi::handler::catchException(const naobi::exception& exception, naobi::workflow_context::sptr& context)
+{
+	while(!(context->ip->name == command::names::CATCH && exception.name == context->ip->arguments.front()))
+	{
+		context->ip++;
+		if (context->ip == context->workflow->commands().cend())
+		{
+			NCRITICAL(handler, errors::EXCEPTION, "CRITICAL can't catch exception with name '", exception.name, "'\n",
+					  exception.description);
+		}
+		if (context->ip->name == command::names::RETURN)
+		{
+			context->ip->impl(context, context->ip->arguments);
+		}
+	}
+	context->ip++;
+	auto var1 = std::make_shared<naobi::variable>(exception.name + ".name", utils::type::names::STRING);
+	auto var2 = std::make_shared<naobi::variable>(exception.name + ".description", utils::type::names::STRING);
+	var1->value() = exception.name;
+	var2->value() = exception.description;
+	context->variables[exception.name + ".name"] = var1;
+	context->variables[exception.name + ".description"] = var2;
 }

@@ -403,6 +403,16 @@ naobi::compiler::compiler() :
 							   name, " and this arguments ", line[2], " is already exist");
 				 }
 			 }},
+			{[](const std::vector<std::string>& line) -> bool
+			 {
+				 return !line.empty() && line[0] == "exception" && line.size() == 2;
+			 },
+			 [](
+				 [[maybe_unused]]const std::vector<std::string>& line,
+				 [[maybe_unused]]const naobi::module::sptr& module) noexcept
+			 {
+				module->addException(naobi::exception(line[1].substr(0, line[1].size() - 1), ""));
+			 }},
 			// Import plug
 			{[](const std::vector<std::string>& line) -> bool
 			 {

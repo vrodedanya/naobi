@@ -316,7 +316,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 				 naobi::operation_manager::get("-")->call(
 					 top->type(),
 					 var->type()
-					 ).second(
+														 ).second(
 					 top, var));
 		 }},
 		{naobi::command::names::ARISE,
@@ -344,15 +344,15 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		 }},
 		{naobi::command::names::I2S, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
-			auto top = context->stack.top();
-			top->type() = utils::type::names::STRING;
-			top->value() = std::to_string(std::get<int>(top->value()));
+				auto top = context->stack.top();
+				top->type() = utils::type::names::STRING;
+				top->value() = std::to_string(std::get<int>(top->value()));
 		}},
 		{naobi::command::names::F2S, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			std::ostringstream oss;
@@ -363,7 +363,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		}},
 		{naobi::command::names::B2S, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::STRING;
@@ -371,15 +371,22 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		}},
 		{naobi::command::names::S2I, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::INTEGER;
-			top->value() = std::stoi(std::get<std::string>(top->value()));
+			try
+			{
+				top->value() = std::stoi(std::get<std::string>(top->value()));
+			}
+			catch (const std::invalid_argument& exception)
+			{
+				throw naobi::naobi_exception("CastException", "Failed to cast string to integer");
+			}
 		}},
 		{naobi::command::names::F2I, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::INTEGER;
@@ -387,7 +394,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		}},
 		{naobi::command::names::B2I, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::INTEGER;
@@ -395,7 +402,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		}},
 		{naobi::command::names::I2F, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::FLOAT;
@@ -403,15 +410,22 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		}},
 		{naobi::command::names::S2F, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::FLOAT;
-			top->value() = std::stod(std::get<std::string>(top->value()));
+			try
+			{
+				top->value() = std::stod(std::get<std::string>(top->value()));
+			}
+			catch (const std::invalid_argument& exception)
+			{
+				throw naobi::naobi_exception("CastException", "Failed to cast string to float");
+			}
 		}},
 		{naobi::command::names::I2B, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::BOOLEAN;
@@ -419,11 +433,23 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		}},
 		{naobi::command::names::S2B, [](
 			const naobi::workflow_context::sptr& context,
-			const naobi::command::argumentsList& args) noexcept
+			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::BOOLEAN;
 			top->value() = std::get<std::string>(top->value()) == "true";
+		}},
+		{naobi::command::names::CATCH, [](
+			const naobi::workflow_context::sptr& context,
+			const naobi::command::argumentsList& args) noexcept
+		{
+
+		}},
+		{naobi::command::names::THROW, [](
+			const naobi::workflow_context::sptr& context,
+			const naobi::command::argumentsList& args)
+		{
+			throw naobi::naobi_exception(args[0], std::get<std::string>(context->stack.top()->value()));
 		}},
 	};
 
@@ -466,6 +492,8 @@ std::map<std::string, naobi::command::names> naobi::command::stringToCommand
 		{"S2F", naobi::command::names::S2F},
 		{"I2B", naobi::command::names::I2B},
 		{"S2B", naobi::command::names::S2B},
+		{"CATCH", naobi::command::names::CATCH},
+		{"THROW", naobi::command::names::THROW},
 	};
 
 naobi::command

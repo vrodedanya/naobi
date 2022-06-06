@@ -132,4 +132,14 @@ naobi::standard::standard() : module("standard")
 		function->setCommands(commands);
 		addFunction(function);
 	}
+	{
+		auto exception = naobi::exception();
+		exception.name = "CastException";
+		addException(exception);
+	}
+	{
+		auto exception = naobi::exception();
+		exception.name = "CppException";
+		addException(exception);
+	}
 }

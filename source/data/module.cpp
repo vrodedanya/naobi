@@ -2,8 +2,9 @@
 
 #include <algorithm>
 
+
 naobi::module::module(std::string name)
-		: _name(std::move(name))
+	: _name(std::move(name))
 {
 
 }
@@ -24,16 +25,18 @@ bool naobi::module::addConst(const naobi::variable::sptr& newConst)
 
 bool naobi::module::addFunction(const naobi::function::sptr& newFunction)
 {
-	auto it = std::find_if(_functions.begin(), _functions.end(), [newFunction](function::sptr& function)
-	{
-		return newFunction->name() == function->name() &&
-			   std::equal(newFunction->getArguments().cbegin(), newFunction->getArguments().cend(),
-						  function->getArguments().cbegin(),
-						  [](const function::argument_type& first, const function::argument_type& second)
-						  {
-							  return first.second == second.second;
-						  });
-	});
+	auto it = std::find_if(
+		_functions.begin(), _functions.end(), [newFunction](function::sptr& function)
+		{
+			return newFunction->name() == function->name() &&
+				   std::equal(
+					   newFunction->getArguments().cbegin(), newFunction->getArguments().cend(),
+					   function->getArguments().cbegin(),
+					   [](const function::argument_type& first, const function::argument_type& second)
+					   {
+						   return first.second == second.second;
+					   });
+		});
 	if (it != _functions.end()) return false;
 	auto functions = findFunction(newFunction->name());
 	newFunction->setNumber(functions.empty() ? 0 : functions.size());
@@ -56,20 +59,22 @@ std::vector<naobi::function::sptr> naobi::module::getFunction(const std::string&
 
 naobi::variable::sptr naobi::module::getConst(const std::string& constName)
 {
-	auto it = std::find_if(_consts.cbegin(), _consts.cend(), [constName](const naobi::variable::sptr& ptr)
-	{
-		return ptr->name() == constName;
-	});
+	auto it = std::find_if(
+		_consts.cbegin(), _consts.cend(), [constName](const naobi::variable::sptr& ptr)
+		{
+			return ptr->name() == constName;
+		});
 	if (it == _consts.cend()) return nullptr;
 	return *it;
 }
 
 naobi::module::sptr naobi::module::getModule(const std::string& moduleName)
 {
-	auto it = std::find_if(_modules.cbegin(), _modules.cend(), [moduleName](const naobi::module::sptr& ptr)
-	{
-		return ptr->name() == moduleName;
-	});
+	auto it = std::find_if(
+		_modules.cbegin(), _modules.cend(), [moduleName](const naobi::module::sptr& ptr)
+		{
+			return ptr->name() == moduleName;
+		});
 	if (it == _modules.cend()) return nullptr;
 	return *it;
 }
@@ -105,19 +110,21 @@ naobi::function::sptr naobi::module::findFunctionWithNumber(const std::string& f
 		auto inner_functions = element->findFunction(functionName);
 		functions.insert(functions.end(), inner_functions.begin(), inner_functions.end());
 	}
-	return *std::find_if(functions.begin(), functions.end(), [num](function::sptr& func)
-	{
-		return num == func->getNumber();
-	});
+	return *std::find_if(
+		functions.begin(), functions.end(), [num](function::sptr& func)
+		{
+			return num == func->getNumber();
+		});
 }
 
 bool naobi::module::addTemplateFunction(const naobi::template_function::sptr& newTemplate)
 {
-	auto it = std::find_if(_templateFunctions.begin(), _templateFunctions.end(),
-						   [name = newTemplate->getName()](const template_function::sptr& func)
-						   {
-							   return name == func->getName();
-						   });
+	auto it = std::find_if(
+		_templateFunctions.begin(), _templateFunctions.end(),
+		[name = newTemplate->getName()](const template_function::sptr& func)
+		{
+			return name == func->getName();
+		});
 	if (it != _templateFunctions.end())
 	{
 		return false;
@@ -128,11 +135,12 @@ bool naobi::module::addTemplateFunction(const naobi::template_function::sptr& ne
 
 naobi::template_function::sptr naobi::module::getTemplateFunction(const std::string& functionName)
 {
-	auto it = std::find_if(_templateFunctions.begin(), _templateFunctions.end(),
-						   [name = functionName](const template_function::sptr& func)
-						   {
-							   return name == func->getName();
-						   });
+	auto it = std::find_if(
+		_templateFunctions.begin(), _templateFunctions.end(),
+		[name = functionName](const template_function::sptr& func)
+		{
+			return name == func->getName();
+		});
 	if (it == _templateFunctions.end())
 	{
 		return nullptr;
@@ -153,4 +161,44 @@ naobi::template_function::sptr naobi::module::findTemplateFunction(const std::st
 		if (temp != nullptr) return temp;
 	}
 	return nullptr;
+}
+
+bool naobi::module::addException(const naobi::exception& exception)
+{
+	if (std::find_if(
+		_exceptions.begin(), _exceptions.end(), [exception](const naobi::exception& excep)
+		{
+			return excep.name == exception.name;
+		}) != _exceptions.end())
+	{
+		return false;
+	}
+	_exceptions.push_back(exception);
+	return true;
+}
+
+std::optional<naobi::exception> naobi::module::getException(const std::string& exceptionName)
+{
+	auto it = std::find_if(
+		_exceptions.begin(), _exceptions.end(), [exceptionName](const naobi::exception& excep)
+		{
+			return exceptionName == excep.name;
+		});
+	if (it == _exceptions.end()) return {};
+	else return *it;
+}
+
+std::optional<naobi::exception> naobi::module::findException(const std::string& exceptionName)
+{
+	auto temp = getException(exceptionName);
+	if (temp.has_value())
+	{
+		return temp;
+	}
+	for (const auto& element : _modules)
+	{
+		temp = element->findException(exceptionName);
+		if (temp.has_value()) return temp;
+	}
+	return {};
 }

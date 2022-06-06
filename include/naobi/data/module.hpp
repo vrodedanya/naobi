@@ -4,10 +4,12 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <optional>
 
 #include <naobi/data/function.hpp>
 #include <naobi/data/template_function.hpp>
 #include <naobi/data/variable.hpp>
+#include <naobi/data/exception.hpp>
 
 
 namespace naobi
@@ -28,6 +30,8 @@ namespace naobi
 
 		bool addModule(const naobi::module::sptr& newModule);
 
+		bool addException(const naobi::exception& exception);
+
 		std::vector<naobi::function::sptr> getFunction(const std::string& functionName);
 
 		naobi::template_function::sptr getTemplateFunction(const std::string& functionName);
@@ -36,6 +40,8 @@ namespace naobi
 
 		naobi::module::sptr getModule(const std::string& moduleName);
 
+		std::optional<naobi::exception> getException(const std::string& exceptionName);
+
 		naobi::module::sptr findModule(const std::string& moduleName);
 
 		std::vector<naobi::function::sptr> findFunction(const std::string& functionName);
@@ -43,6 +49,8 @@ namespace naobi
 		naobi::function::sptr findFunctionWithNumber(const std::string& functionName, std::size_t num);
 
 		naobi::template_function::sptr findTemplateFunction(const std::string& functionName);
+
+		std::optional<naobi::exception> findException(const std::string& exceptionName);
 
 		[[nodiscard]] std::string name() const
 		{ return _name; }
@@ -54,6 +62,7 @@ namespace naobi
 		std::vector<naobi::template_function::sptr> _templateFunctions;
 		std::vector<naobi::variable::sptr> _consts;
 		std::vector<naobi::module::sptr> _modules;
+		std::vector<naobi::exception> _exceptions;
 	};
 }
 

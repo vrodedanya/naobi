@@ -58,6 +58,8 @@ namespace naobi
 			S2F,
 			I2B,
 			S2B,
+			CATCH,
+			THROW,
 		};
 
 		static naobi::command createCommand(command::names com, const command::argumentsList& arguments);

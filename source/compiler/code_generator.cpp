@@ -350,6 +350,61 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 commands);
 				 commands.emplace_back(command::createCommand(command::names::RETURN, {}));
 			 }},
+			{[](const std::vector<std::string>& words) -> bool
+			 {
+				 return words[0] == "catch" && words.size() == 3;
+			 },
+			 [this](
+				 [[maybe_unused]]const std::vector<std::string>& words,
+				 std::vector<naobi::command>& commands)
+			 {
+				 NLOG(code_generator, logger::IMPORTANT, "catch: ", words);
+				 auto except = _module->findException(words[1]);
+				 if (!except.has_value())
+				 {
+					 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL exception with name '", words[1],
+							   "' doesn't exist");
+				 }
+				 commands.push_back(command::createCommand(command::names::CATCH, {words[1]}));
+				 const std::string& codeBlock = words[2];
+				 auto lines = parser::split(
+					 codeBlock.substr(1, codeBlock.size() - 2),
+					 parser::isAnyOf(";}"), {}, {{'{', '}'},
+												 {'"', '"'}});
+				 lines = parser::removeEmpty(lines);
+
+				 addVariable(words[1] + ".name", std::make_shared<naobi::variable>(words[1] + ".name", utils::type::names::STRING));
+				 addVariable(words[1] + ".description", std::make_shared<naobi::variable>(words[1] + ".description", utils::type::names::STRING));
+				 auto tempCommands = generate(lines);
+				 std::size_t tempCommandsSize = tempCommands.size();
+				 commands.push_back(
+					 command::createCommand(command::names::JUMP, {std::to_string(tempCommandsSize)}));
+				 commands.insert(commands.end(), tempCommands.begin(), tempCommands.end());
+			 }},
+			{[](const std::vector<std::string>& words) -> bool
+			 {
+				 return words[0] == "throw" && words.size() >= 3;
+			 },
+			 [this](
+				 [[maybe_unused]]const std::vector<std::string>& words,
+				 std::vector<naobi::command>& commands)
+			 {
+				 NLOG(code_generator, logger::IMPORTANT, "throw: ", words);
+				 auto except = _module->findException(words[1]);
+				 if (!except.has_value())
+				 {
+					 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL exception with name '", words[1],
+							   "' doesn't exist");
+				 }
+				 auto type = processExpression(
+					 std::vector<std::string>(words.begin() + 2, findEndBracket(words.begin() + 2, words.end())),
+					 commands);
+				 if (type != utils::type::names::STRING)
+				 {
+					 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL exception take only string argument");
+				 }
+				 commands.push_back(command::createCommand(command::names::THROW, {words[1]}));
+			 }},
 			// Create assignment logic (LOW priority )
 			{[](const std::vector<std::string>& words) -> bool
 			 {
@@ -503,6 +558,11 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 
 		auto second = types.top();
 		types.pop();
+		if (types.empty())
+		{
+			types.push(second);
+			break;
+		}
 		auto first = types.top();
 		types.pop();
 		auto func = operation->call(first, second);
