@@ -88,6 +88,17 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 it++;
 					 if (it == wordsTemp.cend() || *it != "=")
 					 {
+						 if (it == wordsTemp.cend())
+						 {
+							 _variablesTemp[var->name()] = var;
+							 break;
+						 }
+						 else if (*it == ",")
+						 {
+							 it++;
+							 _variablesTemp[var->name()] = var;
+							 continue;
+						 }
 						 NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL '",
 								   *(it - 1), "' is not initialized");
 					 }
@@ -690,6 +701,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 	code_generator generator(_module);
 	arguments.resize(args.size());
 	std::map<std::string, utils::type::names> alreadySubstituted;
+	std::string code = templateFunction->getCode();
 	for (auto arg = args.begin() ; arg != args.end() ;)
 	{
 		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}});
@@ -760,6 +772,13 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 					type);
 			}
 			generator.addVariable(argInFunction.first, std::make_shared<variable>(argInFunction.first, type));
+			std::size_t startPos{};
+			std::string substitute = utils::type::fromNameToString(type);
+			while ((startPos = code.find(argInFunction.second, startPos)) != std::string::npos)
+			{
+				code.replace(startPos, argInFunction.second.size(), substitute);
+				startPos += substitute.size();
+			}
 		}
 
 		pos++;
@@ -768,7 +787,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 
 	newFunction->setArguments(arguments);
 	auto lines = parser::split(
-		templateFunction->getCode(), parser::isAnyOf(";}"), {}, {{'{', '}'},
+		code, parser::isAnyOf(";}"), {}, {{'{', '}'},
 																 {'"', '"'}});
 	auto commands = generator.generate(lines);
 	newFunction->setCommands(commands);
