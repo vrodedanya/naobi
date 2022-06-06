@@ -339,10 +339,17 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 								 command::names::NEW, {pair[0],
 													   std::to_string(
 														   static_cast<int>(std::get<1>(arg)))}));
-						 commands.push_back(
-							 command::createCommand(
-								 command::names::PLACE, {std::to_string(
-									 static_cast<int>(std::get<1>(arg))), pair[1]}));
+						 auto valueSplitter = parser::split(
+							 pair[1], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
+							 {{'"', '"'},
+							  {'{', '}'}});
+						 auto type = processExpression(valueSplitter, commands);
+						 if (type != std::get<1>(arg))
+						 {
+							 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
+									   utils::type::fromNameToString(std::get<1>(arg)),
+									   "' and got '", utils::type::fromNameToString(type), "'");
+						 }
 						 commands.push_back(
 							 command::createCommand(
 								 command::names::SAVE, {pair[0]}));
@@ -361,10 +368,17 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 								 command::names::NEW, {std::get<0>(arg),
 													   std::to_string(
 														   static_cast<int>(std::get<1>(arg)))}));
-						 commands.push_back(
-							 command::createCommand(
-								 command::names::PLACE, {std::to_string(
-									 static_cast<int>(std::get<1>(arg))), pair[0]}));
+						 auto valueSplitter = parser::split(
+							 pair[0], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
+							 {{'"', '"'},
+							  {'{', '}'}});
+						 auto type = processExpression(valueSplitter, commands);
+						 if (type != std::get<1>(arg))
+						 {
+							 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
+									   utils::type::fromNameToString(std::get<1>(arg)),
+									   "' and got '", utils::type::fromNameToString(type), "'");
+						 }
 						 commands.push_back(
 							 command::createCommand(
 								 command::names::SAVE, {std::get<0>(arg)}));

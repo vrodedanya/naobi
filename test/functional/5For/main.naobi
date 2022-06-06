@@ -1,5 +1,7 @@
 import standard;
 
+event test{integer number}
+
 workflow main
 target begin
 {
@@ -8,7 +10,7 @@ target begin
         if (i % 2 == 0)
         {
             println("Even");
-            arise test;
+            arise test(i);
         }
     }
 }
@@ -16,8 +18,5 @@ target begin
 workflow second
 target test
 {
-    for integer i in (0, 10)
-    {
-        println(i);
-    }
+    println("T: " + str(test.number));
 }
