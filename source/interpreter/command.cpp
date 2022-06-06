@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <iomanip>
-#include <sstream>
 
 #include <naobi/utils/logger.hpp>
 #include <naobi/interpreter/workflow_context.hpp>
@@ -299,7 +298,11 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 auto top = context->stack.top();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
 			 var->value() = 1;
-			 context->stack.top() += var;
+			 context->stack.push(
+				 naobi::operation_manager::get("+")->call(
+					 var->type(),
+					 top->type()).second(
+					 var, top));
 		 }},
 		{naobi::command::names::DEC,
 		 [](
@@ -309,7 +312,12 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 auto top = context->stack.top();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
 			 var->value() = 1;
-			 context->stack.top() -= var;
+			 context->stack.push(
+				 naobi::operation_manager::get("-")->call(
+					 top->type(),
+					 var->type()
+					 ).second(
+					 top, var));
 		 }},
 		{naobi::command::names::ARISE,
 		 [](
