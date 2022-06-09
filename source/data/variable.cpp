@@ -32,7 +32,7 @@ std::ostream& naobi::operator <<(std::ostream& os, const naobi::variable& var)
 {
 	if (var._type == naobi::utils::type::names::INTEGER)
 	{
-		os << std::get<int>(var._value);
+		os << std::get<long long>(var._value);
 	}
 	else if (var._type == naobi::utils::type::names::BOOLEAN)
 	{
@@ -70,12 +70,20 @@ void naobi::variable::invert()
 {
 	if (_type == naobi::utils::type::names::INTEGER)
 	{
-		_value = std::get<int>(_value) * -1;
+		_value = std::get<long long>(_value) * -1;
 	}
 	else if (_type == naobi::utils::type::names::FLOAT)
 	{
 		_value = std::get<double>(_value) * -1;
 	}
+}
+
+naobi::variable& naobi::variable::operator =(naobi::variable&& var) noexcept
+{
+	this->_name = var._name;
+	this->_value = var._value;
+	this->_type = var._type;
+	return *this;
 }
 
 

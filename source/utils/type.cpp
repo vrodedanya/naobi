@@ -61,10 +61,10 @@ naobi::utils::type::names naobi::utils::type::toType(const std::string& string)
 	return static_cast<names>(std::stoi(string));
 }
 
-std::variant<int, bool, std::string, double>
+naobi::utils::type::variable_type
 naobi::utils::type::getValueFrom(naobi::utils::type::names type, const std::string& string)
 {
-	if (type == type::names::INTEGER) return std::stoi(string);
+	if (type == type::names::INTEGER) return std::stoll(string);
 	else if (type == type::names::BOOLEAN) return (string == "true");
 	else if (type == type::names::STRING) return string;
 	else if (type == type::names::FLOAT) return std::stod(string);

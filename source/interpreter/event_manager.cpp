@@ -26,7 +26,7 @@ void naobi::event_manager::handleEvent(const naobi::event& event)
 		tempContext->ip = tempContext->workflow->commands().begin();
 		for (const auto& args : event.getArguments())
 		{
-			tempContext->variables[event.getName() + "." + std::get<0>(args)] = std::get<2>(args);
+			(*tempContext->variables)[event.getName() + "." + std::get<0>(args)] = std::get<2>(args);
 		}
 
 		auto temp = findHandler();

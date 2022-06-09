@@ -95,9 +95,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::INTEGER);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) +
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -175,9 +175,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::INTEGER);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) -
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -246,9 +246,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::INTEGER);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) *
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -286,7 +286,7 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 						 std::string temp;
 						 for (int i = 0 ;
 							  i <
-							  std::get<int>(
+							  std::get<long long>(
 								  second->value()) ; i++)
 						 {
 							 temp += std::get<std::string>(
@@ -331,9 +331,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::INTEGER);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) /
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -373,9 +373,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::BOOLEAN);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) ==
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -453,9 +453,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::BOOLEAN);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) !=
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -534,9 +534,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::BOOLEAN);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) >=
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -615,9 +615,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::BOOLEAN);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) <=
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -695,9 +695,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::BOOLEAN);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) >
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -775,9 +775,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::BOOLEAN);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) <
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},
@@ -855,9 +855,9 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 "temp",
 							 utils::type::names::INTEGER);
 						 result->value() =
-							 std::get<int>(
+							 std::get<long long>(
 								 first->value()) %
-							 std::get<int>(
+							 std::get<long long>(
 								 second->value());
 						 return result;
 					 })},

@@ -725,6 +725,9 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 		NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL can't find function with arguments number '",
 				  args.size(), "'");
 	}
+
+	commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
+
 	std::size_t pos = 0;
 	auto functionIterator = functions.begin();
 
@@ -825,6 +828,10 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 		temp.emplace_back(
 			command::createCommand(
 				command::names::SAVE,
+				{argInFunction.first}));
+		temp.emplace_back(
+			command::createCommand(
+				command::names::TRANSFER,
 				{argInFunction.first}));
 		pos++;
 		arg++;

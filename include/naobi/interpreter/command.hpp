@@ -36,8 +36,10 @@ namespace naobi
 			GREATER_OR_EQ,
 			LESS_OR_EQ,
 			NOT_EQ,
+			ALLOCATE,
 			LOAD, // 1 - number
 			SAVE, // 1 - number
+			TRANSFER, // 1 - name
 			PLACE, // 1 - value, type
 			PRINTLN,
 			PRINT,

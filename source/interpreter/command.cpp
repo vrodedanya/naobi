@@ -89,22 +89,31 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		 {
 			 auto type = utils::type::toType(args[1]);
 			 auto var = std::make_shared<naobi::variable>(args[0], type);
-			 context->variables[var->name()] = var;
+			 (*context->variables)[var->name()] = var;
 		 }},
 		{naobi::command::names::LOAD,
 		 [](
 			 const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
-		 { //
-			 context->stack.push(context->variables[args[0]]->copy());
+		 {
+			 context->stack.push((*context->variables)[args[0]]->copy());
 		 }},
 		{naobi::command::names::SAVE,
 		 [](
 			 const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
 		 {
-			 context->variables[args[0]]->value() = context->stack.top()->value();
+			 (*context->variables)[args[0]]->value() = context->stack.top()->value();
 			 context->stack.pop();
+		 }},
+		{naobi::command::names::TRANSFER,
+		 [](
+			 const naobi::workflow_context::sptr& context,
+			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
+		 {
+			auto varIt = context->variables->find(args[0]);
+			(*context->variablesStack.top())[args[0]] = varIt->second;
+			context->variables->erase(varIt);
 		 }},
 		{naobi::command::names::PLACE,
 		 [](
@@ -152,6 +161,8 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
 		 {
+			 context->variables = context->variablesStack.top();
+			 context->variablesStack.pop();
 			 auto address = context->returnPoints.top();
 			 context->ip = address;
 			 context->returnPoints.pop();
@@ -162,6 +173,10 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
 		 {
 			 auto address = context->ip;
+			 auto temp = context->variablesStack.top();
+			 context->variablesStack.top() = context->variables;
+			 context->variables = temp;
+
 			 context->returnPoints.push(address);
 			 auto it = context->workflow->module()->findFunctionWithNumber(
 				 args[0],
@@ -289,13 +304,20 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					 second->type()).second(
 					 first, second));
 		 }},
+		{naobi::command::names::ALLOCATE,
+		 [](
+			 [[maybe_unused]]const naobi::workflow_context::sptr& context,
+			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
+		 {
+			 context->variablesStack.push(std::make_shared<std::map<std::string, naobi::variable::sptr>>());
+		 }},
 		{naobi::command::names::EXIT,
 		 [](
 			 [[maybe_unused]]const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
 			 auto top = context->stack.top();
-			 std::exit(std::get<int>(top->value()));
+			 std::exit(std::get<long long>(top->value()));
 		 }},
 		{naobi::command::names::INC,
 		 [](
@@ -335,9 +357,9 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 for (auto& argument : event.getArguments())
 			 {
 				 auto argName = std::get<0>(argument);
-				 auto it = context->variables.find(argName);
+				 auto it = (*context->variables).find(argName);
 				 std::get<2>(argument) = it->second;
-				 context->variables.erase(it);
+				 (*context->variables).erase(it);
 			 }
 			 context->eventManager->eventPool().push(event);
 		 }},
@@ -363,7 +385,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::STRING;
-			top->value() = std::to_string(std::get<int>(top->value()));
+			top->value() = std::to_string(std::get<long long>(top->value()));
 		}},
 		{naobi::command::names::F2S, [](
 			const naobi::workflow_context::sptr& context,
@@ -421,7 +443,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::FLOAT;
-			top->value() = static_cast<double>(std::get<int>(top->value()));
+			top->value() = static_cast<double>(std::get<long long>(top->value()));
 		}},
 		{naobi::command::names::S2F, [](
 			const naobi::workflow_context::sptr& context,
@@ -444,7 +466,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		{
 			auto top = context->stack.top();
 			top->type() = utils::type::names::BOOLEAN;
-			top->value() = static_cast<bool>(std::get<int>(top->value()));
+			top->value() = static_cast<bool>(std::get<long long>(top->value()));
 		}},
 		{naobi::command::names::S2B, [](
 			const naobi::workflow_context::sptr& context,
@@ -485,8 +507,10 @@ std::map<std::string, naobi::command::names> naobi::command::stringToCommand
 		{"GREATER_OR_EQ", naobi::command::names::GREATER_OR_EQ},
 		{"LESS_OR_EQ", naobi::command::names::LESS_OR_EQ},
 		{"NOT_EQ", naobi::command::names::NOT_EQ},
+		{"ALLOCATE", naobi::command::names::ALLOCATE},
 		{"LOAD", naobi::command::names::LOAD},
 		{"SAVE", naobi::command::names::SAVE},
+		{"TRANSFER", naobi::command::names::TRANSFER},
 		{"PLACE", naobi::command::names::PLACE},
 		{"PRINTLN", naobi::command::names::PRINTLN},
 		{"PRINT", naobi::command::names::PRINT},

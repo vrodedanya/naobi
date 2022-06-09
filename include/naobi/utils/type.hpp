@@ -12,7 +12,7 @@ namespace naobi::utils
 	public:
 		type() = delete;
 
-		using variable_type = std::variant<int, bool, std::string, double>;
+		using variable_type = std::variant<long long, bool, std::string, double>;
 
 		enum class names
 		{

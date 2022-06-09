@@ -21,6 +21,7 @@ namespace naobi
 		variable(std::string name, utils::type::names type);
 
 		variable& operator =(const variable& var);
+		variable& operator =(variable&& var) noexcept;
 
 		[[nodiscard]] std::string name() const
 		{ return _name; }
