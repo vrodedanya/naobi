@@ -822,15 +822,6 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 		}
 		temp.emplace_back(
 			command::createCommand(
-				command::names::NEW,
-				{argInFunction.first, std::to_string(
-					static_cast<int>(argInFunction.second))}));
-		temp.emplace_back(
-			command::createCommand(
-				command::names::SAVE,
-				{argInFunction.first}));
-		temp.emplace_back(
-			command::createCommand(
 				command::names::TRANSFER,
 				{argInFunction.first}));
 		pos++;

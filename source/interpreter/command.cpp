@@ -111,9 +111,10 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
-			auto varIt = context->variables->find(args[0]);
-			(*context->variablesStack.top())[args[0]] = varIt->second;
-			context->variables->erase(varIt);
+			auto var = context->stack.top();
+			context->stack.pop();
+			var->setName(args[0]);
+			(*context->variablesStack.top())[args[0]] = var;
 		 }},
 		{naobi::command::names::PLACE,
 		 [](

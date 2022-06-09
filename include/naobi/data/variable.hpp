@@ -26,6 +26,8 @@ namespace naobi
 		[[nodiscard]] std::string name() const
 		{ return _name; }
 
+		void setName(const std::string& name){_name = name;}
+
 		[[nodiscard]] utils::type::names& type()
 		{ return _type; }
 
