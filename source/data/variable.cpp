@@ -66,6 +66,18 @@ naobi::variable::sptr naobi::variable::copy()
 	return var;
 }
 
+void naobi::variable::invert()
+{
+	if (_type == naobi::utils::type::names::INTEGER)
+	{
+		_value = std::get<int>(_value) * -1;
+	}
+	else if (_type == naobi::utils::type::names::FLOAT)
+	{
+		_value = std::get<double>(_value) * -1;
+	}
+}
+
 
 bool naobi::operator ==(const naobi::variable::sptr& var1, bool var2)
 {

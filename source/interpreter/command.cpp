@@ -75,6 +75,13 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 					 second->type()).second(
 					 first, second));
 		 }},
+		{naobi::command::names::NEG,
+		 [](
+			 const naobi::workflow_context::sptr& context,
+			 [[maybe_unused]]const naobi::command::argumentsList& args)
+		 {
+			 context->stack.top()->invert();
+		 }},
 		{naobi::command::names::NEW,
 		 [](
 			 const naobi::workflow_context::sptr& context,
@@ -470,6 +477,7 @@ std::map<std::string, naobi::command::names> naobi::command::stringToCommand
 		{"SUB", naobi::command::names::SUB},
 		{"MUL", naobi::command::names::MUL},
 		{"DIV", naobi::command::names::DIV},
+		{"NEG", naobi::command::names::NEG},
 		{"MOD", naobi::command::names::MOD},
 		{"EQ", naobi::command::names::EQ},
 		{"GREATER", naobi::command::names::GREATER},

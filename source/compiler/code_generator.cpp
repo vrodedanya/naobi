@@ -527,6 +527,7 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 {
 	std::stack<naobi::utils::type::names> types;
 	std::stack<naobi::operation::sptr> stack;
+	bool isOperatorPrev{true};
 	NLOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
 	for (auto it = words.cbegin() ; it != words.cend() ; it++)
 	{
@@ -535,6 +536,27 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 		{
 			if (isOperation(*it))
 			{
+				if (isOperatorPrev)
+				{
+					if (*it == "-")
+					{
+						if (types.top() == utils::type::names::INTEGER || types.top() == utils::type::names::FLOAT)
+						{
+							commands.push_back(command::createCommand(command::names::NEG, {}));
+							continue;
+						}
+						else
+						{
+							NCRITICAL(processExpression, errors::TYPE_ERROR, "CRITICAL type ",
+									  utils::type::fromNameToString(types.top()),
+									  " doesn't have - operator");
+						}
+					}
+					else
+					{
+						NCRITICAL(processExpression, errors::WRONG_FORMAT, "CRITICAL wrong operator placement");
+					}
+				}
 				std::string op = *it;
 				if ((*it == "=" && *(it + 1) == "=") || *it == "<" || *it == ">" || (*it == "<" && *(it + 1) == "=") ||
 					(*it == ">" && *(it + 1) == "=") || (*it == "!" && *(it + 1) == "="))
@@ -565,9 +587,11 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 					stack.pop();
 				}
 				stack.push(operation);
+				isOperatorPrev = true;
 			}
 			else if (*it == "(" || *it == ")")
 			{
+				isOperatorPrev = false;
 				if (*it == "(")
 				{
 					stack.push(nullptr);
@@ -595,6 +619,7 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 			}
 			else
 			{
+				isOperatorPrev = false;
 				if ((it + 1) != words.cend() && *(it + 1) == "(")
 				{
 					auto t = callFunction(std::vector<std::string>(it, findEndBracket(it, words.end()) + 1), commands);
@@ -617,6 +642,7 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 		}
 		else
 		{
+			isOperatorPrev = false;
 			utils::type::names type = utils::type::checkType(*it);
 			std::string temp = *it;
 			if (type == utils::type::names::STRING)

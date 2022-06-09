@@ -11,6 +11,17 @@ Feature: Add operation
     """
     Then got integer 12
     Then ends with the code 0
+  Scenario: Add negative number
+    Given script:
+    """
+    import standard;
+    workflow main
+    {
+      println(6 + -6);
+    }
+    """
+    Then got integer 0
+    Then ends with the code 0
   Scenario Outline: Multiple adding cases of integers
     Given script:
     """

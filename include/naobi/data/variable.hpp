@@ -37,6 +37,8 @@ namespace naobi
 		[[nodiscard]] const utils::type::variable_type& value() const
 		{ return _value; }
 
+		void invert();
+
 		naobi::variable::sptr copy();
 
 	private:
