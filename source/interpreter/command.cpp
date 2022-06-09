@@ -332,7 +332,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 				 std::get<2>(argument) = it->second;
 				 context->variables.erase(it);
 			 }
-			 context->eventManager->pushEvent(event);
+			 context->eventManager->eventPool().push(event);
 		 }},
 		{naobi::command::names::MOD,
 		 [](

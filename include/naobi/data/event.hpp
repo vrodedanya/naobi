@@ -15,11 +15,18 @@ namespace naobi
 	{
 	public:
 		using argument = std::tuple<std::string, utils::type::names, naobi::variable::sptr>;
+		event() = default;
+		event(event&& e) noexcept;
+		event(const event& e);
+
+		event& operator = (event&& e) noexcept;
+		event& operator = (const event& e) noexcept;
 
 		[[nodiscard]] const std::string& getName() const;
 
 		void setName(const std::string& name);
 
+		[[nodiscard]] const std::vector<argument>& getArguments() const;
 		[[nodiscard]] std::vector<argument>& getArguments();
 
 		void setArguments(const std::vector<argument>& arguments);

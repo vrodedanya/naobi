@@ -9,68 +9,65 @@
 
 void naobi::handler::execute()
 {
-	using namespace std::chrono;
-	_eventManager.updateContexts(_contexts);
-
-	for (auto context = _contexts.begin() ; !_contexts.empty() || _eventManager.awaitedNumberOfWorkflows() != 0 ;)
+	while(isWork())
 	{
+		using namespace std::chrono;
+		pullContexts();
+		NLOG(handler, logger::BASIC, "Got ", _contexts.size(), " contexts");
 		if (_contexts.empty())
 		{
 			std::this_thread::sleep_for(0s);
-			_eventManager.updateContexts(_contexts);
-			continue;
 		}
 		else
 		{
-			context++;
-		}
-		if (context == _contexts.end()) context = _contexts.begin();
-		(*context)->beginClock = high_resolution_clock::now();
-
-		while (duration_cast<microseconds>(high_resolution_clock::now() - (*context)->beginClock).count() <
-			   MAX_TIME_PER_CONTEXT)
-		{
-			if ((*context)->ip == (*context)->workflow->commands().cend())
+			for (auto context = _contexts.begin() ; isWork() && context != _contexts.end() ; context++)
 			{
-				naobi::event event;
-				event.setName((*context)->workflow->name() + "End");
-				_eventManager.pushEvent(event);
-				if (context == _contexts.begin())
+				(*context)->beginClock = high_resolution_clock::now();
+				while (duration_cast<microseconds>(high_resolution_clock::now() - (*context)->beginClock).count() <
+					   MAX_TIME_PER_CONTEXT)
 				{
-					_contexts.erase(context);
-					context = _contexts.begin();
+					if ((*context)->ip == (*context)->workflow->commands().cend())
+					{
+						naobi::event e;
+						e.setName((*context)->workflow->name() + "End");
+						_eventManager->eventPool().push(e);
+						if (context == _contexts.begin())
+						{
+							_contexts.erase(context);
+							context = _contexts.begin();
+						}
+						else
+						{
+							auto nextContext = std::prev(context);
+							_contexts.erase(context);
+							context = nextContext;
+						}
+						break;
+					}
+					try
+					{
+						(*context)->ip->impl(*context, (*context)->ip->arguments);
+					}
+					catch (const naobi::naobi_exception& except)
+					{
+						auto exception = naobi::exception();
+						exception.name = except.name;
+						exception.description = except.description;
+						catchException(exception, *context);
+					}
+					catch (const std::exception& except)
+					{
+						auto exception = naobi::exception();
+						exception.name = "CppException";
+						exception.description = except.what();
+						catchException(exception, *context);
+					}
+					(*context)->ip++;
 				}
-				else
-				{
-					auto nextContext = std::prev(context);
-					_contexts.erase(context);
-					context = nextContext;
-				}
-				break;
 			}
-			try
-			{
-				(*context)->ip->impl(*context, (*context)->ip->arguments);
-			}
-			catch (const naobi::naobi_exception& except)
-			{
-				auto exception = naobi::exception();
-				exception.name = except.name;
-				exception.description = except.description;
-				catchException(exception, *context);
-			}
-			catch (const std::exception& except)
-			{
-				auto exception = naobi::exception();
-				exception.name = "CppException";
-				exception.description = except.what();
-				catchException(exception, *context);
-			}
-			(*context)->ip++;
 		}
-		_eventManager.updateContexts(_contexts);
-		NLOG(handler.execute, logger::IMPORTANT, "Contexts at the moment: ", _contexts.size());
 	}
+	NLOG(handler, logger::LOW, "Finishing working");
 }
 
 void naobi::handler::catchException(const naobi::exception& exception, naobi::workflow_context::sptr& context)
@@ -96,3 +93,32 @@ void naobi::handler::catchException(const naobi::exception& exception, naobi::wo
 	context->variables[exception.name + ".name"] = var1;
 	context->variables[exception.name + ".description"] = var2;
 }
+
+void naobi::handler::pushContext(const naobi::workflow_context::sptr& newContext)
+{
+	std::lock_guard<std::mutex> guard(_mutex);
+	_bufferContexts.push(newContext);
+}
+
+void naobi::handler::pullContexts()
+{
+	std::lock_guard<std::mutex> guard(_mutex);
+	while (!_bufferContexts.empty())
+	{
+		_contexts.push_back(_bufferContexts.front());
+		_bufferContexts.pop();
+	}
+}
+
+bool naobi::handler::isWork() const
+{
+	return _isWork;
+}
+
+void naobi::handler::setIsWork(bool isWork)
+{
+	_isWork = isWork;
+}
+
+naobi::handler::handler(naobi::event_manager* eventManager) : _eventManager(eventManager)
+{}

@@ -1,7 +1,7 @@
 #include <naobi/compiler/compiler.hpp>
 #include <naobi/utils/logger.hpp>
 #include <naobi/utils/arguments.hpp>
-#include <naobi/interpreter/handler.hpp>
+#include <naobi/interpreter/event_manager.hpp>
 
 
 int main(int argc, char* argv[])
@@ -44,22 +44,21 @@ int main(int argc, char* argv[])
 			std::cerr << "compile_end" << std::endl;
 		}
 
-		naobi::handler handler;
 		naobi::event beginEvent;
 		beginEvent.setName("begin");
-		handler.eventManager().pushEvent(beginEvent);
+		naobi::event_manager eventManager;
 		for (const auto& workflow : compiler.getWorkflows())
 		{
-			handler.eventManager().addWorkflow(workflow->target(), workflow);
+			eventManager.addWorkflow(workflow->target(), workflow);
 		}
-
+		eventManager.eventPool().push(beginEvent);
 		try
 		{
-			handler.execute();
+			eventManager.execute();
 		}
 		catch (const std::exception& exception)
 		{
-			NCRITICAL(handler.execute, naobi::errors::NOT_SPECIFIED, "CRITICAL got exception in runtime: ",
+			NCRITICAL(handler.execute, naobi::errors::EXCEPTION, "CRITICAL got exception in runtime: ",
 					  exception.what());
 			return EXIT_FAILURE;
 		}
