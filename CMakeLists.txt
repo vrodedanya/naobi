@@ -64,12 +64,13 @@ target_include_directories(${CMAKE_PROJECT_NAME}_test PUBLIC ${CMAKE_SOURCE_DIR}
 target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread ${CMAKE_PROJECT_NAME}_lib)
 
 if (DEFINED USE_ASAN)
+    message(STATUS "Build with asan")
     if (DEFINED USE_THREAD)
-     set(SAN_FLAGS -fsanitize=thread)
+        message(STATUS "Build with thread checking")
+        set(SAN_FLAGS -fsanitize=thread)
     else()
      set(SAN_FLAGS -fsanitize=address -fsanitize=undefined -fsanitize=leak)
     endif()
-    message(STATUS "Build with asan")
     target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE ${SAN_FLAGS})
     target_link_options(${CMAKE_PROJECT_NAME}_lib PRIVATE ${SAN_FLAGS})
 
