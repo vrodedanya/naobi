@@ -58,10 +58,12 @@ jobs:
 
 
     - name: Build thread check build of naobi
+      working-directory: ${{github.workspace}}
       env:
         CC: gcc-10
         CXX: g++-10
       run: |
+        rm -rf build
         mkdir build
         cd build
         cmake .. -DUSE_ASAN=1 -DUSE_THREAD=1
