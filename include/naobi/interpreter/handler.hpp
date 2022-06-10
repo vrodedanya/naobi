@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <atomic>
 
 #include <naobi/interpreter/workflow_context.hpp>
 
@@ -27,7 +28,11 @@ namespace naobi
 
 		void execute();
 
-		[[nodiscard]] std::size_t contextsCount() const {return _contexts.size() + _bufferContexts.size();}
+		[[nodiscard]] std::size_t contextsCount() const
+		{
+			std::lock_guard<std::mutex> guard(_mutex);
+			return _contexts.size() + _bufferContexts.size();
+		}
 
 		[[nodiscard]] bool isWork() const;
 
@@ -40,9 +45,9 @@ namespace naobi
 	private:
 		std::list<naobi::workflow_context::sptr> _contexts;
 		std::queue<naobi::workflow_context::sptr> _bufferContexts;
-		std::mutex _mutex;
+		mutable std::mutex _mutex;
 		event_manager* _eventManager;
-		bool _isWork{true};
+		std::atomic<bool> _isWork{true};
 	};
 }
 

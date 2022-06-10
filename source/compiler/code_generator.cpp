@@ -475,7 +475,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 							   "' doesn't exist");
 				 }
 				 auto type = processExpression(
-					 std::vector<std::string>(words.begin() + 2, findEndBracket(words.begin() + 2, words.end())),
+					 std::vector<std::string>(words.begin() + 3, findEndBracket(words.begin() + 2, words.end())),
 					 commands);
 				 if (type != utils::type::names::STRING)
 				 {
@@ -540,17 +540,9 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 				{
 					if (*it == "-")
 					{
-						if (types.top() == utils::type::names::INTEGER || types.top() == utils::type::names::FLOAT)
-						{
-							commands.push_back(command::createCommand(command::names::NEG, {}));
-							continue;
-						}
-						else
-						{
-							NCRITICAL(processExpression, errors::TYPE_ERROR, "CRITICAL type ",
-									  utils::type::fromNameToString(types.top()),
-									  " doesn't have - operator");
-						}
+						auto operation = operation_manager::get("~");// TODO operation manager must support unary operations
+						stack.push(operation);
+						continue;
 					}
 					else
 					{
@@ -571,10 +563,20 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 				}
 				while (!stack.empty() && stack.top() != nullptr && *stack.top() >= *operation)
 				{
-					auto second = types.top();
-					types.pop();
-					auto first = types.top();
-					types.pop();
+					utils::type::names second, first;
+					if (stack.top()->getOperator() == "~")
+					{
+						second = utils::type::names::UNDEFINED;
+						first = types.top();
+						types.pop();
+					}
+					else
+					{
+						second = types.top();
+						types.pop();
+						first = types.top();
+						types.pop();
+					}
 					auto func = stack.top()->call(first, second);
 					if (func.second == nullptr)
 					{
@@ -660,15 +662,26 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 	{
 		auto operation = stack.top();
 
-		auto second = types.top();
-		types.pop();
-		if (types.empty())
+		utils::type::names second, first;
+		if (operation->getOperator() == "~")
 		{
-			types.push(second);
-			break;
+			second = utils::type::names::UNDEFINED;
+			first = types.top();
+			types.pop();
 		}
-		auto first = types.top();
-		types.pop();
+		else
+		{
+			second = types.top();
+			types.pop();
+			if (types.empty())
+			{
+				types.push(second);
+				break;
+			}
+			first = types.top();
+			types.pop();
+		}
+
 		auto func = operation->call(first, second);
 		if (func.second == nullptr)
 		{

@@ -13,7 +13,10 @@ namespace naobi
 	{
 	public:
 		bool isEmpty()
-		{ return _events.empty(); }
+		{
+			std::lock_guard<std::mutex> guard(_mutex);
+			return _events.empty();
+		}
 
 		bool isNotEmpty()
 		{ return !isEmpty(); }

@@ -862,4 +862,46 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 						 return result;
 					 })},
 			})),
+	std::make_shared<naobi::operation>( // Plug for unary minus
+		"~", 0, naobi::command::names::NEG, naobi::operation::implementations(
+			{
+				{std::make_pair(
+					utils::type::names::INTEGER,
+					utils::type::names::UNDEFINED),
+				 std::make_pair(
+					 utils::type::names::INTEGER,
+					 [](
+						 const naobi::variable::sptr& first,
+						 const naobi::variable::sptr& second) -> naobi::variable::sptr
+					 {
+						 auto result = std::make_shared<naobi::variable>(
+							 "temp",
+							 utils::type::names::INTEGER);
+						 result->value() =
+							 std::get<long long>(
+								 first->value()) -
+							 std::get<long long>(
+								 second->value());
+						 return result;
+					 })},
+				{std::make_pair(
+					utils::type::names::FLOAT,
+					utils::type::names::UNDEFINED),
+				 std::make_pair(
+					 utils::type::names::FLOAT,
+					 [](
+						 const naobi::variable::sptr& first,
+						 const naobi::variable::sptr& second) -> naobi::variable::sptr
+					 {
+						 auto result = std::make_shared<naobi::variable>(
+							 "temp",
+							 utils::type::names::FLOAT);
+						 result->value() =
+							 std::get<double>(
+								 first->value()) -
+							 std::get<double>(
+								 second->value());
+						 return result;
+					 })}
+			})),
 };

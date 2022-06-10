@@ -40,7 +40,7 @@ namespace naobi
 			LOAD, // 1 - number
 			SAVE, // 1 - number
 			TRANSFER, // 1 - name
-			PLACE, // 1 - value, type
+			PLACE, // 1 - type, value
 			PRINTLN,
 			PRINT,
 			INPUT,

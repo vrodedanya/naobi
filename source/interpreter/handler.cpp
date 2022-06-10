@@ -33,11 +33,13 @@ void naobi::handler::execute()
 					_eventManager->eventPool().push(e);
 					if (context == _contexts.begin())
 					{
+						std::lock_guard<std::mutex> guard(_mutex);
 						_contexts.erase(context);
 						context = _contexts.begin();
 					}
 					else
 					{
+						std::lock_guard<std::mutex> guard(_mutex);
 						auto nextContext = std::prev(context);
 						_contexts.erase(context);
 						context = nextContext;
