@@ -6,7 +6,7 @@
 #include <functional>
 #include <memory>
 
-#include <naobi/utils/type.hpp>
+#include "naobi/utils/type/type.hpp"
 #include <naobi/data/variable.hpp>
 #include <naobi/interpreter/command.hpp>
 
@@ -18,8 +18,8 @@ namespace naobi
 	public:
 		using sptr = std::shared_ptr<operation>;
 		using uptr = std::unique_ptr<operation>;
-		using key = std::pair<utils::type::names, utils::type::names>;
-		using impl = std::pair<utils::type::names, std::function<variable::sptr(variable::sptr, variable::sptr)>>;
+		using key = std::pair<utils::type::type, utils::type::type>;
+		using impl = std::pair<utils::type::type, std::function<variable::sptr(variable::sptr, variable::sptr)>>;
 		using implementations = std::map<key, impl>;
 
 		operation(
@@ -34,7 +34,7 @@ namespace naobi
 
 		void setPriority(int priority);
 
-		impl call(utils::type::names first, utils::type::names second);
+		impl call(const utils::type::type& first, const utils::type::type& second);
 
 		[[nodiscard]] command::names getCommandAnalogue() const;
 

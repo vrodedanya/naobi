@@ -5,7 +5,7 @@
 #include <vector>
 #include <optional>
 
-#include <naobi/utils/type.hpp>
+#include "naobi/utils/type/type.hpp"
 #include <naobi/data/variable.hpp>
 
 
@@ -14,13 +14,13 @@ namespace naobi
 	class event
 	{
 	public:
-		using argument = std::tuple<std::string, utils::type::names, naobi::variable::sptr>;
+		using argument = std::tuple<std::string, utils::type::type, naobi::variable::sptr>;
 		event() = default;
 		event(event&& e) noexcept;
 		event(const event& e);
 
-		event& operator = (event&& e) noexcept;
-		event& operator = (const event& e) noexcept;
+		event& operator = (event&& e) noexcept = default;
+		event& operator = (const event& e) noexcept = default;
 
 		[[nodiscard]] const std::string& getName() const;
 
@@ -35,7 +35,7 @@ namespace naobi
 
 		void setArgument(std::size_t pos, const naobi::variable::sptr& variable);
 
-		bool addArgument(const std::string& name, utils::type::names type, const naobi::variable::sptr& pointer);
+		bool addArgument(const std::string& name, const utils::type::type& type, const naobi::variable::sptr& pointer);
 
 		std::optional<argument> getArgument(const std::string& name);
 

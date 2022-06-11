@@ -5,24 +5,45 @@
 #include <variant>
 #include <vector>
 
+#include <naobi/utils/type/array_type.hpp>
+
 
 namespace naobi::utils::type
 {
-	using variable_type = std::variant<long long, bool, std::string, double>;
+	using variable_type = std::variant<long long, bool, std::string, double, utils::type::array_type>;
 
+	/**
+	 * @brief Enums for standard types
+	 */
 	enum class names
 	{
 		INTEGER,
 		BOOLEAN,
 		STRING,
 		FLOAT,
+		ARRAY,
 		UNDEFINED,
 	};
 
 	class type
 	{
 	public:
-		names name;
+		type() = default;
+		explicit type(names typeName);
+
+		bool operator ==(const type& rhs) const;
+
+		bool operator !=(const type& rhs) const;
+
+		bool operator <(const type& rhs) const;
+
+		bool operator >(const type& rhs) const;
+
+		bool operator <=(const type& rhs) const;
+
+		bool operator >=(const type& rhs) const;
+
+		names name{};
 		std::vector<type> detail;
 	};
 
@@ -51,6 +72,8 @@ namespace naobi::utils::type
 	bool isString(const std::string& string);
 
 	bool isFloat(const std::string& string);
+
+	bool isArray(const std::string& string);
 }
 
 #endif //NAOBI_TYPE_HPP

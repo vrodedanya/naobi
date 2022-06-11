@@ -20,7 +20,7 @@ set(NAOBI_SOURCES
         source/interpreter/command.cpp
         source/interpreter/event_pool.cpp
         source/standard/standard_module.cpp
-        source/utils/type.cpp
+        source/utils/type/type.cpp
         source/utils/arguments.cpp
         source/utils/parser.cpp
         source/utils/operation.cpp

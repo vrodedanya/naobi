@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <utility>
 
 
 namespace naobi
@@ -11,7 +12,8 @@ namespace naobi
 	{
 		exception() = default;
 
-		exception(const std::string& _name, const std::string& _description) : name(_name), description(_description)
+		exception(std::string _name, std::string _description) :
+			name(std::move(_name)), description(std::move(_description))
 		{}
 
 		std::string name;

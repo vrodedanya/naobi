@@ -32,10 +32,10 @@ namespace naobi
 		{ return std::string("+-*/=%<>!").find(string) != std::string::npos; }
 
 	private:
-		naobi::utils::type::names
+		naobi::utils::type::type
 		processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
 
-		naobi::utils::type::names
+		naobi::utils::type::type
 		callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
 
 		bool generateFunction(const std::vector<std::string>& functionCallWords);
