@@ -1,13 +1,14 @@
+#include <utility>
 #include <naobi/data/variable.hpp>
 
 #include <naobi/utils/logger.hpp>
 
 
-naobi::variable::variable(std::string name, utils::type::names type) :
+naobi::variable::variable(std::string name, utils::type::type type) :
 	_name(std::move(name)),
-	_type(type)
+	_type(std::move(type))
 {
-	switch (_type)
+	switch (_type.name)
 	{
 		case utils::type::names::INTEGER:
 			_value = 0;
@@ -30,19 +31,19 @@ naobi::variable::variable(std::string name, utils::type::names type) :
 
 std::ostream& naobi::operator <<(std::ostream& os, const naobi::variable& var)
 {
-	if (var._type == naobi::utils::type::names::INTEGER)
+	if (var._type.name == naobi::utils::type::names::INTEGER)
 	{
 		os << std::get<long long>(var._value);
 	}
-	else if (var._type == naobi::utils::type::names::BOOLEAN)
+	else if (var._type.name == naobi::utils::type::names::BOOLEAN)
 	{
 		os << std::boolalpha << std::get<bool>(var._value);
 	}
-	else if (var._type == naobi::utils::type::names::STRING)
+	else if (var._type.name == naobi::utils::type::names::STRING)
 	{
 		os << std::get<std::string>(var._value);
 	}
-	else if (var._type == naobi::utils::type::names::FLOAT)
+	else if (var._type.name == naobi::utils::type::names::FLOAT)
 	{
 		os << std::get<double>(var._value);
 	}
@@ -68,11 +69,11 @@ naobi::variable::sptr naobi::variable::copy()
 
 void naobi::variable::invert()
 {
-	if (_type == naobi::utils::type::names::INTEGER)
+	if (_type.name == naobi::utils::type::names::INTEGER)
 	{
 		_value = std::get<long long>(_value) * -1;
 	}
-	else if (_type == naobi::utils::type::names::FLOAT)
+	else if (_type.name == naobi::utils::type::names::FLOAT)
 	{
 		_value = std::get<double>(_value) * -1;
 	}
@@ -89,7 +90,7 @@ naobi::variable& naobi::variable::operator =(naobi::variable&& var) noexcept
 
 bool naobi::operator ==(const naobi::variable::sptr& var1, bool var2)
 {
-	if (var1->type() == utils::type::names::BOOLEAN)
+	if (var1->type().name == utils::type::names::BOOLEAN)
 	{
 		return std::get<bool>(var1->value()) == var2;
 	}

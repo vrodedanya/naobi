@@ -80,7 +80,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 						 NCRITICAL(code_generator, errors::ALREADY_EXIST, "CRITICAL '", *it,
 								   "' is already exist");
 					 }
-					 auto var = std::make_shared<naobi::variable>(*it, type);
+					 auto var = std::make_shared<naobi::variable>(*it, utils::type::type(type));
 					 commands.emplace_back(
 						 naobi::command::createCommand(
 							 naobi::command::names::NEW,
@@ -116,11 +116,11 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 								 wordsTemp.end(),
 								 ",")),
 						 commands);
-					 if (t != type)
+					 if (t.name != type)
 					 {
 						 NCRITICAL(code_generator, errors::TYPE_ERROR,
 								   "CRITICAL can't assign value which type is '",
-								   utils::type::fromNameToString(t),
+								   utils::type::fromNameToString(t.name),
 								   "' to variable which type is '",
 								   utils::type::fromNameToString(type), "'");
 					 }
@@ -246,7 +246,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 commands.push_back(
 					 command::createCommand(command::names::SAVE, {words[2]}));
 
-				 auto var = std::make_shared<naobi::variable>(words[2], type);
+				 auto var = std::make_shared<naobi::variable>(words[2], utils::type::type(type));
 				 _variablesTemp[var->name()] = var;
 
 				 commands.push_back(
@@ -338,7 +338,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 							 command::createCommand(
 								 command::names::NEW, {pair[0],
 													   std::to_string(
-														   static_cast<int>(std::get<1>(arg)))}));
+														   static_cast<int>(std::get<1>(arg).name))}));
 						 auto valueSplitter = parser::split(
 							 pair[1], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 							 {{'"', '"'},
@@ -347,8 +347,8 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 						 if (type != std::get<1>(arg))
 						 {
 							 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
-									   utils::type::fromNameToString(std::get<1>(arg)),
-									   "' and got '", utils::type::fromNameToString(type), "'");
+									   utils::type::fromNameToString(std::get<1>(arg).name),
+									   "' and got '", utils::type::fromNameToString(type.name), "'");
 						 }
 						 commands.push_back(
 							 command::createCommand(
@@ -367,7 +367,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 							 command::createCommand(
 								 command::names::NEW, {std::get<0>(arg),
 													   std::to_string(
-														   static_cast<int>(std::get<1>(arg)))}));
+														   static_cast<int>(std::get<1>(arg).name))}));
 						 auto valueSplitter = parser::split(
 							 pair[0], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 							 {{'"', '"'},
@@ -376,8 +376,8 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 						 if (type != std::get<1>(arg))
 						 {
 							 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
-									   utils::type::fromNameToString(std::get<1>(arg)),
-									   "' and got '", utils::type::fromNameToString(type), "'");
+									   utils::type::fromNameToString(std::get<1>(arg).name),
+									   "' and got '", utils::type::fromNameToString(type.name), "'");
 						 }
 						 commands.push_back(
 							 command::createCommand(
@@ -449,10 +449,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 
 				 addVariable(
 					 words[1] + ".name",
-					 std::make_shared<naobi::variable>(words[1] + ".name", utils::type::names::STRING));
+					 std::make_shared<naobi::variable>(
+						 words[1] + ".name", utils::type::type(utils::type::names::STRING)));
 				 addVariable(
 					 words[1] + ".description",
-					 std::make_shared<naobi::variable>(words[1] + ".description", utils::type::names::STRING));
+					 std::make_shared<naobi::variable>(
+						 words[1] + ".description", utils::type::type(utils::type::names::STRING)));
 				 auto tempCommands = generate(lines);
 				 std::size_t tempCommandsSize = tempCommands.size();
 				 commands.push_back(
@@ -477,7 +479,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 auto type = processExpression(
 					 std::vector<std::string>(words.begin() + 3, findEndBracket(words.begin() + 2, words.end())),
 					 commands);
-				 if (type != utils::type::names::STRING)
+				 if (type.name != utils::type::names::STRING)
 				 {
 					 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL exception take only string argument");
 				 }
@@ -510,9 +512,9 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 {
 					 NCRITICAL(code_generator, errors::TYPE_ERROR,
 							   "CRITICAL can't assign value which type is '",
-							   utils::type::fromNameToString(type),
+							   utils::type::fromNameToString(type.name),
 							   "' to variable which type is '",
-							   utils::type::fromNameToString(var->second->type()), "'");
+							   utils::type::fromNameToString(var->second->type().name), "'");
 				 }
 				 commands.emplace_back(
 					 naobi::command::createCommand(
@@ -522,10 +524,10 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 {
 }
 
-naobi::utils::type::names
+naobi::utils::type::type
 naobi::code_generator::processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands)
 {
-	std::stack<naobi::utils::type::names> types;
+	std::stack<naobi::utils::type::type> types;
 	std::stack<naobi::operation::sptr> stack;
 	bool isOperatorPrev{true};
 	NLOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
@@ -540,7 +542,8 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 				{
 					if (*it == "-")
 					{
-						auto operation = operation_manager::get("~");// TODO operation manager must support unary operations
+						auto operation = operation_manager::get(
+							"~");// TODO operation manager must support unary operations
 						stack.push(operation);
 						continue;
 					}
@@ -563,10 +566,10 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 				}
 				while (!stack.empty() && stack.top() != nullptr && *stack.top() >= *operation)
 				{
-					utils::type::names second, first;
+					utils::type::type second, first;
 					if (stack.top()->getOperator() == "~")
 					{
-						second = utils::type::names::UNDEFINED;
+						second.name = utils::type::names::UNDEFINED;
 						first = types.top();
 						types.pop();
 					}
@@ -581,8 +584,8 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 					if (func.second == nullptr)
 					{
 						NCRITICAL(processExpression, errors::TYPE_ERROR, "CRITICAL can't execute operation '",
-								  operation->getOperator(), "' for types '", utils::type::fromNameToString(first),
-								  "' and '", utils::type::fromNameToString(second), "'");
+								  operation->getOperator(), "' for types '", utils::type::fromNameToString(first.name),
+								  "' and '", utils::type::fromNameToString(second.name), "'");
 					}
 					commands.emplace_back(command::createCommand(stack.top()->getCommandAnalogue(), {}));
 					types.push(func.first);
@@ -625,11 +628,11 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 				if ((it + 1) != words.cend() && *(it + 1) == "(")
 				{
 					auto t = callFunction(std::vector<std::string>(it, findEndBracket(it, words.end()) + 1), commands);
-					if (t == utils::type::names::UNDEFINED)
+					if (t.name == utils::type::names::UNDEFINED)
 					{
 						NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL function return undefined type");
 					}
-					types.push(t);
+					types.push(utils::type::type(t));
 					it = findEndBracket(it, words.end());
 					continue;
 				}
@@ -639,22 +642,22 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 					NCRITICAL(processExpression, errors::DOESNT_EXIST, "CRITICAL variable '", *it, "' not found");
 				}
 				commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {*it}));
-				types.push(var->second->type());
+				types.push(utils::type::type(var->second->type().name));
 			}
 		}
 		else
 		{
 			isOperatorPrev = false;
-			utils::type::names type = utils::type::checkType(*it);
+			utils::type::type type = utils::type::type(utils::type::checkType(*it));
 			std::string temp = *it;
-			if (type == utils::type::names::STRING)
+			if (type.name == utils::type::names::STRING)
 			{
 				temp = temp.substr(1, temp.size() - 2);
 			}
 			commands.emplace_back(
 				command::createCommand(
 					naobi::command::names::PLACE,
-					{std::to_string(static_cast<int>(type)), temp}));
+					{std::to_string(static_cast<int>(type.name)), temp}));
 			types.push(type);
 		}
 	}
@@ -662,10 +665,10 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 	{
 		auto operation = stack.top();
 
-		utils::type::names second, first;
+		utils::type::type second, first;
 		if (operation->getOperator() == "~")
 		{
-			second = utils::type::names::UNDEFINED;
+			second.name = utils::type::names::UNDEFINED;
 			first = types.top();
 			types.pop();
 		}
@@ -686,8 +689,8 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 		if (func.second == nullptr)
 		{
 			NCRITICAL(processExpression, errors::TYPE_ERROR, "CRITICAL can't execute operation '",
-					  operation->getOperator(), "' for types '", utils::type::fromNameToString(first),
-					  "' and '", utils::type::fromNameToString(second), "'");
+					  operation->getOperator(), "' for types '", utils::type::fromNameToString(first.name),
+					  "' and '", utils::type::fromNameToString(second.name), "'");
 		}
 		commands.emplace_back(command::createCommand(operation->getCommandAnalogue(), {}));
 		types.push(func.first);
@@ -706,7 +709,7 @@ bool naobi::code_generator::addVariable(const std::string& name, const naobi::va
 	return true;
 }
 
-naobi::utils::type::names
+naobi::utils::type::type
 naobi::code_generator::callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands)
 {
 	NLOG(code_generator, logger::IMPORTANT, "Function: ", functionCallWords);
@@ -822,8 +825,8 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 					return callFunction(functionCallWords, commands);
 				}
 				NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL argument '", argInFunction.first, "' is '",
-						  utils::type::fromNameToString(argInFunction.second), "' provided '",
-						  utils::type::fromNameToString(type), "'");
+						  utils::type::fromNameToString(argInFunction.second.name), "' provided '",
+						  utils::type::fromNameToString(type.name), "'");
 			}
 			else
 			{
@@ -923,17 +926,19 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 		auto type = processExpression(valueSplitter, plug);
 		if (utils::type::isStandardType(argInFunction.second))
 		{
-			if (type != utils::type::fromStringToName(argInFunction.second))
+			if (type.name != utils::type::fromStringToName(argInFunction.second))
 			{
 				NLOG(code_generator, logger::IMPORTANT, "WARNING wrong type provided '",
-					 utils::type::fromNameToString(type), "' expected '", argInFunction.second, "'");
+					 utils::type::fromNameToString(type.name), "' expected '", argInFunction.second, "'");
 				return false;
 			}
 			arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(
 				argInFunction.first,
-				utils::type::fromStringToName(
-					argInFunction.second));
-			generator.addVariable(argInFunction.first, std::make_shared<variable>(argInFunction.first, type));
+				utils::type::type(
+					utils::type::fromStringToName(
+						argInFunction.second)));
+			generator.addVariable(
+				argInFunction.first, std::make_shared<variable>(argInFunction.first, utils::type::type(type)));
 		}
 		else
 		{
@@ -942,18 +947,18 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 			{
 				arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(
 					argInFunction.first,
-					it->second);
+					utils::type::type(it->second));
 			}
 			else
 			{
-				alreadySubstituted[argInFunction.second] = type;
+				alreadySubstituted[argInFunction.second] = type.name;
 				arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(
 					argInFunction.first,
-					type);
+					utils::type::type(type));
 			}
-			generator.addVariable(argInFunction.first, std::make_shared<variable>(argInFunction.first, type));
+			generator.addVariable(argInFunction.first, std::make_shared<variable>(argInFunction.first, utils::type::type(type)));
 			std::size_t startPos{};
-			std::string substitute = utils::type::fromNameToString(type);
+			std::string substitute = utils::type::fromNameToString(type.name);
 			while ((startPos = code.find(argInFunction.second, startPos)) != std::string::npos)
 			{
 				code.replace(startPos, argInFunction.second.size(), substitute);
@@ -974,13 +979,13 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 
 	if (templateFunction->getReturnType() == "undefined")
 	{
-		newFunction->setReturnType(utils::type::names::UNDEFINED);
+		newFunction->setReturnType(utils::type::type(utils::type::names::UNDEFINED));
 	}
 	else
 	{
 		if (utils::type::isStandardType(templateFunction->getReturnType()))
 		{
-			newFunction->setReturnType(utils::type::fromStringToName(templateFunction->getReturnType()));
+			newFunction->setReturnType(utils::type::type(utils::type::fromStringToName(templateFunction->getReturnType())));
 		}
 		else
 		{
@@ -991,7 +996,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 					 templateFunction->getReturnType());
 				return false;
 			}
-			newFunction->setReturnType(it->second);
+			newFunction->setReturnType(utils::type::type(it->second));
 		}
 	}
 	_module->addFunction(newFunction);

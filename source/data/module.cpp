@@ -38,7 +38,7 @@ bool naobi::module::addFunction(const naobi::function::sptr& newFunction)
 					   function->getArguments().cbegin(),
 					   [](const function::argument_type& first, const function::argument_type& second)
 					   {
-						   return first.second == second.second;
+						   return first.second.name == second.second.name;
 					   });
 		});
 	if (it != _functions.end()) return false;

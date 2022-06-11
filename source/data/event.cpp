@@ -28,7 +28,7 @@ void naobi::event::setArguments(const std::vector<argument>& arguments)
 }
 
 bool
-naobi::event::addArgument(const std::string& name, naobi::utils::type::names type, const naobi::variable::sptr& pointer)
+naobi::event::addArgument(const std::string& name, const naobi::utils::type::type& type, const naobi::variable::sptr& pointer)
 {
 	auto it = std::find_if(
 		_arguments.begin(), _arguments.end(), [name](const auto& tuple)
@@ -111,22 +111,8 @@ naobi::event::event(naobi::event&& e) noexcept
 	this->_name = e._name;
 }
 
-naobi::event& naobi::event::operator =(naobi::event&& e) noexcept
-{
-	this->_arguments = std::move(e._arguments);
-	this->_name = e._name;
-	return *this;
-}
-
 naobi::event::event(const naobi::event& e)
 {
 	this->_arguments = e._arguments;
 	this->_name = e._name;
-}
-
-naobi::event& naobi::event::operator =(const naobi::event& e) noexcept
-{
-	this->_arguments = e._arguments;
-	this->_name = e._name;
-	return *this;
 }

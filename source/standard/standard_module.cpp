@@ -17,7 +17,7 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("exit");
-		function->addArgument("variable", utils::type::names::INTEGER);
+		function->addArgument("variable", utils::type::type(utils::type::names::INTEGER));
 		std::vector<command> commands;
 		commands.emplace_back(command::createCommand(command::names::LOAD, {"variable"}));
 		commands.emplace_back(command::createCommand(command::names::EXIT, {}));
@@ -26,7 +26,7 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("input");
-		function->setReturnType(utils::type::names::STRING);
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::INPUT, {}));
 		function->setCommands(commands);
@@ -34,8 +34,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("str");
-		function->setReturnType(utils::type::names::STRING);
-		function->addArgument("var", utils::type::names::INTEGER);
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("var", utils::type::type(utils::type::names::INTEGER));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::I2S, {}));
@@ -44,8 +44,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("str");
-		function->setReturnType(utils::type::names::STRING);
-		function->addArgument("var", utils::type::names::FLOAT);
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("var", utils::type::type(utils::type::names::FLOAT));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::F2S, {}));
@@ -54,8 +54,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("str");
-		function->setReturnType(utils::type::names::STRING);
-		function->addArgument("var", utils::type::names::BOOLEAN);
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("var", utils::type::type(utils::type::names::BOOLEAN));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::B2S, {}));
@@ -64,8 +64,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("int");
-		function->setReturnType(utils::type::names::INTEGER);
-		function->addArgument("var", utils::type::names::BOOLEAN);
+		function->setReturnType(utils::type::type(utils::type::names::INTEGER));
+		function->addArgument("var", utils::type::type(utils::type::names::BOOLEAN));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::B2I, {}));
@@ -74,8 +74,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("int");
-		function->setReturnType(utils::type::names::INTEGER);
-		function->addArgument("var", utils::type::names::FLOAT);
+		function->setReturnType(utils::type::type(utils::type::names::INTEGER));
+		function->addArgument("var", utils::type::type(utils::type::names::FLOAT));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::F2I, {}));
@@ -84,8 +84,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("int");
-		function->setReturnType(utils::type::names::INTEGER);
-		function->addArgument("var", utils::type::names::STRING);
+		function->setReturnType(utils::type::type(utils::type::names::INTEGER));
+		function->addArgument("var", utils::type::type(utils::type::names::STRING));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::S2I, {}));
@@ -94,8 +94,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("float");
-		function->setReturnType(utils::type::names::FLOAT);
-		function->addArgument("var", utils::type::names::INTEGER);
+		function->setReturnType(utils::type::type(utils::type::names::FLOAT));
+		function->addArgument("var", utils::type::type(utils::type::names::INTEGER));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::I2F, {}));
@@ -104,8 +104,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("float");
-		function->setReturnType(utils::type::names::FLOAT);
-		function->addArgument("var", utils::type::names::STRING);
+		function->setReturnType(utils::type::type(utils::type::names::FLOAT));
+		function->addArgument("var", utils::type::type(utils::type::names::STRING));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::S2F, {}));
@@ -114,8 +114,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("bool");
-		function->setReturnType(utils::type::names::BOOLEAN);
-		function->addArgument("var", utils::type::names::INTEGER);
+		function->setReturnType(utils::type::type(utils::type::names::BOOLEAN));
+		function->addArgument("var", utils::type::type(utils::type::names::INTEGER));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::I2B, {}));
@@ -124,8 +124,8 @@ naobi::standard::standard() : module("standard")
 	}
 	{
 		auto function = std::make_shared<naobi::function>("bool");
-		function->setReturnType(utils::type::names::BOOLEAN);
-		function->addArgument("var", utils::type::names::STRING);
+		function->setReturnType(utils::type::type(utils::type::names::BOOLEAN));
+		function->addArgument("var", utils::type::type(utils::type::names::STRING));
 		std::vector<naobi::command> commands;
 		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"var"}));
 		commands.emplace_back(command::createCommand(naobi::command::names::S2B, {}));

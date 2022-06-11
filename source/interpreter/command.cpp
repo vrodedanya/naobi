@@ -87,7 +87,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
 		 {
-			 auto type = utils::type::toType(args[1]);
+			 auto type = utils::type::type(utils::type::toType(args[1]));
 			 auto var = std::make_shared<naobi::variable>(args[0], type);
 			 (*context->variables)[var->name()] = var;
 		 }},
@@ -121,9 +121,9 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
 		 {
-			 auto type = utils::type::toType(args[0]);
+			 auto type = utils::type::type(utils::type::toType(args[0]));
 			 auto var = std::make_shared<naobi::variable>("temp", type);
-			 var->value() = utils::type::getValueFrom(type, args[1]);
+			 var->value() = utils::type::getValueFrom(type.name, args[1]);
 			 context->stack.push(var);
 		 }},
 		{naobi::command::names::PRINTLN,
@@ -153,7 +153,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 std::cin >> str;
 			 auto var = std::make_shared<naobi::variable>(
 				 "temp",
-				 utils::type::names::STRING);
+				 utils::type::type(utils::type::names::STRING));
 			 var->value() = str;
 			 context->stack.push(var);
 		 }},
@@ -318,7 +318,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
 			 auto top = context->stack.top();
-			 std::exit(std::get<long long>(top->value()));
+			 std::exit(static_cast<int>(std::get<long long>(top->value())));
 		 }},
 		{naobi::command::names::INC,
 		 [](
@@ -385,7 +385,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::STRING;
+			top->type().name = utils::type::names::STRING;
 			top->value() = std::to_string(std::get<long long>(top->value()));
 		}},
 		{naobi::command::names::F2S, [](
@@ -396,7 +396,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			std::ostringstream oss;
 			oss << std::setprecision(8) << std::noshowpoint
 				<< std::get<double>(top->value());
-			top->type() = utils::type::names::STRING;
+			top->type().name = utils::type::names::STRING;
 			top->value() = oss.str();
 		}},
 		{naobi::command::names::B2S, [](
@@ -404,7 +404,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::STRING;
+			top->type().name = utils::type::names::STRING;
 			top->value() = std::get<bool>(top->value()) ? "true" : "false";
 		}},
 		{naobi::command::names::S2I, [](
@@ -412,7 +412,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::INTEGER;
+			top->type().name = utils::type::names::INTEGER;
 			try
 			{
 				top->value() = std::stoi(std::get<std::string>(top->value()));
@@ -427,7 +427,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::INTEGER;
+			top->type().name = utils::type::names::INTEGER;
 			top->value() = static_cast<int>(std::get<double>(top->value()));
 		}},
 		{naobi::command::names::B2I, [](
@@ -435,7 +435,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::INTEGER;
+			top->type().name = utils::type::names::INTEGER;
 			top->value() = static_cast<int>(std::get<bool>(top->value()));
 		}},
 		{naobi::command::names::I2F, [](
@@ -443,7 +443,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::FLOAT;
+			top->type().name = utils::type::names::FLOAT;
 			top->value() = static_cast<double>(std::get<long long>(top->value()));
 		}},
 		{naobi::command::names::S2F, [](
@@ -451,7 +451,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::FLOAT;
+			top->type().name = utils::type::names::FLOAT;
 			try
 			{
 				top->value() = std::stod(std::get<std::string>(top->value()));
@@ -466,7 +466,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::BOOLEAN;
+			top->type().name = utils::type::names::BOOLEAN;
 			top->value() = static_cast<bool>(std::get<long long>(top->value()));
 		}},
 		{naobi::command::names::S2B, [](
@@ -474,7 +474,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::command::argumentsList& args)
 		{
 			auto top = context->stack.top();
-			top->type() = utils::type::names::BOOLEAN;
+			top->type().name = utils::type::names::BOOLEAN;
 			top->value() = std::get<std::string>(top->value()) == "true";
 		}},
 		{naobi::command::names::CATCH, [](

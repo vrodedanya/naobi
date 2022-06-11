@@ -16,7 +16,7 @@ void naobi::function::setCommands(const std::vector<naobi::command>& commands)
 	_commands.emplace_back(command::createCommand(command::names::RETURN, {}));
 }
 
-bool naobi::function::addArgument(const std::string& name, utils::type::names type)
+bool naobi::function::addArgument(const std::string& name, const utils::type::type& type)
 {
 	auto it = std::find_if(
 		_arguments.begin(), _arguments.end(), [name](const auto& pair)
@@ -53,12 +53,12 @@ const std::vector<naobi::function::argument_type>& naobi::function::getArguments
 	return _arguments;
 }
 
-const naobi::utils::type::names& naobi::function::getReturnType() const
+const naobi::utils::type::type& naobi::function::getReturnType() const
 {
 	return _returnType;
 }
 
-void naobi::function::setReturnType(const naobi::utils::type::names& returnType)
+void naobi::function::setReturnType(const naobi::utils::type::type& returnType)
 {
 	_returnType = returnType;
 }

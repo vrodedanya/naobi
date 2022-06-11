@@ -377,7 +377,7 @@ naobi::compiler::compiler() :
 						 NCRITICAL(compiler.compile, errors::INVALID_ARGUMENT,
 								   "CRITICAL wrong argument: ", words);
 					 }
-					 auto type = utils::type::fromStringToName(words[0]);
+					 auto type = utils::type::type(utils::type::fromStringToName(words[0]));
 					 auto argName = words[1];
 					 auto variable = std::make_shared<naobi::variable>(argName, type);
 					 generator.addVariable(argName, variable);
@@ -387,12 +387,12 @@ naobi::compiler::compiler() :
 				 auto retIterator = std::find(line.begin(), line.end(), "->");
 				 if (retIterator != line.end() && (retIterator + 1) != line.end())
 				 {
-					 auto returnType = utils::type::fromStringToName(*(retIterator + 1));
+					 auto returnType = utils::type::type(utils::type::fromStringToName(*(retIterator + 1)));
 					 function->setReturnType(returnType);
 				 }
 				 else
 				 {
-					 function->setReturnType(utils::type::names::UNDEFINED);
+					 function->setReturnType(utils::type::type(utils::type::names::UNDEFINED));
 				 }
 
 				 std::string codeBlock = line.back().substr(1, line.back().size() - 2);
@@ -444,7 +444,7 @@ naobi::compiler::compiler() :
 					{
 						NCRITICAL(compiler, errors::INVALID_ARGUMENT, "CRITICAL wrong event argument: ", pair);
 					}
-					if (!event.addArgument(pair[1], utils::type::fromStringToName(pair[0]), nullptr))
+					if (!event.addArgument(pair[1], utils::type::type(utils::type::fromStringToName(pair[0])), nullptr))
 					{
 						NCRITICAL(compiler, errors::ALREADY_EXIST, "CRITICAL argument '",pair, "'", "is already exist");
 

@@ -87,8 +87,8 @@ void naobi::handler::catchException(const naobi::exception& exception, naobi::wo
 		}
 	}
 	context->ip++;
-	auto var1 = std::make_shared<naobi::variable>(exception.name + ".name", utils::type::names::STRING);
-	auto var2 = std::make_shared<naobi::variable>(exception.name + ".description", utils::type::names::STRING);
+	auto var1 = std::make_shared<naobi::variable>(exception.name + ".name", utils::type::type(utils::type::names::STRING));
+	auto var2 = std::make_shared<naobi::variable>(exception.name + ".description", utils::type::type(utils::type::names::STRING));
 	var1->value() = exception.name;
 	var2->value() = exception.description;
 	(*context->variables)[exception.name + ".name"] = var1;
