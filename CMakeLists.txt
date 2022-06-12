@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(naobi VERSION 0.7.0)
+project(naobi VERSION 0.8.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -14,11 +14,13 @@ set(NAOBI_SOURCES
         source/data/template_function.cpp
         source/data/variable.cpp
         source/data/workflow.cpp
+        source/data/event.cpp
         source/interpreter/handler.cpp
         source/interpreter/event_manager.cpp
         source/interpreter/command.cpp
+        source/interpreter/event_pool.cpp
         source/standard/standard_module.cpp
-        source/utils/type.cpp
+        source/utils/type/type.cpp
         source/utils/arguments.cpp
         source/utils/parser.cpp
         source/utils/operation.cpp
@@ -63,12 +65,18 @@ target_link_libraries(${CMAKE_PROJECT_NAME}_test gtest gmock gtest_main pthread 
 
 if (DEFINED USE_ASAN)
     message(STATUS "Build with asan")
-    target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address -fsanitize=undefined)
-    target_link_options(${CMAKE_PROJECT_NAME}_lib PRIVATE -fsanitize=address -fsanitize=undefined)
+    if (DEFINED USE_THREAD)
+        message(STATUS "Build with thread checking")
+        set(SAN_FLAGS -fsanitize=thread)
+    else()
+     set(SAN_FLAGS -fsanitize=address -fsanitize=undefined -fsanitize=leak)
+    endif()
+    target_compile_options(${CMAKE_PROJECT_NAME}_lib PRIVATE ${SAN_FLAGS})
+    target_link_options(${CMAKE_PROJECT_NAME}_lib PRIVATE ${SAN_FLAGS})
 
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined)
-    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined)
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE ${SAN_FLAGS})
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE ${SAN_FLAGS})
 
-    target_compile_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address -fsanitize=undefined)
-    target_link_options(${CMAKE_PROJECT_NAME}_test PRIVATE -fsanitize=address -fsanitize=undefined)
+    target_compile_options(${CMAKE_PROJECT_NAME}_test PRIVATE ${SAN_FLAGS})
+    target_link_options(${CMAKE_PROJECT_NAME}_test PRIVATE ${SAN_FLAGS})
 endif ()

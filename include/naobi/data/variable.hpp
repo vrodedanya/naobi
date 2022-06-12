@@ -6,7 +6,8 @@
 #include <memory>
 #include <variant>
 
-#include "naobi/utils/type.hpp"
+#include "naobi/utils/type/type.hpp"
+
 
 namespace naobi
 {
@@ -17,17 +18,22 @@ namespace naobi
 		using sptr = std::shared_ptr<variable>;
 
 	public:
-		variable(std::string name, utils::type::names type);
+		variable(std::string name, utils::type::type type);
 
 		variable& operator =(const variable& var);
+
+		variable& operator =(variable&& var) noexcept;
 
 		[[nodiscard]] std::string name() const
 		{ return _name; }
 
-		[[nodiscard]] utils::type::names& type()
+		void setName(const std::string& name)
+		{ _name = name; }
+
+		[[nodiscard]] utils::type::type& type()
 		{ return _type; }
 
-		[[nodiscard]] const utils::type::names& type() const
+		[[nodiscard]] const utils::type::type& type() const
 		{ return _type; }
 
 		utils::type::variable_type& value()
@@ -36,6 +42,14 @@ namespace naobi
 		[[nodiscard]] const utils::type::variable_type& value() const
 		{ return _value; }
 
+		void invert();
+
+		variable::sptr operator [](std::size_t index) const;
+
+		void set(const variable::sptr& sub, std::size_t index);
+
+		[[nodiscard]] std::size_t size() const;
+
 		naobi::variable::sptr copy();
 
 	private:
@@ -43,37 +57,14 @@ namespace naobi
 
 		std::string _name;
 		utils::type::variable_type _value{};
-		utils::type::names _type{utils::type::names::INTEGER};
+		utils::type::type _type{utils::type::names::INTEGER};
 	};
 
-	naobi::variable::sptr operator +=(naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator -=(naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator *=(naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator /=(naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator %=(naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator >(const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator <(const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator >=(const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator <=(const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator !=(const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
-
-	naobi::variable::sptr operator ==(const naobi::variable::sptr& variable1, const naobi::variable::sptr& variable2);
+	std::ostream& operator <<(std::ostream& os, const naobi::variable& var);
 
 	bool operator ==(const naobi::variable::sptr& var1, bool var2);
 
 	bool operator !=(const naobi::variable::sptr& var1, bool var2);
-
-
-	std::ostream& operator <<(std::ostream& os, const naobi::variable& var);
 
 }
 

@@ -2,9 +2,10 @@
 
 #include <algorithm>
 
+
 naobi::arguments::arguments(char** begin, char** end) :
-		_begin(begin),
-		_end(end)
+	_begin(begin),
+	_end(end)
 {
 
 }

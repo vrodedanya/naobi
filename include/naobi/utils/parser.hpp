@@ -7,6 +7,7 @@
 #include <map>
 #include <cassert>
 
+
 namespace naobi::parser
 {
 	enum split_mods
@@ -19,10 +20,11 @@ namespace naobi::parser
 
 	std::function<int(char)> isEnds(const std::string& str);
 
-	std::vector<std::string> split(const std::string& text, const std::function<int(char)>& isSplitter,
-								   const std::function<bool(char)>& isSingle = {},
-								   const std::map<char, char>& blocks = {},
-								   const std::map<char, char>& separatedBlocks = {});
+	std::vector<std::string> split(
+		const std::string& text, const std::function<int(char)>& isSplitter,
+		const std::function<bool(char)>& isSingle = {},
+		const std::map<char, char>& blocks = {},
+		const std::map<char, char>& separatedBlocks = {});
 
 	std::string join(const std::vector<std::string>& strings, const std::string& delimiter) noexcept;
 
@@ -47,11 +49,15 @@ namespace naobi::parser
 	std::string dirName(const std::string& path) noexcept;
 
 	std::string fileName(const std::string& path) noexcept;
+
+	template <typename ITERATOR, typename SYM>
+	auto findCloseBracket(ITERATOR begin, ITERATOR end, SYM openBracket, SYM closeBracket);
 }
 
 template <typename ITERATOR_BEGIN, typename ITERATOR_END>
-std::string naobi::parser::join(const ITERATOR_BEGIN& begin, const ITERATOR_END& end,
-								const std::string& delimiter) noexcept
+std::string naobi::parser::join(
+	const ITERATOR_BEGIN& begin, const ITERATOR_END& end,
+	const std::string& delimiter) noexcept
 {
 	std::string temp;
 
@@ -62,6 +68,32 @@ std::string naobi::parser::join(const ITERATOR_BEGIN& begin, const ITERATOR_END&
 	}
 
 	return temp;
+}
+
+template <typename ITERATOR, typename SYM>
+auto naobi::parser::findCloseBracket(ITERATOR begin, ITERATOR end, SYM openBracket, SYM closeBracket)
+{
+	if (openBracket == closeBracket)
+	{
+		assert(openBracket != closeBracket);
+	}
+	int count{};
+	for (auto it = begin ; it != end ; it++)
+	{
+		if (*it == openBracket)
+		{
+			count++;
+		}
+		else if (*it == closeBracket)
+		{
+			count--;
+			if (count == 0)
+			{
+				return it;
+			}
+		}
+	}
+	return end;
 }
 
 #endif //NAOBI_PARSER_HPP

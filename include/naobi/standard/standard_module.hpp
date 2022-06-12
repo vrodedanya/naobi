@@ -3,6 +3,7 @@
 
 #include <naobi/data/module.hpp>
 
+
 namespace naobi
 {
 	class standard : public naobi::module

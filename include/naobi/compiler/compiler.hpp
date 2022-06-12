@@ -9,13 +9,14 @@
 #include <naobi/data/module.hpp>
 #include <naobi/compiler/rule.hpp>
 
+
 namespace naobi
 {
 	class compiler
 	{
 	public:
 		using compilerRule = naobi::rule<std::function<bool(const std::vector<std::string>& line)>,
-				std::function<void(const std::vector<std::string>& line, const naobi::module::sptr& module)>>;
+			std::function<void(const std::vector<std::string>& line, const naobi::module::sptr& module)>>;
 
 	public:
 		compiler();

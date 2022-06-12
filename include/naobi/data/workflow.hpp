@@ -7,6 +7,7 @@
 #include <naobi/data/module.hpp>
 #include <naobi/compiler/code_generator.hpp>
 
+
 namespace naobi
 {
 	class workflow
@@ -15,12 +16,12 @@ namespace naobi
 		using uptr = std::unique_ptr<workflow>;
 		using sptr = std::shared_ptr<workflow>;
 	public:
-		explicit workflow(std::string name, std::string target, module::sptr parentModule);
+		explicit workflow(std::string name, naobi::event target, module::sptr parentModule);
 
 		[[nodiscard]] std::string name() const
 		{ return _name; }
 
-		[[nodiscard]] std::string target() const
+		[[nodiscard]] naobi::event target() const
 		{ return _target; }
 
 		[[nodiscard]] int invoke() const
@@ -43,7 +44,7 @@ namespace naobi
 
 	private:
 		std::string _name;
-		std::string _target;
+		naobi::event _target;
 		naobi::module::sptr _parentModule;
 		std::vector<naobi::command> _commands;
 		int _invoke{-1};

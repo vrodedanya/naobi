@@ -11,6 +11,7 @@
 #include <naobi/data/variable.hpp>
 #include <naobi/interpreter/command.hpp>
 
+
 namespace naobi
 {
 
@@ -19,9 +20,11 @@ namespace naobi
 	struct workflow_context
 	{
 		using sptr = std::shared_ptr<workflow_context>;
+		using variable_storage = std::map<std::string, naobi::variable::sptr>;
 
 		event_manager* eventManager;
-		std::map<std::string, naobi::variable::sptr> variables;
+		std::shared_ptr<variable_storage> variables{std::make_shared<variable_storage>()};
+		std::stack<std::shared_ptr<std::map<std::string, naobi::variable::sptr>>> variablesStack;
 		std::stack<naobi::variable::sptr> stack;
 		std::stack<std::vector<command>::const_iterator> returnPoints;
 		std::vector<command>::const_iterator ip;

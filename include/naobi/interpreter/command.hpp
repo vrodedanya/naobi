@@ -14,19 +14,21 @@ namespace naobi
 	{
 		using argumentsList = std::vector<std::string>;
 
-		using implementation = std::function<void(std::shared_ptr<workflow_context> ptr,
-												  const argumentsList& arguments)>;
+		using implementation = std::function<void(
+			std::shared_ptr<workflow_context> ptr,
+			const argumentsList& arguments)>;
 
 		enum class names
 		{
 			// CommandName <-> argumentsCount
-			NEW, // 2 - name, type
+			NEW, // 2 - name, type, detail
 			INC,
 			DEC,
 			ADD, // 0
 			SUB,
 			MUL,
 			DIV,
+			NEG,
 			MOD,
 			EQ,
 			GREATER,
@@ -34,9 +36,11 @@ namespace naobi
 			GREATER_OR_EQ,
 			LESS_OR_EQ,
 			NOT_EQ,
-			LOAD, // 1 - number
-			SAVE, // 1 - number
-			PLACE, // 1 - value, type
+			ALLOCATE,
+			LOAD, // 1 - name
+			SAVE, // 1 - name
+			TRANSFER, // 1 - name
+			PLACE, // 1 - type, value, internal type
 			PRINTLN,
 			PRINT,
 			INPUT,
@@ -57,6 +61,11 @@ namespace naobi
 			S2F,
 			I2B,
 			S2B,
+			CATCH,
+			THROW,
+			GET,
+			SET,
+			LEN,
 		};
 
 		static naobi::command createCommand(command::names com, const command::argumentsList& arguments);

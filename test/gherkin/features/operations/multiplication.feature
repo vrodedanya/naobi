@@ -11,6 +11,17 @@ Feature: Multiplication operation
     """
     Then got integer 36
     Then ends with the code 0
+  Scenario: Multiple negative number
+    Given script:
+    """
+    import standard;
+    workflow main
+    {
+      println(6 * -6);
+    }
+    """
+    Then got integer -36
+    Then ends with the code 0
   Scenario Outline: Multiple multiply cases of integers
     Given script:
     """

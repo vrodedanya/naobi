@@ -4,9 +4,13 @@
 #include <vector>
 #include <queue>
 #include <list>
+#include <thread>
 
 #include <naobi/data/workflow.hpp>
+#include <naobi/data/event.hpp>
 #include <naobi/interpreter/workflow_context.hpp>
+#include <naobi/interpreter/event_pool.hpp>
+#include <naobi/interpreter/handler.hpp>
 
 
 namespace naobi
@@ -14,17 +18,27 @@ namespace naobi
 	class event_manager
 	{
 	public:
-		void updateContexts(std::list<workflow_context::sptr>& _contexts);
+		virtual ~event_manager();
 
-		void pushEvent(const std::string& event);
+		void addWorkflow(const naobi::event& event, const workflow::sptr& workflow);
 
-		void addWorkflow(const std::string& event, const workflow::sptr& workflow);
+		void execute();
+
+		void handleEvent(const naobi::event& event);
+
+		handler::sptr findHandler();
 
 		[[nodiscard]] std::size_t awaitedNumberOfWorkflows() const
 		{ return _workflows.size(); };
+
+		event_pool& eventPool()
+		{ return _eventPool; }
+
 	private:
-		std::multimap<std::string, workflow::sptr> _workflows;
-		std::queue<std::string> _events;
+		std::multimap<naobi::event, workflow::sptr> _workflows;
+		std::vector<handler::sptr> _handlers;
+		std::vector<std::thread> _threads;
+		event_pool _eventPool;
 	};
 }
 

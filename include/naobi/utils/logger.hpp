@@ -4,11 +4,13 @@
 #include <fstream>
 #include <iostream>
 #include <chrono>
+#include <mutex>
 
 #include <naobi/utils/output_type_trait.hpp>
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/color.hpp>
 #include <naobi/utils/errors.hpp>
+
 
 #define NLOG(addressee, level, ...) \
     naobi::logger::log(#addressee, level, ##__VA_ARGS__)
@@ -87,6 +89,7 @@ namespace naobi
 		static inline int _currentLevel{};
 		static inline bool _printDate{};
 		static inline bool _printLevel{};
+		static inline std::mutex _mutex;
 	};
 
 	void logger::setLoggingFile(const std::string& fileName)
@@ -101,6 +104,8 @@ namespace naobi
 		if (!_isEnabled) return;
 		if (level > _currentLevel) return;
 		std::time_t current_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+		std::lock_guard<std::mutex> guard(_mutex);
 
 		if (addressee != _currentAddressee)
 		{

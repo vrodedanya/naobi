@@ -1,5 +1,6 @@
 Feature: Users functions
   User can create functions and pass arguments with different types. Function can return the value
+
   Scenario: Function that only prints message and doesn't get or return the value
     Given script:
     """
@@ -15,6 +16,7 @@ Feature: Users functions
     """
     Then got string "Hello"
     Then ends with the code 0
+
   Scenario: Calling not existed function
     Given script:
     """
@@ -24,6 +26,7 @@ Feature: Users functions
     }
     """
     Then fails with compilation error and code 52
+
   Scenario: Function takes integer and prints it
     Given script:
     """
@@ -39,6 +42,7 @@ Feature: Users functions
     """
     Then got integer 10
     Then ends with the code 0
+
   Scenario: Function takes two integer arguments and print sum
     Given script:
     """
@@ -54,6 +58,7 @@ Feature: Users functions
     """
     Then got integer 50
     Then ends with the code 0
+
   Scenario: Function that returns value
     Given script:
     """
@@ -69,6 +74,7 @@ Feature: Users functions
     """
     Then got integer 5
     Then ends with the code 0
+
   Scenario: Function that takes arguments and returns it
     Given script:
     """
@@ -84,6 +90,7 @@ Feature: Users functions
     """
     Then got integer 5
     Then ends with the code 0
+
   Scenario: Function that add two integers and return the sum
     Given script:
     """
@@ -99,6 +106,7 @@ Feature: Users functions
     """
     Then got integer 50
     Then ends with the code 0
+
   Scenario: Provided 1 argument but need 2
     Given script:
     """
@@ -113,6 +121,7 @@ Feature: Users functions
     }
     """
     Then fails with compilation error and code 57
+
   Scenario: Multiple return in function
     Given script:
     """
@@ -136,6 +145,7 @@ Feature: Users functions
     """
     Then got integer 2
     Then ends with the code 0
+
   Scenario: Wrong argument type
     Given script:
     """
@@ -150,6 +160,7 @@ Feature: Users functions
     }
     """
     Then fails with compilation error and code 53
+
   Scenario: Function overload simple
     Given script:
     """
@@ -171,6 +182,7 @@ Feature: Users functions
     Then got string "Integer"
     Then got string "Float"
     Then ends with the code 0
+
   Scenario: Function overload named arguments
     Given script:
     """
@@ -192,6 +204,7 @@ Feature: Users functions
     Then got string "Float"
     Then got string "Integer"
     Then ends with the code 0
+
   Scenario: Function overload wrong types
     Given script:
     """
@@ -211,6 +224,7 @@ Feature: Users functions
     }
     """
     Then fails with compilation error and code 53
+
   Scenario: Function already exists
     Given script:
     """
@@ -230,6 +244,7 @@ Feature: Users functions
     }
     """
     Then fails with compilation error and code 51
+
   Scenario: Function overloading with return type
     Given script:
     """
@@ -252,4 +267,19 @@ Feature: Users functions
     """
     Then got string "Integer"
     Then got string "Float"
+    Then ends with the code 0
+  Scenario: String argument with ':'. Issue #10
+    Given script:
+    """
+    import standard;
+    function pri(string val)
+    {
+      println(val);
+    }
+    workflow main
+    {
+      pri("str: test");
+    }
+    """
+    Then got string "str: test"
     Then ends with the code 0
