@@ -35,9 +35,13 @@ void naobi::operation::setPriority(int priority)
 naobi::operation::impl
 naobi::operation::call(const naobi::utils::type::type& first, const naobi::utils::type::type& second)
 {
-	auto it = std::find_if(_implementations.begin(), _implementations.end(),[first, second](const std::pair<key, impl>& k){
-		return k.first.first == first && (k.first.second.name == utils::type::names::UNDEFINED || k.first.second == second);
-	});(std::make_pair(first, second));
+	auto it = std::find_if(
+		_implementations.begin(), _implementations.end(), [first, second](const std::pair<key, impl>& k)
+		{
+			return k.first.first.name == first.name && (k.first.second.name == utils::type::names::UNDEFINED ||
+														k.first.second.name ==
+														second.name); // TODO need to fix arrays element types
+		});
 	if (it == _implementations.end()) return std::make_pair(utils::type::type(utils::type::names::UNDEFINED), nullptr);
 	else return it->second;
 }

@@ -143,6 +143,18 @@ naobi::standard::standard() : module("standard")
 		addTemplateFunction(templateFunction);
 	}
 	{
+		auto function = std::make_shared<naobi::function>("get");
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("variable", utils::type::type(utils::type::names::STRING));
+		function->addArgument("index", utils::type::type(utils::type::names::INTEGER));
+		std::vector<naobi::command> commands;
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"index"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"variable"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::GET, {}));
+		function->setCommands(commands);
+		addFunction(function);
+	}
+	{
 		auto templateFunction = std::make_shared<naobi::template_function>("set");
 		templateFunction->setReturnType("CONTAINER<ELEMENT>");
 		templateFunction->addArgument("variable", "CONTAINER<ELEMENT>");
@@ -153,6 +165,20 @@ naobi::standard::standard() : module("standard")
 								  "__insert LOAD variable;"
 								  "__insert SET;");
 		addTemplateFunction(templateFunction);
+	}
+	{
+		auto function = std::make_shared<naobi::function>("set");
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("variable", utils::type::type(utils::type::names::STRING));
+		function->addArgument("sub", utils::type::type(utils::type::names::STRING));
+		function->addArgument("index", utils::type::type(utils::type::names::INTEGER));
+		std::vector<naobi::command> commands;
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"index"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"sub"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"variable"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::SET, {}));
+		function->setCommands(commands);
+		addFunction(function);
 	}
 	{
 		auto templateFunction = std::make_shared<naobi::template_function>("len");
@@ -171,6 +197,18 @@ naobi::standard::standard() : module("standard")
 								  "__insert LOAD additional;"
 								  "__insert ADD;");
 		addTemplateFunction(templateFunction);
+	}
+	{
+		auto function = std::make_shared<naobi::function>("append");
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("variable", utils::type::type(utils::type::names::STRING));
+		function->addArgument("additional", utils::type::type(utils::type::names::STRING));
+		std::vector<naobi::command> commands;
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"variable"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"additional"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::ADD, {}));
+		function->setCommands(commands);
+		addFunction(function);
 	}
 	{
 		auto exception = naobi::exception();
