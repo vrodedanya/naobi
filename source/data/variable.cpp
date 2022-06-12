@@ -87,6 +87,38 @@ naobi::variable& naobi::variable::operator =(naobi::variable&& var) noexcept
 	return *this;
 }
 
+naobi::variable::sptr naobi::variable::operator [](std::size_t index) const
+{
+	if (_type.name == naobi::utils::type::names::STRING)
+	{
+		auto var = std::make_shared<variable>("temp", utils::type::type(utils::type::names::STRING));
+		var->value() = std::string(1, std::get<std::string>(_value).at(index));
+		return var;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+std::size_t naobi::variable::size() const
+{
+	if (_type.name == naobi::utils::type::names::STRING)
+	{
+		return std::get<std::string>(_value).size();
+	}
+	else return 1;
+}
+
+void naobi::variable::set(const variable::sptr& sub, std::size_t index)
+{
+	if (_type.name == naobi::utils::type::names::STRING)
+	{
+		auto& str = std::get<std::string>(_value);
+		str.erase(index,1).insert(index, std::get<std::string>(sub->value()));
+	}
+}
+
 
 bool naobi::operator ==(const naobi::variable::sptr& var1, bool var2)
 {
@@ -95,7 +127,7 @@ bool naobi::operator ==(const naobi::variable::sptr& var1, bool var2)
 		return std::get<bool>(var1->value()) == var2;
 	}
 	NCRITICAL(variable, errors::TYPE_ERROR, "RUNTIME CRITICAL Variable should be boolean type!\n",
-		 "Please, report this error to https://github.com/vrodedanya/naobi/issues");
+			  "Please, report this error to https://github.com/vrodedanya/naobi/issues");
 }
 
 bool naobi::operator !=(const naobi::variable::sptr& var1, bool var2)

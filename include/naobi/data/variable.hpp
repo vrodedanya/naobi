@@ -21,12 +21,14 @@ namespace naobi
 		variable(std::string name, utils::type::type type);
 
 		variable& operator =(const variable& var);
+
 		variable& operator =(variable&& var) noexcept;
 
 		[[nodiscard]] std::string name() const
 		{ return _name; }
 
-		void setName(const std::string& name){_name = name;}
+		void setName(const std::string& name)
+		{ _name = name; }
 
 		[[nodiscard]] utils::type::type& type()
 		{ return _type; }
@@ -41,6 +43,12 @@ namespace naobi
 		{ return _value; }
 
 		void invert();
+
+		variable::sptr operator [](std::size_t index) const;
+
+		void set(const variable::sptr& sub, std::size_t index);
+
+		[[nodiscard]] std::size_t size() const;
 
 		naobi::variable::sptr copy();
 

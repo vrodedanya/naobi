@@ -133,6 +133,42 @@ naobi::standard::standard() : module("standard")
 		addFunction(function);
 	}
 	{
+		auto function = std::make_shared<naobi::function>("get");
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("variable", utils::type::type(utils::type::names::STRING));
+		function->addArgument("index", utils::type::type(utils::type::names::INTEGER));
+		std::vector<naobi::command> commands;
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"index"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"variable"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::GET, {}));
+		function->setCommands(commands);
+		addFunction(function);
+	}
+	{
+		auto function = std::make_shared<naobi::function>("set");
+		function->setReturnType(utils::type::type(utils::type::names::STRING));
+		function->addArgument("variable", utils::type::type(utils::type::names::STRING));
+		function->addArgument("sub", utils::type::type(utils::type::names::STRING));
+		function->addArgument("index", utils::type::type(utils::type::names::INTEGER));
+		std::vector<naobi::command> commands;
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"index"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"sub"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"variable"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::SET, {}));
+		function->setCommands(commands);
+		addFunction(function);
+	}
+	{
+		auto function = std::make_shared<naobi::function>("len");
+		function->setReturnType(utils::type::type(utils::type::names::INTEGER));
+		function->addArgument("variable", utils::type::type(utils::type::names::STRING));
+		std::vector<naobi::command> commands;
+		commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {"variable"}));
+		commands.emplace_back(command::createCommand(naobi::command::names::LEN, {}));
+		function->setCommands(commands);
+		addFunction(function);
+	}
+	{
 		auto exception = naobi::exception();
 		exception.name = "CastException";
 		addException(exception);

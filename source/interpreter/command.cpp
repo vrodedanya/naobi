@@ -111,10 +111,10 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
-			auto var = context->stack.top();
-			context->stack.pop();
-			var->setName(args[0]);
-			(*context->variablesStack.top())[args[0]] = var;
+			 auto var = context->stack.top();
+			 context->stack.pop();
+			 var->setName(args[0]);
+			 (*context->variablesStack.top())[args[0]] = var;
 		 }},
 		{naobi::command::names::PLACE,
 		 [](
@@ -489,6 +489,32 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		{
 			throw naobi::naobi_exception(args[0], std::get<std::string>(context->stack.top()->value()));
 		}},
+		{naobi::command::names::GET, [](
+			const naobi::workflow_context::sptr& context,
+			const naobi::command::argumentsList& args)
+		{
+			auto str = context->stack.top();
+			context->stack.pop();
+			context->stack.top() = (*str)[static_cast<size_t>(std::get<long long>(context->stack.top()->value()))];
+		}},
+		{naobi::command::names::SET, [](
+			const naobi::workflow_context::sptr& context,
+			const naobi::command::argumentsList& args)
+		{
+			auto str = context->stack.top();
+			context->stack.pop();
+			auto sub = context->stack.top();
+			context->stack.pop();
+			str->set(sub, static_cast<std::size_t>(std::get<long long>(context->stack.top()->value())));
+			context->stack.top() = str;
+		}},
+		{naobi::command::names::LEN, [](
+			const naobi::workflow_context::sptr& context,
+			const naobi::command::argumentsList& args)
+		{
+			context->stack.top()->value() = static_cast<long long>(context->stack.top()->size());
+			context->stack.top()->type() = utils::type::type(utils::type::names::INTEGER);
+		}},
 	};
 
 std::map<std::string, naobi::command::names> naobi::command::stringToCommand
@@ -535,6 +561,9 @@ std::map<std::string, naobi::command::names> naobi::command::stringToCommand
 		{"S2B", naobi::command::names::S2B},
 		{"CATCH", naobi::command::names::CATCH},
 		{"THROW", naobi::command::names::THROW},
+		{"GET", naobi::command::names::GET},
+		{"SET", naobi::command::names::SET},
+		{"LEN", naobi::command::names::LEN},
 	};
 
 naobi::command
