@@ -9,7 +9,6 @@ naobi::operation::operation(
 	_commandAnalogue(commandAnalogue),
 	_implementations(std::move(implement))
 {
-
 }
 
 const std::string& naobi::operation::getOperator() const

@@ -482,7 +482,6 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			const naobi::workflow_context::sptr& context,
 			const naobi::command::argumentsList& args) noexcept
 		{
-
 		}},
 		{naobi::command::names::THROW, [](
 			const naobi::workflow_context::sptr& context,

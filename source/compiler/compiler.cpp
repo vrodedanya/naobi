@@ -447,7 +447,6 @@ naobi::compiler::compiler() :
 					if (!event.addArgument(pair[1], utils::type::type(utils::type::fromStringToName(pair[0])), nullptr))
 					{
 						NCRITICAL(compiler, errors::ALREADY_EXIST, "CRITICAL argument '",pair, "'", "is already exist");
-
 					}
 				}
 
