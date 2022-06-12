@@ -68,11 +68,24 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 const std::vector<std::string>& words,
 				 std::vector<naobi::command>& commands)
 			 {
+				 NLOG(code_generator, logger::IMPORTANT, "Variable creating logic: ", words);
 				 std::vector<std::string> wordsTemp = words;
 				 wordsTemp = naobi::parser::removeEmpty(wordsTemp);
-				 utils::type::names type = utils::type::fromStringToName(wordsTemp[0]);
+				 utils::type::type type;
+				 type = utils::type::generateType(
+					 std::vector<std::string>(
+						 wordsTemp.begin(),
+						 parser::findCloseBracket(wordsTemp.begin(), wordsTemp.end(), "<", ">") + 1));
+				 auto it = parser::findCloseBracket(wordsTemp.begin(), wordsTemp.end(), "<", ">");
+				 if (it == wordsTemp.end())
+				 {
+					 it = wordsTemp.begin() + 1;
+				 }
+				 else
+				 {
+					 it++;
+				 }
 
-				 auto it = wordsTemp.begin() + 1;
 				 while (it != wordsTemp.cend())
 				 {
 					 if (_variablesTemp.find(*it) != _variablesTemp.cend())
@@ -81,10 +94,21 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 								   "' is already exist");
 					 }
 					 auto var = std::make_shared<naobi::variable>(*it, utils::type::type(type));
-					 commands.emplace_back(
-						 naobi::command::createCommand(
-							 naobi::command::names::NEW,
-							 {*it, std::to_string(static_cast<int>(type))}));
+					 if (type.detail.empty())
+					 {
+						 commands.emplace_back(
+							 naobi::command::createCommand(
+								 naobi::command::names::NEW,
+								 {*it, std::to_string(static_cast<int>(type.name))}));
+					 }
+					 else
+					 {
+						 commands.emplace_back(
+							 naobi::command::createCommand(
+								 naobi::command::names::NEW,
+								 {*it, std::to_string(static_cast<int>(type.name)),
+								  std::to_string(static_cast<int>(type.detail.front().name))}));
+					 }
 					 it++;
 					 if (it == wordsTemp.cend() || *it != "=")
 					 {
@@ -116,13 +140,33 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 								 wordsTemp.end(),
 								 ",")),
 						 commands);
-					 if (t.name != type)
+					 if (t != type)
 					 {
-						 NCRITICAL(code_generator, errors::TYPE_ERROR,
-								   "CRITICAL can't assign value which type is '",
-								   utils::type::fromNameToString(t.name),
-								   "' to variable which type is '",
-								   utils::type::fromNameToString(type), "'");
+						 if (t.name != type.name)
+						 {
+							 NCRITICAL(code_generator, errors::TYPE_ERROR,
+									   "CRITICAL can't assign value which type is '",
+									   utils::type::fromNameToString(t.name),
+									   "' to variable which type is '",
+									   utils::type::fromNameToString(type.name), "'");
+						 }
+						 else
+						 {
+							 if (t.detail.empty() || type.detail.empty())
+							 {
+								 NCRITICAL(code_generator, errors::INTERNAL_ERROR,
+										   "CRITICAL second type is array but doesn't contains type. "
+										   "Leave message to project issues about it");
+							 }
+							 else
+							 {
+								 NCRITICAL(code_generator, errors::TYPE_ERROR,
+										   "CRITICAL types contains different types: ",
+										   utils::type::fromNameToString(t.detail.front().name),
+										   " and ",
+										   utils::type::fromNameToString(type.detail.front().name));
+							 }
+						 }
 					 }
 					 commands.emplace_back(
 						 naobi::command::createCommand(
@@ -642,7 +686,7 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 					NCRITICAL(processExpression, errors::DOESNT_EXIST, "CRITICAL variable '", *it, "' not found");
 				}
 				commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {*it}));
-				types.push(utils::type::type(var->second->type().name));
+				types.push(var->second->type());
 			}
 		}
 		else
@@ -654,10 +698,17 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 			{
 				temp = temp.substr(1, temp.size() - 2);
 			}
+			else if (type.name == utils::type::names::ARRAY)
+			{
+				auto str = parser::removeSym(temp.substr(1, temp.size() - 2), ' ');
+				auto args = parser::split(str, parser::isAnyOf(","), {}, {{'"', '"'}});
+				type.detail.emplace_back(utils::type::checkType(args[0]));
+			}
 			commands.emplace_back(
 				command::createCommand(
 					naobi::command::names::PLACE,
 					{std::to_string(static_cast<int>(type.name)), temp}));
+
 			types.push(type);
 		}
 	}
@@ -883,7 +934,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 	std::vector<function::argument_type> arguments;
 	code_generator generator(_module);
 	arguments.resize(args.size());
-	std::map<std::string, utils::type::names> alreadySubstituted;
+	std::map<std::string, utils::type::type> alreadySubstituted;
 	std::string code = templateFunction->getCode();
 	for (auto arg = args.begin() ; arg != args.end() ;)
 	{
@@ -947,16 +998,37 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 			{
 				arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(
 					argInFunction.first,
-					utils::type::type(it->second));
+					it->second);
 			}
 			else
 			{
-				alreadySubstituted[argInFunction.second] = type.name;
+				alreadySubstituted[argInFunction.second] = type;
+				auto inner_pos = argInFunction.second.find("<");
+				auto end = argInFunction.second.find(">", inner_pos + 1);
+				if (inner_pos != std::string::npos)
+				{
+					if (end == std::string::npos)
+					{
+						NCRITICAL(code_generator, errors::WRONG_FORMAT,
+								  "CRITICAL wrong format of inner argument", argInFunction.second);
+					}
+					auto inner_type = argInFunction.second.substr(inner_pos + 1, end - inner_pos - 1);
+					if (type.detail.empty())
+					{
+						NCRITICAL(code_generator, errors::TYPE_ERROR,
+								  "CRITICAL inner template type but provided without it: ", inner_type);
+					}
+					alreadySubstituted[inner_type] = type.detail.front();
+				}
 				arguments[templateFunction->getPosOfArgument(argInFunction.first)] = std::make_pair(
-					argInFunction.first,
-					utils::type::type(type));
+					argInFunction.first, type);
+				for (auto& [temp, t] : alreadySubstituted)
+				{
+					NLOG(code_generator, logger::IMPORTANT, "Template types substitution: ", temp, " ", utils::type::fromNameToString(t.name));
+				}
 			}
-			generator.addVariable(argInFunction.first, std::make_shared<variable>(argInFunction.first, utils::type::type(type)));
+			generator.addVariable(
+				argInFunction.first, std::make_shared<variable>(argInFunction.first, type));
 			std::size_t startPos{};
 			std::string substitute = utils::type::fromNameToString(type.name);
 			while ((startPos = code.find(argInFunction.second, startPos)) != std::string::npos)
@@ -985,7 +1057,8 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 	{
 		if (utils::type::isStandardType(templateFunction->getReturnType()))
 		{
-			newFunction->setReturnType(utils::type::type(utils::type::fromStringToName(templateFunction->getReturnType())));
+			newFunction->setReturnType(
+				utils::type::type(utils::type::fromStringToName(templateFunction->getReturnType())));
 		}
 		else
 		{

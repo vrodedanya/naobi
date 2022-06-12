@@ -4,13 +4,23 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <memory>
 
-#include <naobi/utils/type/array_type.hpp>
+namespace naobi
+{
+	class variable;
+}
 
 
 namespace naobi::utils::type
 {
-	using variable_type = std::variant<long long, bool, std::string, double, utils::type::array_type>;
+	using float_t = double;
+	using integer_t = long long;
+	using bool_t = bool;
+	using string_t = std::string;
+	using array_t = std::vector<std::shared_ptr<variable>>;
+
+	using variable_type = std::variant<integer_t, bool_t, string_t, float_t, array_t>;
 
 	/**
 	 * @brief Enums for standard types
@@ -30,6 +40,7 @@ namespace naobi::utils::type
 	public:
 		type() = default;
 		explicit type(names typeName);
+		type(names typeName, std::vector<type> typeDetail);
 
 		bool operator ==(const type& rhs) const;
 
@@ -47,13 +58,15 @@ namespace naobi::utils::type
 		std::vector<type> detail;
 	};
 
+	type generateType(const std::vector<std::string>& type);
+
 	bool isStandardType(const std::string& type);
 
 	names fromStringToName(const std::string& type);
 
 	std::string fromNameToString(const names& name);
 
-	variable_type getValueFrom(names type, const std::string& string);
+	variable_type getValueFrom(type& type, const std::string& string);
 
 	names toType(const std::string& string);
 

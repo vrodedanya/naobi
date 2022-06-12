@@ -21,7 +21,7 @@ namespace naobi
 		enum class names
 		{
 			// CommandName <-> argumentsCount
-			NEW, // 2 - name, type
+			NEW, // 2 - name, type, detail
 			INC,
 			DEC,
 			ADD, // 0
@@ -37,10 +37,10 @@ namespace naobi
 			LESS_OR_EQ,
 			NOT_EQ,
 			ALLOCATE,
-			LOAD, // 1 - number
-			SAVE, // 1 - number
+			LOAD, // 1 - name
+			SAVE, // 1 - name
 			TRANSFER, // 1 - name
-			PLACE, // 1 - type, value
+			PLACE, // 1 - type, value, internal type
 			PRINTLN,
 			PRINT,
 			INPUT,

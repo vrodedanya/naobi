@@ -22,6 +22,9 @@ naobi::variable::variable(std::string name, utils::type::type type) :
 		case utils::type::names::FLOAT:
 			_value = 0.0;
 			break;
+		case utils::type::names::ARRAY:
+			_value = utils::type::array_t();
+			break;
 		case utils::type::names::UNDEFINED:
 		default:
 			NLOG(varible.constructor, logger::CRITICAL, "CRITICAL variable with undefined type");
@@ -95,6 +98,12 @@ naobi::variable::sptr naobi::variable::operator [](std::size_t index) const
 		var->value() = std::string(1, std::get<std::string>(_value).at(index));
 		return var;
 	}
+	else if (_type.name == naobi::utils::type::names::ARRAY)
+	{
+		auto var = std::make_shared<variable>("temp", utils::type::type(_type.detail.front()));
+		var->value() = std::get<utils::type::array_t>(_value).at(index)->value();
+		return var;
+	}
 	else
 	{
 		return nullptr;
@@ -107,6 +116,10 @@ std::size_t naobi::variable::size() const
 	{
 		return std::get<std::string>(_value).size();
 	}
+	else if (_type.name == naobi::utils::type::names::ARRAY)
+	{
+		return std::get<utils::type::array_t>(_value).size();
+	}
 	else return 1;
 }
 
@@ -116,6 +129,12 @@ void naobi::variable::set(const variable::sptr& sub, std::size_t index)
 	{
 		auto& str = std::get<std::string>(_value);
 		str.erase(index,1).insert(index, std::get<std::string>(sub->value()));
+	}
+	else if (_type.name == naobi::utils::type::names::ARRAY)
+	{
+		auto& arr = std::get<utils::type::array_t>(_value);
+		arr.erase(arr.begin() + static_cast<long>(index));
+		arr.insert(arr.begin() + static_cast<long>(index), sub);
 	}
 }
 

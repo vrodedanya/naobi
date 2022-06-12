@@ -32,3 +32,16 @@ Feature: Functions for working with containers (sequence of smthg)
     """
     Then got string "te|t"
     Then ends with the code 0
+  Scenario: Append element
+    Given script:
+    """
+    import standard;
+    workflow main
+    {
+      string text = "Hello ";
+      text = append(text, "world!");
+      println(text);
+    }
+    """
+    Then got string "Hello world!"
+    Then ends with the code 0

@@ -49,6 +49,9 @@ namespace naobi::parser
 	std::string dirName(const std::string& path) noexcept;
 
 	std::string fileName(const std::string& path) noexcept;
+
+	template <typename ITERATOR, typename SYM>
+	auto findCloseBracket(ITERATOR begin, ITERATOR end, SYM openBracket, SYM closeBracket);
 }
 
 template <typename ITERATOR_BEGIN, typename ITERATOR_END>
@@ -65,6 +68,32 @@ std::string naobi::parser::join(
 	}
 
 	return temp;
+}
+
+template <typename ITERATOR, typename SYM>
+auto naobi::parser::findCloseBracket(ITERATOR begin, ITERATOR end, SYM openBracket, SYM closeBracket)
+{
+	if (openBracket == closeBracket)
+	{
+		assert(openBracket != closeBracket);
+	}
+	int count{};
+	for (auto it = begin ; it != end ; it++)
+	{
+		if (*it == openBracket)
+		{
+			count++;
+		}
+		else if (*it == closeBracket)
+		{
+			count--;
+			if (count == 0)
+			{
+				return it;
+			}
+		}
+	}
+	return end;
 }
 
 #endif //NAOBI_PARSER_HPP

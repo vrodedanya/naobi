@@ -3,9 +3,18 @@
 #include <algorithm>
 #include <set>
 
+#include <naobi/utils/parser.hpp>
+#include <naobi/data/variable.hpp>
+
 
 naobi::utils::type::type::type(naobi::utils::type::names typeName) : name(typeName)
 {}
+
+naobi::utils::type::type::type(naobi::utils::type::names typeName, std::vector<type> typeDetail) :
+name(typeName),
+detail(std::move(typeDetail))
+{
+}
 
 bool naobi::utils::type::type::operator ==(const naobi::utils::type::type& rhs) const
 {
@@ -42,6 +51,20 @@ bool naobi::utils::type::type::operator >=(const naobi::utils::type::type& rhs) 
 	return !(*this < rhs);
 }
 
+naobi::utils::type::type naobi::utils::type::generateType(const std::vector<std::string>& t)
+{
+	utils::type::type temp;
+	temp.name = utils::type::fromStringToName(t[0]);
+	if (t.size() > 1 && t[1] == "<")
+	{
+		temp.detail
+			.push_back(
+				generateType(
+					std::vector<std::string>(
+						t.begin() + 2, parser::findCloseBracket(t.begin() + 1, t.end(), "<", ">"))));
+	}
+	return temp;
+}
 
 bool naobi::utils::type::isLiteral(const std::string& string)
 {
@@ -107,12 +130,27 @@ naobi::utils::type::names naobi::utils::type::toType(const std::string& string)
 }
 
 naobi::utils::type::variable_type
-naobi::utils::type::getValueFrom(naobi::utils::type::names type, const std::string& string)
+naobi::utils::type::getValueFrom(naobi::utils::type::type& type, const std::string& string)
 {
-	if (type == names::INTEGER) return std::stoll(string);
-	else if (type == names::BOOLEAN) return (string == "true");
-	else if (type == names::STRING) return string;
-	else if (type == names::FLOAT) return std::stod(string);
+	if (type.name == names::INTEGER) return std::stoll(string);
+	else if (type.name == names::BOOLEAN) return (string == "true");
+	else if (type.name == names::STRING) return string;
+	else if (type.name == names::FLOAT) return std::stod(string);
+	else if (type.name == names::ARRAY)
+	{
+		auto temp = parser::removeSym(string.substr(1, string.size() - 2), ' ');
+		auto args = parser::split(temp, parser::isAnyOf(","), {}, {{'"', '"'}});
+		utils::type::array_t buffer;
+		for (const auto& arg : args)
+		{
+			auto t = utils::type::type(checkType(arg));
+			if (type.detail.empty()) type.detail.push_back(t);
+			auto var = std::make_shared<variable>("temp", t);
+			var->value() = getValueFrom(t, arg);
+			buffer.push_back(var);
+		}
+		return buffer;
+	}
 	else return nullptr;
 }
 

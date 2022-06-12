@@ -88,6 +88,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
 		 {
 			 auto type = utils::type::type(utils::type::toType(args[1]));
+			 if (args.size() == 3) type.detail.emplace_back(utils::type::toType(args[2]));
 			 auto var = std::make_shared<naobi::variable>(args[0], type);
 			 (*context->variables)[var->name()] = var;
 		 }},
@@ -123,7 +124,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 		 {
 			 auto type = utils::type::type(utils::type::toType(args[0]));
 			 auto var = std::make_shared<naobi::variable>("temp", type);
-			 var->value() = utils::type::getValueFrom(type.name, args[1]);
+			 var->value() = utils::type::getValueFrom(type, args[1]);
 			 context->stack.push(var);
 		 }},
 		{naobi::command::names::PRINTLN,

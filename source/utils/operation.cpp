@@ -35,7 +35,9 @@ void naobi::operation::setPriority(int priority)
 naobi::operation::impl
 naobi::operation::call(const naobi::utils::type::type& first, const naobi::utils::type::type& second)
 {
-	auto it = _implementations.find(std::make_pair(first, second));
+	auto it = std::find_if(_implementations.begin(), _implementations.end(),[first, second](const std::pair<key, impl>& k){
+		return k.first.first == first && (k.first.second.name == utils::type::names::UNDEFINED || k.first.second == second);
+	});(std::make_pair(first, second));
 	if (it == _implementations.end()) return std::make_pair(utils::type::type(utils::type::names::UNDEFINED), nullptr);
 	else return it->second;
 }
@@ -157,6 +159,19 @@ std::vector<naobi::operation::sptr> naobi::operation_manager::_operations = {
 							 std::get<bool>(
 								 second->value()));
 						 return result;
+					 })},
+				{std::make_pair(
+					utils::type::type(utils::type::names::ARRAY),
+					utils::type::type(utils::type::names::UNDEFINED)),
+				 std::make_pair(
+					 utils::type::type(utils::type::names::BOOLEAN),
+					 [](
+						 const naobi::variable::sptr& first,
+						 const naobi::variable::sptr& second) -> naobi::variable::sptr
+					 {
+						 auto& arr = std::get<utils::type::array_t>(first->value());
+						 arr.push_back(second);
+						 return first;
 					 })},
 			})),
 	std::make_shared<naobi::operation>(
