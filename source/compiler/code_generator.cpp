@@ -132,13 +132,22 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 						 NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL '",
 								   *(it - 1), "' has empty literal");
 					 }
-					 auto next = std::find(it, wordsTemp.end(), ",");
+					 int blockCount{};
+					 auto next = std::find_if(
+						 it,
+						 wordsTemp.end(),
+						 [&blockCount](const std::string& str){
+							 if (str == "(") blockCount++;
+							 else if (str == ")") blockCount--;
+							 if (str == ",")
+							 {
+								 return blockCount == 0;
+							 }
+							 return false;
+						 });
 					 auto t = processExpression(
 						 std::vector<std::string>(
-							 it, std::find(
-								 it,
-								 wordsTemp.end(),
-								 ",")),
+							 it, next),
 						 commands);
 					 if (t != type)
 					 {
@@ -176,7 +185,6 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 if (it == wordsTemp.end()) break;
 					 it++;
 				 }
-
 			 }},
 			// If else statement
 			{[](const std::vector<std::string>& words) -> bool
@@ -345,6 +353,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 [[maybe_unused]]const std::vector<std::string>& words,
 				 std::vector<naobi::command>& commands)
 			 {
+				 commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
 				 callFunction(words, commands);
 			 }},
 			// Raise
@@ -597,7 +606,7 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 					}
 				}
 				std::string op = *it;
-				if ((*it == "=" && *(it + 1) == "=") || *it == "<" || *it == ">" || (*it == "<" && *(it + 1) == "=") ||
+				if ((*it == "=" && *(it + 1) == "=") || (*it == "<" && *(it + 1) == "=") ||
 					(*it == ">" && *(it + 1) == "=") || (*it == "!" && *(it + 1) == "="))
 				{
 					op += *(it + 1);
@@ -671,6 +680,7 @@ naobi::code_generator::processExpression(const std::vector<std::string>& words, 
 				isOperatorPrev = false;
 				if ((it + 1) != words.cend() && *(it + 1) == "(")
 				{
+					commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
 					auto t = callFunction(std::vector<std::string>(it, findEndBracket(it, words.end()) + 1), commands);
 					if (t.name == utils::type::names::UNDEFINED)
 					{
@@ -793,7 +803,6 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 				  args.size(), "'");
 	}
 
-	commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
 
 	std::size_t pos = 0;
 	auto functionIterator = functions.begin();
@@ -1029,13 +1038,6 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 			}
 			generator.addVariable(
 				argInFunction.first, std::make_shared<variable>(argInFunction.first, type));
-			std::size_t startPos{};
-			std::string substitute = utils::type::fromNameToString(type.name);
-			while ((startPos = code.find(argInFunction.second, startPos)) != std::string::npos)
-			{
-				code.replace(startPos, argInFunction.second.size(), substitute);
-				startPos += substitute.size();
-			}
 		}
 
 		pos++;
@@ -1043,6 +1045,19 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 	}
 
 	newFunction->setArguments(arguments);
+
+	for (const auto& [from, to] : alreadySubstituted)
+	{
+		std::size_t startPos{};
+		std::string substitute = utils::type::fromNameToString(to.name);
+		NLOG(genereateFunction, logger::IMPORTANT, "find ", from, " to substitute by ", substitute);
+		while ((startPos = code.find(from, startPos)) != std::string::npos)
+		{
+			code.replace(startPos, from.size(), substitute);
+			startPos += substitute.size();
+		}
+	}
+
 	auto lines = parser::split(
 		code, parser::isAnyOf(";}"), {}, {{'{', '}'},
 										  {'"', '"'}});
@@ -1062,6 +1077,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 		}
 		else
 		{
+			NLOG(functionGenerator, logger::BASIC, "Substitute return type which is ", templateFunction->getReturnType());
 			auto it = alreadySubstituted.find(templateFunction->getReturnType());
 			if (it == alreadySubstituted.end())
 			{

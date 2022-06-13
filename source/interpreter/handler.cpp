@@ -61,7 +61,11 @@ void naobi::handler::execute()
 				{
 					auto exception = naobi::exception();
 					exception.name = "CppException";
-					exception.description = except.what();
+					exception.description = except.what() + std::string(" ") +
+						std::find_if(command::stringToCommand.begin(), command::stringToCommand.end(),[c = (*context)->ip](const auto& pair)
+						{
+							return pair.second == c->name;
+						})->first;
 					catchException(exception, *context);
 				}
 				(*context)->ip++;

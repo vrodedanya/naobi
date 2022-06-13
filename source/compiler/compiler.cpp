@@ -328,7 +328,7 @@ naobi::compiler::compiler() :
 				 auto retIterator = std::find(line.begin(), line.end(), "->");
 				 if (retIterator != line.end() && (retIterator + 1) != line.end())
 				 {
-					 auto returnType = (*(retIterator + 1));
+					 auto returnType = parser::join(retIterator + 1, line.end() - 1,"");
 					 templateFunction->setReturnType(returnType);
 				 }
 				 else
