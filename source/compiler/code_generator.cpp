@@ -136,7 +136,8 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 auto next = std::find_if(
 						 it,
 						 wordsTemp.end(),
-						 [&blockCount](const std::string& str){
+						 [&blockCount](const std::string& str)
+						 {
 							 if (str == "(") blockCount++;
 							 else if (str == ")") blockCount--;
 							 if (str == ",")
@@ -323,7 +324,8 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 												 {'{', '}'}});
 				 NLOG(code_generator.forBlock, logger::LOW, "for block lines:\n", lines);
 
-				 auto tempCommands = generate(lines);
+				 code_generator tempGenerator(_module, _variablesTemp);
+				 auto tempCommands = tempGenerator.generate(lines);
 				 commands.push_back(
 					 command::createCommand(
 						 command::names::JUMP_IF,
@@ -1033,7 +1035,8 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 					argInFunction.first, type);
 				for (auto& [temp, t] : alreadySubstituted)
 				{
-					NLOG(code_generator, logger::IMPORTANT, "Template types substitution: ", temp, " ", utils::type::fromNameToString(t.name));
+					NLOG(code_generator, logger::IMPORTANT, "Template types substitution: ", temp, " ",
+						 utils::type::fromNameToString(t.name));
 				}
 			}
 			generator.addVariable(
@@ -1077,7 +1080,8 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 		}
 		else
 		{
-			NLOG(functionGenerator, logger::BASIC, "Substitute return type which is ", templateFunction->getReturnType());
+			NLOG(functionGenerator, logger::BASIC, "Substitute return type which is ",
+				 templateFunction->getReturnType());
 			auto it = alreadySubstituted.find(templateFunction->getReturnType());
 			if (it == alreadySubstituted.end())
 			{

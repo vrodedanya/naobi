@@ -327,6 +327,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
 			 auto top = context->stack.top();
+			 context->stack.pop();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
 			 var->value() = 1;
 			 context->stack.push(
@@ -341,6 +342,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
 			 auto top = context->stack.top();
+			 context->stack.pop();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
 			 var->value() = 1;
 			 context->stack.push(
