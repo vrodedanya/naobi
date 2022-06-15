@@ -72,11 +72,14 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 std::vector<std::string> wordsTemp = words;
 				 wordsTemp = naobi::parser::removeEmpty(wordsTemp);
 				 utils::type::type type;
+				 auto it = parser::findCloseBracket(wordsTemp.begin(), wordsTemp.end(), "<", ">");
+
 				 type = utils::type::generateType(
 					 std::vector<std::string>(
 						 wordsTemp.begin(),
-						 parser::findCloseBracket(wordsTemp.begin(), wordsTemp.end(), "<", ">") + 1));
-				 auto it = parser::findCloseBracket(wordsTemp.begin(), wordsTemp.end(), "<", ">");
+						 it == wordsTemp.end() ? it : it + 1));
+
+
 				 if (it == wordsTemp.end())
 				 {
 					 it = wordsTemp.begin() + 1;
@@ -85,6 +88,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 {
 					 it++;
 				 }
+
 
 				 while (it != wordsTemp.cend())
 				 {
