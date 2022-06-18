@@ -62,3 +62,41 @@ Feature: Events
     Then got integer 18
     Then got float 5.0
     Then ends with the code 0
+
+  Scenario: Arise event with string which contains ','
+    Given script:
+    """
+    import standard;
+    event JustEvent{string str}
+
+    workflow main
+    {
+      arise JustEvent("test, str");
+    }
+    workflow test
+    target JustEvent
+    {
+      println(JustEvent.str);
+    }
+    """
+    Then got string "test, str"
+    Then ends with the code 0
+
+  Scenario: Arise event with string which contains ':'
+    Given script:
+    """
+    import standard;
+    event JustEvent{string str}
+
+    workflow main
+    {
+      arise JustEvent("test: str");
+    }
+    workflow test
+    target JustEvent
+    {
+      println(JustEvent.str);
+    }
+    """
+    Then got string "test: str"
+    Then ends with the code 0

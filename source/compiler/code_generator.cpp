@@ -379,11 +379,11 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 auto event = eventOpt.value();
 				 std::string args = parser::join(
 					 words.begin() + 3, findEndBracket(words.begin() + 3, words.end()) - 1, "");
-				 auto arguments = parser::split(args, parser::isAnyOf(","));
+				 auto arguments = parser::split(args, parser::isAnyOf(","), {}, {{'(', ')'}, {'"', '"'}});
 				 std::size_t pos{};
 				 for (const auto& argument : arguments)
 				 {
-					 auto pair = parser::split(argument, parser::isAnyOf(":"));
+					 auto pair = parser::split(argument, parser::isAnyOf(":"), {}, {{'(', ')'}, {'"', '"'}});
 					 if (pair.size() == 2)
 					 {
 						 auto argOpt = event.getArgument(pair[0]);
@@ -953,7 +953,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 	std::string code = templateFunction->getCode();
 	for (auto arg = args.begin() ; arg != args.end() ;)
 	{
-		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}});
+		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}, {'"', '"'}});
 		std::string value;
 		template_function::argument_type argInFunction;
 		if (pair.size() == 1)
