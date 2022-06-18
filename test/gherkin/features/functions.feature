@@ -283,3 +283,18 @@ Feature: Users functions
     """
     Then got string "str: test"
     Then ends with the code 0
+  Scenario: String argument with ','. Issue #19
+    Given script:
+    """
+    import standard;
+    function pri(string val)
+    {
+      println(val);
+    }
+    workflow main
+    {
+      pri("str, test");
+    }
+    """
+    Then got string "str, test"
+    Then ends with the code 0

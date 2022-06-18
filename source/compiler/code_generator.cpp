@@ -790,7 +790,7 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 		NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL function '", functionCallWords[0], "' not found");
 	}
 	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
-	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}});
+	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}, {'"', '"'}});
 	NLOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
 	functions.erase(
 		std::remove_if(
