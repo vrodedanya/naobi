@@ -116,7 +116,7 @@ Feature: Functions for casting types to each other
       println(5.5 + float(true));
     }
     """
-    Then fails with compilation error and code 53
+    Then fails with compilation error 53
 
   Scenario: Cast integer to boolean
     Given script:

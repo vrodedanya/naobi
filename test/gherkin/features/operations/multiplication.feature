@@ -117,7 +117,7 @@ Feature: Multiplication operation
       println("Hello " * "world!");
     }
     """
-    Then fails with compilation error and code 53
+    Then fails with compilation error 53
   Scenario: Multiply string with integer
     Given script:
     """

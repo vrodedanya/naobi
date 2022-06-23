@@ -25,7 +25,7 @@ Feature: Users functions
       printMessage();
     }
     """
-    Then fails with compilation error and code 52
+    Then fails with compilation error 52
 
   Scenario: Function takes integer and prints it
     Given script:
@@ -120,7 +120,7 @@ Feature: Users functions
       println(sum(10));
     }
     """
-    Then fails with compilation error and code 57
+    Then fails with compilation error 57
 
   Scenario: Multiple return in function
     Given script:
@@ -159,7 +159,7 @@ Feature: Users functions
       printValue(5.0);
     }
     """
-    Then fails with compilation error and code 53
+    Then fails with compilation error 53
 
   Scenario: Function overload simple
     Given script:
@@ -223,7 +223,7 @@ Feature: Users functions
       printValue(second: 5.0, val: 1);
     }
     """
-    Then fails with compilation error and code 53
+    Then fails with compilation error 53
 
   Scenario: Function already exists
     Given script:
@@ -243,7 +243,7 @@ Feature: Users functions
       printValue(second: 5.0, val: 1);
     }
     """
-    Then fails with compilation error and code 51
+    Then fails with compilation error 51
 
   Scenario: Function overloading with return type
     Given script:

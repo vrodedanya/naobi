@@ -217,7 +217,13 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 												 {'"', '"'}});
 				 lines = parser::removeEmpty(lines);
 
-				 auto tempCommands = generate(lines);
+				 auto generator = code_generator(_module);
+				 for (auto& [name, var] : _variablesTemp)
+				 {
+					 generator.addVariable(name, var);
+				 }
+
+				 auto tempCommands = generator.generate(lines);
 				 std::size_t tempCommandsSize = tempCommands.size();
 
 				 if ((bodyIt + 1) != words.end() && *(bodyIt + 1) == "else")
