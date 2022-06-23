@@ -100,3 +100,22 @@ Feature: Events
     """
     Then got string "test: str"
     Then ends with the code 0
+  Scenario: Event with variable that already exist in workflow
+    Given script:
+    """
+    import standard;
+    event JustEvent{string str}
+    workflow main
+    {
+      string str = "I already exist";
+      arise JustEvent(str: "Hello");
+      string second = str;
+    }
+    workflow test
+    target JustEvent
+    {
+      println(JustEvent.str);
+    }
+    """
+    Then got string "Hello"
+    Then ends with the code 0
