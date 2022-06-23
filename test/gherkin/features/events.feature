@@ -119,3 +119,25 @@ Feature: Events
     """
     Then got string "Hello"
     Then ends with the code 0
+  Scenario: Arising event in function
+    Given script:
+    """
+    import standard;
+    event JustEvent{string str}
+    function func()
+    {
+      arise JustEvent(str: "Hello");
+    }
+    workflow main
+    {
+      func();
+      integer test = 5 + 5;
+    }
+    workflow test
+    target JustEvent
+    {
+      println(JustEvent.str);
+    }
+    """
+    Then got string "Hello"
+    Then ends with the code 0
