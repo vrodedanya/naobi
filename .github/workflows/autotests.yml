@@ -54,7 +54,13 @@ jobs:
 
     - name: Run gherkin scenario tests
       working-directory: ${{github.workspace}}/test/gherkin
-      run: radish features --write-steps-once
+      run: radish features --write-steps-once --cucumber-json asan_build.json
+    - name: Cucumber Report
+      uses: deblockt/cucumber-report-annotations-action@v1.9
+      with:
+        access-token: ${{ secrets.GITHUB_TOKEN }}
+        path: "asan_build.json"
+
 
 
     - name: Build thread check build of naobi
@@ -81,4 +87,9 @@ jobs:
 
     - name: Run gherkin scenario tests
       working-directory: ${{github.workspace}}/test/gherkin
-      run: radish features --write-steps-once
+      run: radish features --write-steps-once --cucumber-json thread_build.json
+    - name: Cucumber Report
+      uses: deblockt/cucumber-report-annotations-action@v1.9
+      with:
+        access-token: ${{ secrets.GITHUB_TOKEN }}
+        path: "thread_build.json"
