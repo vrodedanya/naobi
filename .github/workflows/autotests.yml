@@ -57,11 +57,13 @@ jobs:
         if: always()
         working-directory: ${{github.workspace}}/test/gherkin
         run: radish features --write-steps-once --cucumber-json asan_build.json
+
       - name: Cucumber Report
+        if: always()
         uses: deblockt/cucumber-report-annotations-action@v1.9
         with:
           access-token: ${{ secrets.GITHUB_TOKEN }}
-          path: "asan_build.json"
+          path: "**/asan_build.json"
 
 
 
@@ -100,4 +102,4 @@ jobs:
         uses: deblockt/cucumber-report-annotations-action@v1.9
         with:
           access-token: ${{ secrets.GITHUB_TOKEN }}
-          path: "thread_build.json"
+          path: "**/thread_build.json"
