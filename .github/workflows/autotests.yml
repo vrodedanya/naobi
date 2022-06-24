@@ -63,6 +63,7 @@ jobs:
         uses: deblockt/cucumber-report-annotations-action@v1.9
         with:
           access-token: ${{ secrets.GITHUB_TOKEN }}
+          name: Cucumber asan-build report
           path: "**/asan_build.json"
 
 
@@ -101,5 +102,6 @@ jobs:
         if: always()
         uses: deblockt/cucumber-report-annotations-action@v1.9
         with:
+          name: Cucumber thread-build report
           access-token: ${{ secrets.GITHUB_TOKEN }}
           path: "**/thread_build.json"
