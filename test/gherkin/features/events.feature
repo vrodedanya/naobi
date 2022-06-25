@@ -141,3 +141,20 @@ Feature: Events
     """
     Then got string "Hello"
     Then ends with the code 0
+  Scenario: Arising event and pass expression
+    Given script:
+    """
+    import standard;
+    event JustEvent{string str}
+    workflow main
+    {
+      arise JustEvent(str: "Hello" + " world!");
+    }
+    workflow test
+    target JustEvent
+    {
+      println(JustEvent.str);
+    }
+    """
+    Then got string "Hello world!"
+    Then ends with the code 0

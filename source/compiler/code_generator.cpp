@@ -382,6 +382,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 {
 					 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL event '", words[1], "' doesn't exist");
 				 }
+				 commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
 				 auto event = eventOpt.value();
 				 std::string args = parser::join(
 					 words.begin() + 3, findEndBracket(words.begin() + 3, words.end()) - 1, "");
@@ -390,6 +391,9 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 for (const auto& argument : arguments)
 				 {
 					 auto pair = parser::split(argument, parser::isAnyOf(":"), {}, {{'(', ')'}, {'"', '"'}});
+					 event::argument arg;
+					 std::string name;
+					 std::string value;
 					 if (pair.size() == 2)
 					 {
 						 auto argOpt = event.getArgument(pair[0]);
@@ -398,26 +402,8 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 							 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL event argument '", pair[0],
 									   "' doesn't exist");
 						 }
-						 auto arg = argOpt.value();
-						 commands.push_back(
-							 command::createCommand(
-								 command::names::NEW, {pair[0],
-													   std::to_string(
-														   static_cast<int>(std::get<1>(arg).name))}));
-						 auto valueSplitter = parser::split(
-							 pair[1], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
-							 {{'"', '"'},
-							  {'{', '}'}});
-						 auto type = processExpression(valueSplitter, commands);
-						 if (type != std::get<1>(arg))
-						 {
-							 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
-									   utils::type::fromNameToString(std::get<1>(arg).name),
-									   "' and got '", utils::type::fromNameToString(type.name), "'");
-						 }
-						 commands.push_back(
-							 command::createCommand(
-								 command::names::SAVE, {pair[0]}));
+						 arg = argOpt.value();
+						 value = pair[1];
 					 }
 					 else
 					 {
@@ -427,27 +413,22 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 							 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL event argument in pos '", pos,
 									   "' doesn't exist");
 						 }
-						 auto arg = argOpt.value();
-						 commands.push_back(
-							 command::createCommand(
-								 command::names::NEW, {std::get<0>(arg),
-													   std::to_string(
-														   static_cast<int>(std::get<1>(arg).name))}));
-						 auto valueSplitter = parser::split(
-							 pair[0], parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
-							 {{'"', '"'},
-							  {'{', '}'}});
-						 auto type = processExpression(valueSplitter, commands);
-						 if (type != std::get<1>(arg))
-						 {
-							 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
-									   utils::type::fromNameToString(std::get<1>(arg).name),
-									   "' and got '", utils::type::fromNameToString(type.name), "'");
-						 }
-						 commands.push_back(
-							 command::createCommand(
-								 command::names::SAVE, {std::get<0>(arg)}));
+						 arg = argOpt.value();
+						 value = pair[0];
 					 }
+					 name = std::get<0>(arg);
+					 auto valueSplitter = parser::split(
+						 value, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
+						 {{'"', '"'},
+						  {'{', '}'}});
+					 auto type = processExpression(valueSplitter, commands);
+					 if (type != std::get<1>(arg))
+					 {
+						 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
+								   utils::type::fromNameToString(std::get<1>(arg).name),
+								   "' and got '", utils::type::fromNameToString(type.name), "'");
+					 }
+					 commands.push_back(command::createCommand(command::names::TRANSFER, {name}));
 					 pos++;
 				 }
 
