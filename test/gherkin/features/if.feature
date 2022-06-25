@@ -1,4 +1,5 @@
 Feature: If else statement
+
   Scenario: Single if
     Given script:
     """
@@ -51,3 +52,14 @@ Feature: If else statement
     """
     Then got string "FALSE"
     Then ends with the code 0
+  Scenario: Not boolean in logical expression
+    Given script:
+    """
+    workflow main
+    {
+      if 5
+      {
+      }
+    }
+    """
+    Then fails with compilation error 53

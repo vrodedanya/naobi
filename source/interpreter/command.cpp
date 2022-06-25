@@ -327,7 +327,14 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 auto top = context->stack.top();
 			 context->stack.pop();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
-			 var->value() = 1;
+			 if (top->type().name == utils::type::names::FLOAT)
+			 {
+				 var->value() = 1.0;
+			 }
+			 else
+			 {
+				 var->value() = 1;
+			 }
 			 context->stack.push(
 				 naobi::operation_manager::get("+")->call(
 					 var->type(),
@@ -342,7 +349,14 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 auto top = context->stack.top();
 			 context->stack.pop();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
-			 var->value() = 1;
+			 if (top->type().name == utils::type::names::FLOAT)
+			 {
+				 var->value() = 1.0;
+			 }
+			 else
+			 {
+				 var->value() = 1;
+			 }
 			 context->stack.push(
 				 naobi::operation_manager::get("-")->call(
 					 top->type(),

@@ -24,6 +24,7 @@ set(NAOBI_SOURCES
         source/utils/arguments.cpp
         source/utils/parser.cpp
         source/utils/operation.cpp
+        source/utils/expression.cpp
         )
 
 set(NAOBI_TEST_SOURCES

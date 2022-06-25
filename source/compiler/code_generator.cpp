@@ -150,10 +150,9 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 							 }
 							 return false;
 						 });
-					 auto t = processExpression(
+					 auto t = expression(
 						 std::vector<std::string>(
-							 it, next),
-						 commands);
+							 it, next), this).process(commands);
 					 if (t != type)
 					 {
 						 if (t.name != type.name)
@@ -206,9 +205,12 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 {
 						 return str[0] == '{';
 					 });
-				 processExpression(
-					 std::vector<std::string>(words.begin() + 1, bodyIt),
-					 commands);
+				 auto t = expression(
+					 std::vector<std::string>(words.begin() + 1, bodyIt), this).process(commands);
+				 if (t.name != utils::type::names::BOOLEAN)
+				 {
+					 NCRITICAL(code_generator, errors::TYPE_ERROR, "If logic statement is not boolean type");
+				 }
 
 				 const std::string& codeBlock = *bodyIt;
 				 auto lines = parser::split(
@@ -277,12 +279,17 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			 {
 				 NLOG(code_generator, logger::LOW, "for:\n", words);
 				 utils::type::names type = utils::type::fromStringToName(words[1]);
+				 if (type != utils::type::names::FLOAT &&
+					 type != utils::type::names::INTEGER) {
+					 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL wrong type for loop initializer: '",
+							   utils::type::fromNameToString(type), "'");
+				 }
 
 				 std::string gen = parser::join(
 					 words.begin() + 4,
-					 findEndBracket(
+					 parser::findCloseBracket(
 						 words.begin() + 4,
-						 words.end()) + 1, "");
+						 words.end(), "(", ")") + 1, "");
 				 NLOG(code_generator, logger::IMPORTANT, "for generator: ", gen);
 				 auto pairs = parser::split(
 					 gen.substr(1, gen.size() - 2),
@@ -300,12 +307,20 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 						 command::names::NEW, {words[2],
 											   std::to_string(
 												   static_cast<int>(type))}));
-				 processExpression(
+				 auto firstType = expression(
 					 parser::split(
 						 pairs[0], parser::isAnyOf(" "),
 						 parser::isAnyOf("+-*/%=!<>,()"), {},
-						 {{'"', '"'},
-						  {'{', '}'}}), commands);
+						 {
+							 {'"', '"'},
+							 {'{', '}'}
+						 }), this).process(commands);
+				 if (firstType.name != type)
+				 {
+					 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL for initializer is '",
+							   utils::type::fromNameToString(firstType.name),
+							   "' and variable type is '", utils::type::fromNameToString(type), "'");
+				 }
 				 commands.push_back(
 					 command::createCommand(command::names::SAVE, {words[2]}));
 
@@ -315,16 +330,24 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 commands.push_back(
 					 command::createCommand(command::names::LOAD, {words[2]}));
 				 int tempSize = static_cast<int>(commands.size());
-				 processExpression(
+				 auto secondType = expression(
 					 parser::split(
 						 pairs[1], parser::isAnyOf(" "),
 						 parser::isAnyOf("+-*/%=!<>,()"), {},
-						 {{'"', '"'},
-						  {'{', '}'}}), commands);
+						 {
+							 {'"', '"'},
+							 {'{', '}'}
+						 }), this).process(commands);
+				 if (secondType.name != type)
+				 {
+					 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL for match value is '",
+							   utils::type::fromNameToString(firstType.name),
+							   "' and variable type is '", utils::type::fromNameToString(type), "'");
+				 }
 				 tempSize = static_cast<int>(commands.size()) - tempSize - 1;
 				 commands.push_back(command::createCommand(command::names::LESS, {}));
 
-				 std::string codeBlock = *(findEndBracket(words.begin() + 4, words.end()) +
+				 std::string codeBlock = *(parser::findCloseBracket(words.begin() + 4, words.end(), "(", ")") +
 										   1);
 				 NLOG(code_generator.forBlock, logger::BASIC, "for block:\n", codeBlock);
 
@@ -385,7 +408,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
 				 auto event = eventOpt.value();
 				 std::string args = parser::join(
-					 words.begin() + 3, findEndBracket(words.begin() + 3, words.end()) - 1, "");
+					 words.begin() + 3, parser::findCloseBracket(words.begin() + 3, words.end(), "(", ")") - 1, "");
 				 auto arguments = parser::split(args, parser::isAnyOf(","), {}, {{'(', ')'}, {'"', '"'}});
 				 std::size_t pos{};
 				 for (const auto& argument : arguments)
@@ -421,7 +444,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 						 value, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 						 {{'"', '"'},
 						  {'{', '}'}});
-					 auto type = processExpression(valueSplitter, commands);
+					 auto type = expression(std::move(valueSplitter), this).process(commands);
 					 if (type != std::get<1>(arg))
 					 {
 						 NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL expected type '",
@@ -465,9 +488,9 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 [[maybe_unused]]const std::vector<std::string>& words,
 				 std::vector<naobi::command>& commands)
 			 {
-				 processExpression(
-					 std::vector<std::string>(words.begin() + 1, words.end()),
+				 auto type = expression(std::vector<std::string>(words.begin() + 1, words.end()), this).process(
 					 commands);
+
 				 commands.emplace_back(command::createCommand(command::names::RETURN, {}));
 			 }},
 			{[](const std::vector<std::string>& words) -> bool
@@ -522,8 +545,11 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL exception with name '", words[1],
 							   "' doesn't exist");
 				 }
-				 auto type = processExpression(
-					 std::vector<std::string>(words.begin() + 3, findEndBracket(words.begin() + 2, words.end())),
+
+				 auto type = expression(
+					 std::vector<std::string>(
+						 words.begin() + 3, parser::findCloseBracket(words.begin() + 2, words.end(), "(", ")")),
+					 this).process(
 					 commands);
 				 if (type.name != utils::type::names::STRING)
 				 {
@@ -552,8 +578,10 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 					 NCRITICAL(code_generator, errors::WRONG_FORMAT, "CRITICAL '", words[0],
 							   "' doesn't exist");
 				 }
-				 auto type = processExpression(
-					 std::vector<std::string>(words.begin() + 2, words.end()), commands);
+				 auto type = expression(
+					 std::vector<std::string>(words.begin() + 2, words.end()),
+					 this).process(
+					 commands);
 				 if (type != var->second->type())
 				 {
 					 NCRITICAL(code_generator, errors::TYPE_ERROR,
@@ -568,189 +596,6 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			 }},
 		})
 {
-}
-
-naobi::utils::type::type
-naobi::code_generator::processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands)
-{
-	std::stack<naobi::utils::type::type> types;
-	std::stack<naobi::operation::sptr> stack;
-	bool isOperatorPrev{true};
-	NLOG(processExpression, logger::IMPORTANT, "Expression to process:\n", words);
-	for (auto it = words.cbegin() ; it != words.cend() ; it++)
-	{
-		NLOG(processExpression, logger::IMPORTANT, "Word: ", *it);
-		if (!utils::type::isLiteral(*it))
-		{
-			if (isOperation(*it))
-			{
-				if (isOperatorPrev)
-				{
-					if (*it == "-")
-					{
-						auto operation = operation_manager::get(
-							"~");// TODO operation manager must support unary operations
-						stack.push(operation);
-						continue;
-					}
-					else
-					{
-						NCRITICAL(processExpression, errors::WRONG_FORMAT, "CRITICAL wrong operator placement");
-					}
-				}
-				std::string op = *it;
-				if ((*it == "=" && *(it + 1) == "=") || (*it == "<" && *(it + 1) == "=") ||
-					(*it == ">" && *(it + 1) == "=") || (*it == "!" && *(it + 1) == "="))
-				{
-					op += *(it + 1);
-					it++;
-				}
-				auto operation = operation_manager::get(op);
-				if (operation == nullptr)
-				{
-					NCRITICAL(processExpression, errors::UNKNOWN_OPERATOR, "CRITICAL Bad operator '", op, "'");
-				}
-				while (!stack.empty() && stack.top() != nullptr && *stack.top() >= *operation)
-				{
-					utils::type::type second, first;
-					if (stack.top()->getOperator() == "~")
-					{
-						second.name = utils::type::names::UNDEFINED;
-						first = types.top();
-						types.pop();
-					}
-					else
-					{
-						second = types.top();
-						types.pop();
-						first = types.top();
-						types.pop();
-					}
-					auto func = stack.top()->call(first, second);
-					if (func.second == nullptr)
-					{
-						NCRITICAL(processExpression, errors::TYPE_ERROR, "CRITICAL can't execute operation '",
-								  operation->getOperator(), "' for types '", utils::type::fromNameToString(first.name),
-								  "' and '", utils::type::fromNameToString(second.name), "'");
-					}
-					commands.emplace_back(command::createCommand(stack.top()->getCommandAnalogue(), {}));
-					types.push(func.first);
-					stack.pop();
-				}
-				stack.push(operation);
-				isOperatorPrev = true;
-			}
-			else if (*it == "(" || *it == ")")
-			{
-				isOperatorPrev = false;
-				if (*it == "(")
-				{
-					stack.push(nullptr);
-				}
-				else
-				{
-					bool isBracket = false;
-					while (!stack.empty())
-					{
-						if (stack.top() == nullptr)
-						{
-							stack.pop();
-							isBracket = true;
-							break;
-						}
-						commands.emplace_back(command::createCommand(stack.top()->getCommandAnalogue(), {}));
-						stack.pop();
-					}
-					if (!isBracket)
-					{
-						NCRITICAL(processExpression, errors::INCORRECT_BRACKETS, "CRITICAL brackets in ", words,
-								  " are not correct");
-					}
-				}
-			}
-			else
-			{
-				isOperatorPrev = false;
-				if ((it + 1) != words.cend() && *(it + 1) == "(")
-				{
-					commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
-					auto t = callFunction(std::vector<std::string>(it, findEndBracket(it, words.end()) + 1), commands);
-					if (t.name == utils::type::names::UNDEFINED)
-					{
-						NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL function return undefined type");
-					}
-					types.push(utils::type::type(t));
-					it = findEndBracket(it, words.end());
-					continue;
-				}
-				auto var = _variablesTemp.find(*it);
-				if (var == _variablesTemp.cend())
-				{
-					NCRITICAL(processExpression, errors::DOESNT_EXIST, "CRITICAL variable '", *it, "' not found");
-				}
-				commands.emplace_back(command::createCommand(naobi::command::names::LOAD, {*it}));
-				types.push(var->second->type());
-			}
-		}
-		else
-		{
-			isOperatorPrev = false;
-			utils::type::type type = utils::type::type(utils::type::checkType(*it));
-			std::string temp = *it;
-			if (type.name == utils::type::names::STRING)
-			{
-				temp = temp.substr(1, temp.size() - 2);
-			}
-			else if (type.name == utils::type::names::ARRAY)
-			{
-				auto str = parser::removeSym(temp.substr(1, temp.size() - 2), ' ');
-				auto args = parser::split(str, parser::isAnyOf(","), {}, {{'"', '"'}});
-				type.detail.emplace_back(utils::type::checkType(args[0]));
-			}
-			commands.emplace_back(
-				command::createCommand(
-					naobi::command::names::PLACE,
-					{std::to_string(static_cast<int>(type.name)), temp}));
-
-			types.push(type);
-		}
-	}
-	while (!stack.empty())
-	{
-		auto operation = stack.top();
-
-		utils::type::type second, first;
-		if (operation->getOperator() == "~")
-		{
-			second.name = utils::type::names::UNDEFINED;
-			first = types.top();
-			types.pop();
-		}
-		else
-		{
-			second = types.top();
-			types.pop();
-			if (types.empty())
-			{
-				types.push(second);
-				break;
-			}
-			first = types.top();
-			types.pop();
-		}
-
-		auto func = operation->call(first, second);
-		if (func.second == nullptr)
-		{
-			NCRITICAL(processExpression, errors::TYPE_ERROR, "CRITICAL can't execute operation '",
-					  operation->getOperator(), "' for types '", utils::type::fromNameToString(first.name),
-					  "' and '", utils::type::fromNameToString(second.name), "'");
-		}
-		commands.emplace_back(command::createCommand(operation->getCommandAnalogue(), {}));
-		types.push(func.first);
-		stack.pop();
-	}
-	return types.top();
 }
 
 bool naobi::code_generator::addVariable(const std::string& name, const naobi::variable::sptr& var)
@@ -867,7 +712,7 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 			value, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 			{{'"', '"'},
 			 {'{', '}'}});
-		auto type = processExpression(valueSplitter, temp);
+		auto type = expression(std::move(valueSplitter), this).process(temp);
 		if (type != argInFunction.second)
 		{
 			functionIterator++;
@@ -976,7 +821,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 			{{'"', '"'},
 			 {'{', '}'}});
 		std::vector<command> plug;
-		auto type = processExpression(valueSplitter, plug);
+		auto type = expression(std::move(valueSplitter), this).process(plug);
 		if (utils::type::isStandardType(argInFunction.second))
 		{
 			if (type.name != utils::type::fromStringToName(argInFunction.second))

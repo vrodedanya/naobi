@@ -40,6 +40,9 @@ namespace naobi
 
 		void setCommandAnalogue(command::names commandAnalogue);
 
+		static bool isOperation(const std::string& string)
+		{ return std::string("+-*/=%<>!").find(string) != std::string::npos; }
+
 		bool operator <(const operation& rhs) const;
 
 		bool operator >(const operation& rhs) const;

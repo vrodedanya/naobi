@@ -9,6 +9,7 @@
 
 #include <naobi/interpreter/command.hpp>
 #include <naobi/compiler/rule.hpp>
+#include <naobi/utils/expression.hpp>
 
 
 namespace naobi
@@ -28,42 +29,19 @@ namespace naobi
 
 		bool addVariable(const std::string& name, const variable::sptr& var);
 
-		static bool isOperation(const std::string& string)
-		{ return std::string("+-*/=%<>!").find(string) != std::string::npos; }
-
 	private:
-		naobi::utils::type::type
-		processExpression(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
-
 		naobi::utils::type::type
 		callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
 
 		bool generateFunction(const std::vector<std::string>& functionCallWords);
 
-		template <typename ITERATOR>
-		ITERATOR findEndBracket(ITERATOR begin, ITERATOR end);
-
 	private:
 		naobi::module::sptr _module;
 		std::map<std::string, variable::sptr> _variablesTemp;
 		std::vector<generatorRule> _generatorRules; // rules to generate code
-	};
-}
 
-template <typename ITERATOR>
-ITERATOR naobi::code_generator::findEndBracket(ITERATOR begin, ITERATOR end)
-{
-	int brackets = 0;
-	for (auto it = begin ; it != end ; it++)
-	{
-		if (*it == ")")
-		{
-			brackets--;
-			if (brackets == 0) return it;
-		}
-		else if (*it == "(") brackets++;
-	}
-	return end;
+		friend expression;
+	};
 }
 
 #endif //NAOBI_CODE_GENERATOR_HPP
