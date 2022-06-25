@@ -6,7 +6,7 @@
 #include <functional>
 #include <memory>
 
-#include "naobi/utils/type/type.hpp"
+#include "type.hpp"
 #include <naobi/data/variable.hpp>
 #include <naobi/interpreter/command.hpp>
 

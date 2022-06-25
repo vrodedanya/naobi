@@ -6,7 +6,7 @@
 #include <optional>
 
 #include <naobi/interpreter/command.hpp>
-#include "naobi/utils/type/type.hpp"
+#include "naobi/utils/type.hpp"
 
 
 namespace naobi

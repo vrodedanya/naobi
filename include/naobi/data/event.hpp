@@ -5,7 +5,7 @@
 #include <vector>
 #include <optional>
 
-#include "naobi/utils/type/type.hpp"
+#include "naobi/utils/type.hpp"
 #include <naobi/data/variable.hpp>
 
 

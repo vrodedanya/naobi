@@ -1,10 +1,10 @@
-#include "naobi/utils/type/type.hpp"
+#include "naobi/utils/type.hpp"
 
 #include <algorithm>
 #include <set>
 
-#include <naobi/utils/parser.hpp>
-#include <naobi/data/variable.hpp>
+#include "naobi/utils/parser.hpp"
+#include "naobi/data/variable.hpp"
 
 
 naobi::utils::type::type::type(naobi::utils::type::names typeName) : name(typeName)

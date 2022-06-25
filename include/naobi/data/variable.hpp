@@ -6,7 +6,7 @@
 #include <memory>
 #include <variant>
 
-#include "naobi/utils/type/type.hpp"
+#include "naobi/utils/type.hpp"
 
 
 namespace naobi
