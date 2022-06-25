@@ -52,7 +52,7 @@ Feature: Exception
       }
     }
     """
-    Then fails with compilation error and code 52
+    Then fails with compilation error 52
   Scenario: Print exception message
     Given script:
     """

@@ -175,9 +175,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args)
 		 {
 			 auto address = context->ip;
-			 auto temp = context->variablesStack.top();
-			 context->variablesStack.top() = context->variables;
-			 context->variables = temp;
+			 std::swap(context->variablesStack.top(), context->variables);
 
 			 context->returnPoints.push(address);
 			 auto it = context->workflow->module()->findFunctionWithNumber(
@@ -327,6 +325,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
 			 auto top = context->stack.top();
+			 context->stack.pop();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
 			 var->value() = 1;
 			 context->stack.push(
@@ -341,6 +340,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
 			 auto top = context->stack.top();
+			 context->stack.pop();
 			 auto var = std::make_shared<naobi::variable>("temp", top->type());
 			 var->value() = 1;
 			 context->stack.push(
@@ -355,6 +355,7 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 			 [[maybe_unused]]const naobi::workflow_context::sptr& context,
 			 [[maybe_unused]]const naobi::command::argumentsList& args) noexcept
 		 {
+			 std::swap(context->variablesStack.top(), context->variables);
 			 auto event = context->workflow->module()->findEvent(args[0]).value();
 			 for (auto& argument : event.getArguments())
 			 {
@@ -364,6 +365,8 @@ std::map<naobi::command::names, naobi::command::implementation> naobi::command::
 				 (*context->variables).erase(it);
 			 }
 			 context->eventManager->eventPool().push(event);
+			 context->variables = context->variablesStack.top();
+			 context->variablesStack.pop();
 		 }},
 		{naobi::command::names::MOD,
 		 [](

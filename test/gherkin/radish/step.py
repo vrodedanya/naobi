@@ -1,6 +1,5 @@
 import os
 import subprocess
-import time
 
 from radish import given, then, when
 
@@ -158,7 +157,7 @@ def take_result(step, var):
         raise AssertionError(f"Expected {var} got {temp}")
 
 
-@then("fails with compilation error and code {number:d}")
+@then("fails with compilation error {number:d}")
 def compile_error(step, number):
     global isCompiled
     if isCompiled:

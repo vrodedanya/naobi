@@ -41,7 +41,7 @@ Feature: Division operation
       println(true / false);
     }
     """
-    Then fails with compilation error and code 53
+    Then fails with compilation error 53
 # Floats
   Scenario: Divide two floats
     Given script:
@@ -84,4 +84,4 @@ Feature: Division operation
       println("Hello " / "world!");
     }
     """
-    Then fails with compilation error and code 53
+    Then fails with compilation error 53

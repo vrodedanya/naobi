@@ -4,3 +4,4 @@ library/
 __pycache__/
 venv/
 site/
+cmake-build-release/
