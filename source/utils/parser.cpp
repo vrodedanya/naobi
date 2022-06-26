@@ -1,8 +1,42 @@
-#include "naobi/utils/parser.hpp"
+#include <naobi/utils/parser.hpp>
 
 #include <algorithm>
-#include <map>
 
+
+struct split_data
+{
+	std::vector<std::string> resultVector;
+	std::string stringBuffer;
+	int blockIndex = 0;
+	char currentBlock{};
+	char closeBracket{};
+	bool wasSeparatedBlock{};
+};
+
+static void processGuardedBlock(
+	split_data& data, const char& sym, const std::function<int(char)>& isSplitter)
+{
+	if (data.closeBracket == sym)
+	{
+		data.blockIndex--;
+	}
+	else if (data.currentBlock == sym)
+	{
+		data.blockIndex++;
+	}
+
+	data.stringBuffer += sym;
+	if (data.blockIndex == 0)
+	{
+		if (data.wasSeparatedBlock || isSplitter(sym))
+		{
+			data.resultVector.emplace_back(data.stringBuffer);
+			data.stringBuffer.clear();
+		}
+		data.wasSeparatedBlock = false;
+		data.closeBracket = 0;
+	}
+}
 
 std::vector<std::string> naobi::parser::split(
 	const std::string& text, const std::function<int(char)>& isSplitter,
@@ -11,99 +45,67 @@ std::vector<std::string> naobi::parser::split(
 	const std::map<char, char>& separatedBlocks)
 {
 	assert(isSplitter);
-	std::vector<std::string> resultVector;
-	std::string stringBuffer;
-	int blockIndex = 0;
-	char currentBlock;
-	bool separated{};
+	split_data data;
+	auto pushAndClearBuffer = [&]()
+	{
+		if (!data.stringBuffer.empty())
+		{
+			data.resultVector.emplace_back(data.stringBuffer);
+			data.stringBuffer.clear();
+		}
+	};
 
 	for (const auto& sym : text)
 	{
-		if (blockIndex == 0)
+		if (data.blockIndex == 0)
 		{
-			int mod;
-			if ((mod = isSplitter(sym)) != 0)
+			if (int mod; (mod = isSplitter(sym)) != 0)
 			{
-				if (!stringBuffer.empty())
+				if (mod == 2)
 				{
-					if (mod == 2) stringBuffer += sym;
-					resultVector.emplace_back(stringBuffer);
-					stringBuffer.clear();
+					data.stringBuffer += sym;
 				}
-				else if (mod == 2)
-				{
-					stringBuffer += sym;
-					resultVector.emplace_back(stringBuffer);
-					stringBuffer.clear();
-				}
+				pushAndClearBuffer();
 			}
 			else if (isSingle && isSingle(sym))
 			{
-				if (!stringBuffer.empty())
-				{
-					resultVector.emplace_back(stringBuffer);
-					stringBuffer.clear();
-				}
-				stringBuffer += sym;
-				resultVector.emplace_back(stringBuffer);
-				stringBuffer.clear();
+				pushAndClearBuffer();
+				data.stringBuffer += sym;
+				data.resultVector.emplace_back(data.stringBuffer);
+				data.stringBuffer.clear();
 			}
 			else if (blocks.find(sym) != blocks.end())
 			{
-				currentBlock = sym;
-				blockIndex++;
-				stringBuffer += sym;
-				separated = false;
+				data.currentBlock = sym;
+				data.blockIndex++;
+				data.stringBuffer += sym;
+				data.wasSeparatedBlock = false;
+				data.closeBracket = blocks.at(sym);
 			}
 			else if (separatedBlocks.find(sym) != separatedBlocks.end())
 			{
-				currentBlock = sym;
-				blockIndex++;
-				if (!stringBuffer.empty())
-				{
-					resultVector.emplace_back(stringBuffer);
-					stringBuffer.clear();
-				}
-				stringBuffer += sym;
-				separated = true;
+				data.currentBlock = sym;
+				data.blockIndex++;
+				pushAndClearBuffer();
+				data.stringBuffer += sym;
+				data.wasSeparatedBlock = true;
+				data.closeBracket = separatedBlocks.at(sym);
 			}
 			else
 			{
-				stringBuffer += sym;
+				data.stringBuffer += sym;
 			}
 		}
 		else
 		{
-			if (currentBlock == sym && ((!separated && blocks.at(currentBlock) != currentBlock) ||
-										(separated && separatedBlocks.at(currentBlock) != currentBlock)))
-			{
-				blockIndex++;
-			}
-			else if ((!separated && blocks.at(currentBlock) == sym) ||
-					 (separated && separatedBlocks.at(currentBlock) == sym))
-			{
-				blockIndex--;
-			}
-			stringBuffer += sym;
-			if (blockIndex == 0)
-			{
-				if (separated || isSplitter(sym))
-				{
-					resultVector.emplace_back(stringBuffer);
-					stringBuffer.clear();
-				}
-				separated = false;
-			}
+			processGuardedBlock(data, sym, isSplitter);
 		}
 	}
-	if (!stringBuffer.empty())
-	{
-		resultVector.emplace_back(stringBuffer);
-	}
+	pushAndClearBuffer();
 	std::for_each(
-		resultVector.begin(), resultVector.end(), [](auto& str)
+		data.resultVector.begin(), data.resultVector.end(), [](auto& str)
 		{ str = parser::removeFirstSym(str, ' '); });
-	return resultVector;
+	return data.resultVector;
 }
 
 std::string naobi::parser::removeExtraSpaces(const std::string& str) noexcept

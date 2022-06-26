@@ -10,12 +10,6 @@
 
 namespace naobi::parser
 {
-	enum split_mods
-	{
-		SPLIT_AFTER = 1,
-		SPLIT_BLOCK = 2,
-	};
-
 	std::function<int(char)> isAnyOf(const std::string& str);
 
 	std::function<int(char)> isEnds(const std::string& str);
