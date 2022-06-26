@@ -1,14 +1,16 @@
 # Naobi language
 
-[master-tests]:https://github.com/vrodedanya/naobi/actions/workflows/autotests.yml/badge.svg?branch=master
-[develop-tests]:https://github.com/vrodedanya/naobi/actions/workflows/autotests.yml/badge.svg?branch=develop
-[latest-release]:https://img.shields.io/github/v/release/vrodedanya/naobi?label=latest%20release
-[since-release]:https://img.shields.io/github/commits-since/vrodedanya/naobi/latest/master
+[master-tests]:https://img.shields.io/github/workflow/status/vrodedanya/naobi/autotests/master?label=master&style=for-the-badge
+[develop-tests]:https://img.shields.io/github/workflow/status/vrodedanya/naobi/autotests/develop?label=develop&style=for-the-badge
+[latest-release]:https://img.shields.io/github/v/release/vrodedanya/naobi?style=for-the-badge
+[codefactor]:https://www.codefactor.io/repository/github/vrodedanya/naobi/badge?style=for-the-badge
+[license]:https://img.shields.io/github/license/vrodedanya/naobi?style=for-the-badge
 
-| Tests                                                                                                                                             | Releases                                                                                                                          |
-|---------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| <table><thead><tr><th>master</th><th>![master][master-tests]</th></tr><tr><th>develop</th><th>![develop][develop-tests]</th></tr></thead></table> | <table><thead><tr><th>![latest-release][latest-release]</th></tr><tr><th>![since-latest][since-release]</th></tr></thead></table> |
-
+![license][license] 
+![latest-release][latest-release]
+![master][master-tests] 
+![develop][develop-tests]
+![CodeFactor][codefactor]
 
 
 ### [Documentation](https://vrodedanya.github.io/naobi/)
