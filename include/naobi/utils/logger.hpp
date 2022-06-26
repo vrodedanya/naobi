@@ -139,7 +139,6 @@ namespace naobi
 				break;
 			default:
 				_currentColor.color = color::RESET;
-
 		}
 
 		log_rec(std::forward<AArgs>(aargs)...);

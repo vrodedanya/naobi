@@ -7,7 +7,6 @@ naobi::arguments::arguments(char** begin, char** end) :
 	_begin(begin),
 	_end(end)
 {
-
 }
 
 bool naobi::arguments::find_flag(const std::string& name) const

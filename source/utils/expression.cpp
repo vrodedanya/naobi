@@ -31,7 +31,7 @@ naobi::utils::type::type naobi::expression::process(std::vector<naobi::command>&
 			else
 			{
 				_isPrevOperator = false;
-				if ((it + 1) != _words.cend() && *(it + 1) == "(")
+				if (std::next(it) != _words.cend() && *(std::next(it)) == "(")
 				{
 					processFunction(it, commands);
 					continue;
@@ -82,8 +82,8 @@ naobi::expression::processOperation(std::vector<std::string>::const_iterator& it
 	{
 		if (*it == "-")
 		{
-			auto operation = operation_manager::get(
-				"~");// TODO operation manager must support unary operations
+			auto operation = operation_manager::get("~");
+			// TODO operation manager must support unary operations
 			_stack.push(operation);
 			return;
 		}
@@ -93,11 +93,10 @@ naobi::expression::processOperation(std::vector<std::string>::const_iterator& it
 		}
 	}
 	std::string op = *it;
-	if ((*it == "=" && *(it + 1) == "=") || (*it == "<" && *(it + 1) == "=") ||
-		(*it == ">" && *(it + 1) == "=") || (*it == "!" && *(it + 1) == "="))
+	if ((*it == "=" || *it == "<" || *it == ">" || *it == "!") && *(std::next(it)) == "=")
 	{
-		op += *(it + 1);
 		it++;
+		op += *it;
 	}
 	auto operation = operation_manager::get(op);
 	if (operation == nullptr)
@@ -145,14 +144,14 @@ void
 naobi::expression::processFunction(std::vector<std::string>::const_iterator& it, std::vector<naobi::command>& commands)
 {
 	commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
-	auto t = _generator->callFunction(
-		std::vector<std::string>(it, parser::findCloseBracket(it, _words.cend(), "(", ")") + 1),
+	auto type = _generator->callFunction(
+		std::vector<std::string>(it, std::next(parser::findCloseBracket(it, _words.cend(), "(", ")"))),
 		commands);
-	if (t.name == utils::type::names::UNDEFINED)
+	if (type.name == utils::type::names::UNDEFINED)
 	{
 		NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL function return undefined type");
 	}
-	_types.push(utils::type::type(t));
+	_types.emplace(type);
 	it = parser::findCloseBracket(it, _words.cend(), "(", ")");
 }
 
