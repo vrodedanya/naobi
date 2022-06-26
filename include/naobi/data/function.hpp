@@ -5,7 +5,7 @@
 #include <memory>
 #include <optional>
 
-#include <naobi/interpreter/command.hpp>
+#include "naobi/utils/command.hpp"
 #include "naobi/utils/type.hpp"
 
 

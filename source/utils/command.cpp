@@ -1,12 +1,12 @@
-#include <naobi/interpreter/command.hpp>
+#include "naobi/utils/command.hpp"
 
 #include <iostream>
 #include <iomanip>
 
-#include <naobi/utils/logger.hpp>
-#include <naobi/interpreter/workflow_context.hpp>
-#include <naobi/interpreter/event_manager.hpp>
-#include <naobi/utils/operation.hpp>
+#include "naobi/utils/logger.hpp"
+#include "naobi/interpreter/workflow_context.hpp"
+#include "naobi/interpreter/event_manager.hpp"
+#include "naobi/utils/operation.hpp"
 
 
 std::map<naobi::command::names, naobi::command::implementation> naobi::command::commands =

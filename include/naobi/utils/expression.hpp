@@ -5,7 +5,7 @@
 #include <string>
 #include <stack>
 
-#include <naobi/interpreter/command.hpp>
+#include "command.hpp"
 #include <naobi/utils/type.hpp>
 #include <naobi/utils/operation.hpp>
 

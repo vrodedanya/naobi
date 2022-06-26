@@ -7,8 +7,8 @@
 #include <memory>
 #include <functional>
 
-#include <naobi/interpreter/command.hpp>
-#include <naobi/compiler/rule.hpp>
+#include "naobi/utils/command.hpp"
+#include "naobi/utils/rule.hpp"
 #include <naobi/utils/expression.hpp>
 
 

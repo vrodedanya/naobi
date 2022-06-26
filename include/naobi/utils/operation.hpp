@@ -8,7 +8,7 @@
 
 #include "type.hpp"
 #include <naobi/data/variable.hpp>
-#include <naobi/interpreter/command.hpp>
+#include "command.hpp"
 
 
 namespace naobi

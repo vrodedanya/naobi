@@ -7,7 +7,7 @@
 
 #include <naobi/data/workflow.hpp>
 #include <naobi/data/module.hpp>
-#include <naobi/compiler/rule.hpp>
+#include "naobi/utils/rule.hpp"
 
 
 namespace naobi

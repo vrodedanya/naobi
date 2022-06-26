@@ -9,7 +9,7 @@
 
 #include <naobi/data/workflow.hpp>
 #include <naobi/data/variable.hpp>
-#include <naobi/interpreter/command.hpp>
+#include "naobi/utils/command.hpp"
 
 
 namespace naobi
