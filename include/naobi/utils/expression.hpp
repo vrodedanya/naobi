@@ -22,6 +22,19 @@ namespace naobi
 		utils::type::type process(std::vector<naobi::command>& commands);
 
 	private:
+		void processLiteral(std::vector<std::string>::const_iterator& it, std::vector<naobi::command>& commands);
+
+		void processOperation(std::vector<std::string>::const_iterator& it, std::vector<naobi::command>& commands);
+
+		void processBracket(std::vector<std::string>::const_iterator& it, std::vector<naobi::command>& commands);
+
+		void processFunction(std::vector<std::string>::const_iterator& it, std::vector<naobi::command>& commands);
+
+		void processVariable(std::vector<std::string>::const_iterator& it, std::vector<naobi::command>& commands);
+
+		void popStack(std::vector<naobi::command>& commands);
+
+	private:
 		std::vector<std::string> _words;
 		code_generator* _generator;
 
