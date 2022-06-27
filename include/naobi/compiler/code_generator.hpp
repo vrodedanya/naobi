@@ -35,6 +35,22 @@ namespace naobi
 
 		bool generateFunction(const std::vector<std::string>& functionCallWords);
 
+		void creatingVariableLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		void ifElseLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		void forLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		void ariseLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		void insertLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		void catchLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		void throwLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
+		void assignmentLogic(const std::vector<std::string>& words, std::vector<naobi::command>& commands);
+
 	private:
 		naobi::module::sptr _module;
 		std::map<std::string, variable::sptr> _variablesTemp;
