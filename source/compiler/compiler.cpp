@@ -302,6 +302,17 @@ naobi::compiler::compiler() :
 			 {
 				 std::string name = line[2];
 				 auto templateFunction = std::make_shared<naobi::template_function>(name);
+				 if (module->addTemplateFunction(templateFunction))
+				 {
+					 NLOG(compiler.compile, logger::IMPORTANT, "Added template function with name ",
+						  name);
+				 }
+				 else
+				 {
+					 NCRITICAL(compiler.compile, errors::ALREADY_EXIST,
+							   "CRITICAL template function with name ",
+							   name, " is already exist");
+				 }
 
 				 std::vector<std::string> types = parser::split(
 					 parser::removeSym(line[1].substr(1, line[1].size() - 2), ' '),
@@ -328,7 +339,7 @@ naobi::compiler::compiler() :
 				 auto retIterator = std::find(line.begin(), line.end(), "->");
 				 if (retIterator != line.end() && (retIterator + 1) != line.end())
 				 {
-					 auto returnType = parser::join(retIterator + 1, line.end() - 1,"");
+					 auto returnType = parser::join(retIterator + 1, line.end() - 1, "");
 					 templateFunction->setReturnType(returnType);
 				 }
 				 else
@@ -336,18 +347,6 @@ naobi::compiler::compiler() :
 					 templateFunction->setReturnType("undefined");
 				 }
 				 templateFunction->setCode(line.back().substr(1, line.back().size() - 2));
-
-				 if (module->addTemplateFunction(templateFunction))
-				 {
-					 NLOG(compiler.compile, logger::IMPORTANT, "Added template function with name ",
-						  name);
-				 }
-				 else
-				 {
-					 NCRITICAL(compiler.compile, errors::ALREADY_EXIST,
-							   "CRITICAL template function with name ",
-							   name, " is already exist");
-				 }
 			 }
 			},
 			// Function logic
@@ -400,9 +399,6 @@ naobi::compiler::compiler() :
 					 codeBlock, parser::isAnyOf(";}"), {}, {{'{', '}'},
 															{'"', '"'}});
 
-				 auto commands = generator.generate(lines);
-				 function->setCommands(commands);
-
 				 if (module->addFunction(function))
 				 {
 					 NLOG(compiler.compile, logger::IMPORTANT, "Added function with name ", name);
@@ -412,6 +408,9 @@ naobi::compiler::compiler() :
 					 NCRITICAL(compiler.compile, errors::ALREADY_EXIST, "CRITICAL function with name ",
 							   name, " and this arguments ", line[2], " is already exist");
 				 }
+
+				 auto commands = generator.generate(lines);
+				 function->setCommands(commands);
 			 }},
 			{[](const std::vector<std::string>& line) -> bool
 			 {
@@ -421,7 +420,7 @@ naobi::compiler::compiler() :
 				 [[maybe_unused]]const std::vector<std::string>& line,
 				 [[maybe_unused]]const naobi::module::sptr& module) noexcept
 			 {
-				module->addException(naobi::exception(line[1].substr(0, line[1].size() - 1), ""));
+				 module->addException(naobi::exception(line[1].substr(0, line[1].size() - 1), ""));
 			 }},
 			{[](const std::vector<std::string>& line) -> bool
 			 {
@@ -431,26 +430,28 @@ naobi::compiler::compiler() :
 				 [[maybe_unused]]const std::vector<std::string>& line,
 				 [[maybe_unused]]const naobi::module::sptr& module) noexcept
 			 {
-				NLOG(compiler, logger::IMPORTANT, "Event: ", line);
-				naobi::event event;
-				event.setName(line[1]);
-				auto args = parser::removeFirstSym(line[2].substr(1, line[2].size() - 2), ' ');
-				auto arguments = parser::removeEmpty(parser::split(args, parser::isAnyOf(";")));
-				NLOG(compiler, logger::LOW, "arguments: ", arguments);
-				for (const auto& argument : arguments)
-				{
-					auto pair = parser::split(argument, parser::isAnyOf(" "));
-					if (pair.size() != 2)
-					{
-						NCRITICAL(compiler, errors::INVALID_ARGUMENT, "CRITICAL wrong event argument: ", pair);
-					}
-					if (!event.addArgument(pair[1], utils::type::type(utils::type::fromStringToName(pair[0])), nullptr))
-					{
-						NCRITICAL(compiler, errors::ALREADY_EXIST, "CRITICAL argument '",pair, "'", "is already exist");
-					}
-				}
+				 NLOG(compiler, logger::IMPORTANT, "Event: ", line);
+				 naobi::event event;
+				 event.setName(line[1]);
+				 auto args = parser::removeFirstSym(line[2].substr(1, line[2].size() - 2), ' ');
+				 auto arguments = parser::removeEmpty(parser::split(args, parser::isAnyOf(";")));
+				 NLOG(compiler, logger::LOW, "arguments: ", arguments);
+				 for (const auto& argument : arguments)
+				 {
+					 auto pair = parser::split(argument, parser::isAnyOf(" "));
+					 if (pair.size() != 2)
+					 {
+						 NCRITICAL(compiler, errors::INVALID_ARGUMENT, "CRITICAL wrong event argument: ", pair);
+					 }
+					 if (!event.addArgument(
+						 pair[1], utils::type::type(utils::type::fromStringToName(pair[0])), nullptr))
+					 {
+						 NCRITICAL(compiler, errors::ALREADY_EXIST, "CRITICAL argument '", pair, "'",
+								   "is already exist");
+					 }
+				 }
 
-				module->addEvent(event);
+				 module->addEvent(event);
 			 }},
 			// Import plug
 			{[](const std::vector<std::string>& line) -> bool

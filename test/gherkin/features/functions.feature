@@ -298,3 +298,25 @@ Feature: Users functions
     """
     Then got string "str, test"
     Then ends with the code 0
+  Scenario: Recursion
+    Given script:
+    """
+    import standard;
+    function factorial(integer val) -> integer
+    {
+        if val <= 0
+        {
+            return 1;
+        }
+        else
+        {
+            return factorial(val - 1) * val;
+        }
+    }
+    workflow main
+    {
+        println(factorial(5));
+    }
+    """
+    Then got integer 120
+    Then ends with the code 0
