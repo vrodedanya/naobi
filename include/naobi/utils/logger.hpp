@@ -8,8 +8,9 @@
 
 #include <naobi/utils/output_type_trait.hpp>
 #include <naobi/utils/parser.hpp>
-#include <naobi/utils/color.hpp>
+#include <naobi/utils/colors.hpp>
 #include <naobi/utils/errors.hpp>
+#include "colors.hpp"
 
 
 #define NLOG(addressee, level, ...) \
@@ -83,7 +84,7 @@ namespace naobi
 	private:
 		static inline std::string _currentAddressee;
 		static inline std::ofstream _file;
-		static inline color _currentColor;
+		static inline colors::color _currentColor;
 		static inline bool _isEnabled{};
 		static inline bool _useStdErr{};
 		static inline int _currentLevel{};
@@ -109,36 +110,36 @@ namespace naobi
 
 		if (addressee != _currentAddressee)
 		{
-			_currentColor.color = color::BOLDCYAN;
+			_currentColor = colors::BOLDCYAN;
 			println("[" + addressee + "]:");
 			_currentAddressee = addressee;
 		}
 		if (_printDate)
 		{
-			_currentColor.color = color::MAGENTA;
+			_currentColor = colors::MAGENTA;
 			print("<" + naobi::parser::removeSym(std::ctime(&current_time) + std::string(">"), '\n'));
 		}
 		if (_printLevel)
 		{
-			_currentColor.color = color::YELLOW;
+			_currentColor = colors::YELLOW;
 			print(" (" + std::to_string(level) + ")");
 		}
-		_currentColor.color = color::RESET;
+		_currentColor = colors::RESET;
 		print(" -> ");
 
 		switch (level)
 		{
 			case CRITICAL:
-				_currentColor.color = color::BOLDRED;
+				_currentColor = colors::BOLDRED;
 				break;
 			case SUCCESS:
-				_currentColor.color = color::BOLDGREEN;
+				_currentColor = colors::BOLDGREEN;
 				break;
 			case IMPORTANT:
-				_currentColor.color = color::BOLDBLUE;
+				_currentColor = colors::BOLDBLUE;
 				break;
 			default:
-				_currentColor.color = color::RESET;
+				_currentColor = colors::RESET;
 		}
 
 		log_rec(std::forward<AArgs>(aargs)...);
@@ -160,14 +161,14 @@ namespace naobi
 	template <typename T>
 	void logger::print(T&& text)
 	{
-		if (_useStdErr) std::cerr << _currentColor.color << text << color::RESET;
+		if (_useStdErr) std::cerr << _currentColor << text << colors::RESET;
 		if (_file.is_open()) _file << text;
 	}
 
 	template <typename T>
 	void logger::println(T&& text)
 	{
-		if (_useStdErr) std::cerr << _currentColor.color << text << color::RESET << std::endl;
+		if (_useStdErr) std::cerr << _currentColor << text << colors::RESET << std::endl;
 		if (_file.is_open()) _file << text << std::endl;
 	}
 }
