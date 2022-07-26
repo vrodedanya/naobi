@@ -1,6 +1,7 @@
 #ifndef NAOBI_ERRORS_HPP
 #define NAOBI_ERRORS_HPP
 
+
 namespace naobi
 {
 	enum errors
@@ -30,18 +31,29 @@ namespace naobi
 	class naobi_exception : public std::exception
 	{
 	public:
-		naobi_exception(const std::string& _name, const std::string& _description) :
-		name(_name),
-		description(_description)
-			{}
+		naobi_exception(std::string name, std::string description) :
+			_name(std::move(name)),
+			_description(std::move(description))
+		{}
 
-		std::string name;
-		std::string description;
+		[[nodiscard]] const std::string& getName() const
+		{
+			return _name;
+		}
+
+		[[nodiscard]] const std::string& getDescription() const
+		{
+			return _description;
+		}
 
 		[[nodiscard]] const char* what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW override
 		{
-			return description.c_str();
+			return _description.c_str();
 		}
+
+	private:
+		std::string _name;
+		std::string _description;
 	};
 }
 

@@ -53,8 +53,8 @@ void naobi::handler::execute()
 				catch (const naobi::naobi_exception& except)
 				{
 					auto exception = naobi::exception();
-					exception.name = except.name;
-					exception.description = except.description;
+					exception.name = except.getName();
+					exception.description = except.getDescription();
 					catchException(exception, *context);
 				}
 				catch (const std::exception& except)

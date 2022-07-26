@@ -7,9 +7,10 @@
 #include <memory>
 #include <functional>
 
-#include "naobi/utils/command.hpp"
-#include "naobi/utils/rule.hpp"
+#include <naobi/utils/command.hpp>
+#include <naobi/utils/rule.hpp>
 #include <naobi/utils/expression.hpp>
+#include <naobi/data/module.hpp>
 
 
 namespace naobi

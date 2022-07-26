@@ -8,10 +8,6 @@
 namespace naobi
 {
 	template <typename T>
-	std::ostream& operator <<(std::ostream& os, const std::vector<T>& vec);
-
-
-	template <typename T>
 	std::ostream& operator <<(std::ostream& os, const std::vector<T>& vec)
 	{
 		os << "[";

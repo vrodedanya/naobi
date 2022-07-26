@@ -1,13 +1,9 @@
 #ifndef NAOBI_RULE_HPP
 #define NAOBI_RULE_HPP
 
-#include <functional>
-#include "naobi/data/module.hpp"
-
 
 namespace naobi
 {
-
 	template <typename CHECKER, typename ACTION>
 	class rule
 	{
