@@ -268,6 +268,7 @@ Feature: Users functions
     Then got string "Integer"
     Then got string "Float"
     Then ends with the code 0
+
   Scenario: String argument with ':'. Issue #10
     Given script:
     """
@@ -283,6 +284,7 @@ Feature: Users functions
     """
     Then got string "str: test"
     Then ends with the code 0
+
   Scenario: String argument with ','. Issue #19
     Given script:
     """
@@ -298,6 +300,7 @@ Feature: Users functions
     """
     Then got string "str, test"
     Then ends with the code 0
+
   Scenario: Recursion
     Given script:
     """
@@ -319,4 +322,25 @@ Feature: Users functions
     }
     """
     Then got integer 120
+    Then ends with the code 0
+  Scenario: Positional and named arguments
+    Given script:
+    """
+    import standard;
+    function test(integer first, integer second, float third, string fourth)
+    {
+      println(first);
+      println(second);
+      println(third);
+      println(fourth);
+    }
+    workflow main
+    {
+      test(first: 10, 2, third: 4.5, "Test");
+    }
+    """
+    Then got integer 10
+    Then got integer 2
+    Then got float 4.5
+    Then got string "Test"
     Then ends with the code 0
