@@ -219,6 +219,25 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 
 	std::size_t pos = 0;
 	auto functionIterator = functions.begin();
+	std::vector<bool> argumentsUsed;
+	std::map<std::string, std::size_t> indexOfName;
+	auto updateContainersFunc = [&argumentsUsed = argumentsUsed,
+								 &indexOfName = indexOfName,
+								 &functionIterator = functionIterator]()
+	{
+		argumentsUsed.clear();
+		indexOfName.clear();
+
+		argumentsUsed.resize((*functionIterator)->getArguments().size());
+		std::fill(argumentsUsed.begin(), argumentsUsed.end(), false);
+		std::size_t index{};
+		for (const auto& argument : (*functionIterator)->getArguments())
+		{
+			indexOfName[argument.first] = index++;
+		}
+	};
+	updateContainersFunc();
+
 
 	std::vector<command> temp;
 	for (auto arg = args.begin() ; arg != args.end() ;)
@@ -247,10 +266,17 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 					pos = 0;
 					arg = args.begin();
 					temp.clear();
+					updateContainersFunc();
 					continue;
 				}
 			}
 			argInFunction = argInFunctionOpt.value();
+			if (argumentsUsed[pos])
+			{
+				NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL Argument at position ", pos + 1,
+						  " has already used");
+			}
+			argumentsUsed[pos] = true;
 		}
 		else if (pair.size() == 2)
 		{
@@ -274,10 +300,17 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 					pos = 0;
 					arg = args.begin();
 					temp.clear();
+					updateContainersFunc();
 					continue;
 				}
 			}
 			argInFunction = argInFunctionOpt.value();
+			if (argumentsUsed[indexOfName[name]])
+			{
+				NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL argument with the name '", name, "' has "
+																											  "already used");
+			}
+			argumentsUsed[indexOfName[name]] = true;
 		}
 		else
 		{
@@ -307,6 +340,7 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 				pos = 0;
 				arg = args.begin();
 				temp.clear();
+				updateContainersFunc();
 				continue;
 			}
 		}
@@ -317,7 +351,12 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 		pos++;
 		arg++;
 	}
-
+	if (!std::all_of(
+		argumentsUsed.begin(), argumentsUsed.end(), [](bool used)
+		{ return used; }))
+	{
+		NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL One of the arguments is not used");
+	}
 	commands.insert(commands.end(), temp.begin(), temp.end());
 	commands.emplace_back(
 		command::createCommand(
