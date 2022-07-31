@@ -344,3 +344,18 @@ Feature: Users functions
     Then got float 4.5
     Then got string "Test"
     Then ends with the code 0
+  Scenario: Getting compilation error if one of the arguments doesn't inited
+    Given script:
+    """
+    import standard;
+    function test(integer first, integer second)
+    {
+      println(first);
+      println(second);
+    }
+    workflow main
+    {
+      test(10, first: 10);
+    }
+    """
+    Then fails with compilation error 57
