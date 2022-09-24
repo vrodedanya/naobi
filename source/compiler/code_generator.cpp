@@ -1,9 +1,6 @@
 #include <naobi/compiler/code_generator.hpp>
 
-#include <cstring>
-
 #include <naobi/utils/logger.hpp>
-#include <utility>
 #include <naobi/interpreter/workflow_context.hpp>
 #include <naobi/utils/keywords.hpp>
 #include <naobi/interpreter/event_manager.hpp>
@@ -28,7 +25,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 		{
 			if (!isCompiled)
 			{
-				if (words[0] == "if" && (it + 1) != lines.end() && (it + 1)->substr(0, std::strlen("else")) == "else")
+				if (words[0] == "if" && (it + 1) != lines.end() && (it + 1)->starts_with("else"))
 				{
 					auto temp = parser::split(
 						*(it + 1), parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
@@ -39,7 +36,7 @@ std::vector<naobi::command> naobi::code_generator::generate(std::vector<std::str
 				}
 				isCompiled = rule.checkLineAndRun(words, commands);
 			}
-			else
+			else // FIXME I don't remember why one line is handled multiple times. Need to research
 			{
 				rule.checkLineAndRun(words, commands);
 			}
@@ -59,6 +56,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 	_variablesTemp(std::move(variablesTemp)),
 	_generatorRules(
 		{
+			// Create variable
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return utils::type::fromStringToName(words[0]) != utils::type::names::UNDEFINED;
@@ -69,6 +67,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			 {
 				 creatingVariableLogic(words, commands);
 			 }},
+			// If else logic
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[0] == "if" && words.size() >= 3;
@@ -79,6 +78,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			 {
 				 ifElseLogic(words, commands);
 			 }},
+			// For loop
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[0] == "for" && words.size() >= 10;
@@ -89,6 +89,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			 {
 				 forLogic(words, commands);
 			 }},
+			// Functions
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[1] == "(" &&
@@ -102,6 +103,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 commands.push_back(command::createCommand(command::names::ALLOCATE, {}));
 				 callFunction(words, commands);
 			 }},
+			// Arise event
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[0] == "arise" && words.size() >= 2;
@@ -112,6 +114,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			 {
 				 ariseLogic(words, commands);
 			 }},
+			// Insert command
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[0] == "__insert" && words.size() >= 2;
@@ -123,6 +126,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 				 insertLogic(words, commands);
 			 }
 			},
+			// Return from function
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[0] == "return" && words.size() >= 2;
@@ -136,6 +140,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 
 				 commands.emplace_back(command::createCommand(command::names::RETURN, {}));
 			 }},
+			// Catch exception
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[0] == "catch" && words.size() == 3;
@@ -146,6 +151,7 @@ naobi::code_generator::code_generator(naobi::module::sptr module, std::map<std::
 			 {
 				 catchLogic(words, commands);
 			 }},
+			// Throw exception
 			{[](const std::vector<std::string>& words) -> bool
 			 {
 				 return words[0] == "throw" && words.size() >= 3;
@@ -181,21 +187,26 @@ bool naobi::code_generator::addVariable(const std::string& name, const naobi::va
 	return true;
 }
 
+static void updateFunctionName(std::vector<std::string>& functionCallWords, std::string& functionName)
+{
+	if (functionName.find('.') != std::string::npos)
+	{
+		functionName = naobi::parser::join(std::begin(functionCallWords), std::end(functionCallWords), "");
+		functionName = naobi::code_generator::methodToFunction(functionName);
+		functionCallWords = naobi::parser::split(
+			functionName, naobi::parser::isAnyOf(" "), naobi::parser::isAnyOf("+-*/%=!<>,()"), {}, {{'"', '"'},
+																									{'{', '}'}});
+		functionName = functionCallWords[0];
+		NLOG(code_generator, naobi::logger::BASIC, "Name of method after converting to function: ", functionName);
+	}
+}
+
 naobi::utils::type::type
 naobi::code_generator::callFunction(std::vector<std::string> functionCallWords, std::vector<command>& commands)
 {
 	NLOG(code_generator, logger::IMPORTANT, "Function: ", functionCallWords);
 	std::string functionName = functionCallWords[0];
-	if (functionName.find('.') != std::string::npos)
-	{
-		functionName = parser::join(std::begin(functionCallWords), std::end(functionCallWords), "");
-		functionName = methodToFunction(functionName);
-		functionCallWords = parser::split(
-			functionName, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {}, {{'"', '"'},
-																			 {'{', '}'}});
-		functionName = functionCallWords[0];
-		NLOG(code_generator, logger::BASIC, "Name of method after converting to function: ", functionName);
-	}
+	updateFunctionName(functionCallWords, functionName);
 	auto functions = _module->findFunction(functionName);
 	if (functions.empty())
 	{
@@ -206,9 +217,11 @@ naobi::code_generator::callFunction(std::vector<std::string> functionCallWords, 
 		NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL function '", functionName,
 				  "' not found");
 	}
+
 	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
 	auto args = parser::split(argsString, parser::isAnyOf(","), {}, {{'(', ')'}, {'"', '"'}});
 	NLOG(code_generator, logger::IMPORTANT, "function call arguments: ", args);
+	// Remove all functions whose number of arguments doesn't match
 	functions.erase(
 		std::remove_if(
 			functions.begin(), functions.end(),
@@ -227,14 +240,14 @@ naobi::code_generator::callFunction(std::vector<std::string> functionCallWords, 
 				  args.size(), "'");
 	}
 
-
-	std::size_t pos = 0;
 	auto functionIterator = functions.begin();
-	std::vector<bool> argumentsUsed;
-	std::map<std::string, std::size_t> indexOfName;
-	auto updateContainersFunc = [&argumentsUsed = argumentsUsed,
-								 &indexOfName = indexOfName,
-								 &functionIterator = functionIterator]()
+	std::vector<bool> argumentsUsed; // Container for checking that the argument is already in use
+	std::map<std::string, std::size_t> indexOfName; // Contains index of named arguments
+
+	// Cleaner of containers
+	auto clearArgumentsContainers = [&argumentsUsed = argumentsUsed,
+									 &indexOfName = indexOfName,
+									 &functionIterator = functionIterator]()
 	{
 		argumentsUsed.clear();
 		indexOfName.clear();
@@ -247,86 +260,90 @@ naobi::code_generator::callFunction(std::vector<std::string> functionCallWords, 
 			indexOfName[argument.first] = index++;
 		}
 	};
-	updateContainersFunc();
+	clearArgumentsContainers();
 
-
+	std::size_t pos = 0;
 	std::vector<command> temp;
+
+	auto toNextFunction = [&](auto& arg, errors error, const std::string& message) -> std::optional<naobi::utils::type::type>
+	{
+		functionIterator++;
+		if (functionIterator == functions.end())
+		{
+			if (generateFunction(functionCallWords))
+			{
+				return callFunction(functionCallWords, commands);
+			}
+			NCRITICAL(code_generator, error, message);
+		}
+		else
+		{
+			pos = 0;
+			arg = args.begin();
+			temp.clear();
+			clearArgumentsContainers();
+			return {};
+		}
+	};
+
+	auto checkIsAlreadyUsedAndFill = [&](std::size_t index, const std::string& message)
+	{
+		if (argumentsUsed[index])
+		{
+			NCRITICAL(code_generator, errors::INVALID_ARGUMENT, message);
+		}
+		argumentsUsed[index] = true;
+	};
+
 	for (auto arg = args.begin() ; arg != args.end() ;)
 	{
 		auto pair = parser::split(*arg, parser::isAnyOf(":"), {}, {{'(', ')'}, {'"', '"'}});
 		std::string value;
 		function::argument_type argInFunction;
-		if (pair.size() == 1)
+		if (pair.size() == 1) // positional argument
 		{
 			value = pair[0];
 			auto argInFunctionOpt = (*functionIterator)->getArgument(pos);
 			if (!argInFunctionOpt.has_value())
 			{
-				functionIterator++;
-				if (functionIterator == functions.end())
+				if (auto typeOpt = toNextFunction(
+						arg, errors::INVALID_ARGUMENT, "CRITICAL function with the argument at position " +
+							 std::to_string(pos) +
+							 " doesn't exist"); typeOpt.has_value())
 				{
-					if (generateFunction(functionCallWords))
-					{
-						return callFunction(functionCallWords, commands);
-					}
-					NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL argument with position ", pos,
-							  " doesn't exist");
+					return typeOpt.value();
 				}
-				else
-				{
-					pos = 0;
-					arg = args.begin();
-					temp.clear();
-					updateContainersFunc();
-					continue;
-				}
+				continue;
 			}
 			argInFunction = argInFunctionOpt.value();
-			if (argumentsUsed[pos])
-			{
-				NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL Argument at position ", pos + 1,
-						  " has already used");
-			}
-			argumentsUsed[pos] = true;
+			checkIsAlreadyUsedAndFill(
+				pos, "CRITICAL Argument at position " + std::to_string(pos + 1) + " has already used");
 		}
-		else if (pair.size() == 2)
+		else if (pair.size() == 2) // named argument
 		{
 			auto name = pair[0];
 			value = pair[1];
 			auto argInFunctionOpt = (*functionIterator)->getArgument(name);
 			if (!argInFunctionOpt.has_value())
 			{
-				functionIterator++;
-				if (functionIterator == functions.end())
+				if (auto typeOpt = toNextFunction(
+						arg, errors::INVALID_ARGUMENT, "CRITICAL argument with name " + name +
+							 " doesn't exist"); typeOpt.has_value())
 				{
-					if (generateFunction(functionCallWords))
-					{
-						return callFunction(functionCallWords, commands);
-					}
-					NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL argument with name ", name,
-							  " doesn't exist");
+					return typeOpt.value();
 				}
-				else
-				{
-					pos = 0;
-					arg = args.begin();
-					temp.clear();
-					updateContainersFunc();
-					continue;
-				}
+				continue;
 			}
 			argInFunction = argInFunctionOpt.value();
-			if (argumentsUsed[indexOfName[name]])
-			{
-				NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL argument with the name '", name, "' has "
-																											  "already used");
-			}
-			argumentsUsed[indexOfName[name]] = true;
+			checkIsAlreadyUsedAndFill(
+				indexOfName[name], "CRITICAL argument with the name '" + name + "' has "
+																				"already used");
 		}
 		else
 		{
 			NCRITICAL(code_generator, errors::INVALID_ARGUMENT, "CRITICAL invalid argument ", pair);
 		}
+
 		auto valueSplitter = parser::split(
 			value, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {},
 			{{'"', '"'},
@@ -334,26 +351,14 @@ naobi::code_generator::callFunction(std::vector<std::string> functionCallWords, 
 		auto type = expression(std::move(valueSplitter), this).process(temp);
 		if (type != argInFunction.second)
 		{
-			functionIterator++;
-			if (functionIterator == functions.end())
+			if (auto typeOpt = toNextFunction(
+					arg, errors::TYPE_ERROR, "CRITICAL argument '" + argInFunction.first + "' is '" +
+					utils::type::fromNameToString(argInFunction.second.name) + "' provided '" +
+					utils::type::fromNameToString(type.name) + "'"); typeOpt.has_value())
 			{
-				if (generateFunction(functionCallWords))
-				{
-					return callFunction(functionCallWords, commands);
-				}
-				NCRITICAL(code_generator, errors::TYPE_ERROR, "CRITICAL argument '", argInFunction.first,
-						  "' is '",
-						  utils::type::fromNameToString(argInFunction.second.name), "' provided '",
-						  utils::type::fromNameToString(type.name), "'");
+				return typeOpt.value();
 			}
-			else
-			{
-				pos = 0;
-				arg = args.begin();
-				temp.clear();
-				updateContainersFunc();
-				continue;
-			}
+			continue;
 		}
 		temp.emplace_back(
 			command::createCommand(
@@ -1026,12 +1031,13 @@ naobi::code_generator::assignmentLogic(const std::vector<std::string>& words, st
 
 std::string naobi::code_generator::methodToFunction(const std::string& method)
 {
-	auto findWithIgnoringInner = [](const auto& begin, const auto& end, char character) -> std::size_t {
+	auto findWithIgnoringInner = [](const auto& begin, const auto& end, char character) -> std::size_t
+	{
 		int innerLevel{};
 		for (auto it = begin ; it != end ; it++)
 		{
 			if (*it == '(') innerLevel++;
-			else if (*it  == ')') innerLevel--;
+			else if (*it == ')') innerLevel--;
 			else if (innerLevel == 0 && *it == character)
 			{
 				return static_cast<size_t>(std::abs(std::distance(it, end)));
@@ -1041,7 +1047,8 @@ std::string naobi::code_generator::methodToFunction(const std::string& method)
 	};
 	std::size_t lastDot = findWithIgnoringInner(std::rbegin(method), std::rend(method), '.');
 	std::size_t bracketBegin = method.find('(', lastDot);
-	std::string_view body = std::string_view(method).substr(bracketBegin + 1, method.find(')', bracketBegin) - bracketBegin - 1);
+	std::string_view body = std::string_view(method).substr(
+		bracketBegin + 1, method.find(')', bracketBegin) - bracketBegin - 1);
 	std::string temp = method.substr(lastDot, method.find('(', lastDot) - lastDot + 1) + method.substr(0, lastDot - 1);
 	if (!body.empty())
 	{
