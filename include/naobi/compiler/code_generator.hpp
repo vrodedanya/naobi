@@ -30,9 +30,11 @@ namespace naobi
 
 		bool addVariable(const std::string& name, const variable::sptr& var);
 
+		static std::string methodToFunction(const std::string& method);
+
 	private:
 		naobi::utils::type::type
-		callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands);
+		callFunction(std::vector<std::string> functionCallWords, std::vector<command>& commands);
 
 		bool generateFunction(const std::vector<std::string>& functionCallWords);
 

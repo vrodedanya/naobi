@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(naobi VERSION 0.8.1)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 include(FetchContent)
 
@@ -30,6 +30,7 @@ set(NAOBI_SOURCES
 set(NAOBI_TEST_SOURCES
         test/module/parser_test.cpp
         test/module/type_test.cpp
+        test/module/generator_test.cpp
         )
 
 
