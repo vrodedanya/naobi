@@ -182,17 +182,28 @@ bool naobi::code_generator::addVariable(const std::string& name, const naobi::va
 }
 
 naobi::utils::type::type
-naobi::code_generator::callFunction(const std::vector<std::string>& functionCallWords, std::vector<command>& commands)
+naobi::code_generator::callFunction(std::vector<std::string> functionCallWords, std::vector<command>& commands)
 {
 	NLOG(code_generator, logger::IMPORTANT, "Function: ", functionCallWords);
-	auto functions = _module->findFunction(functionCallWords[0]);
+	std::string functionName = functionCallWords[0];
+	if (functionName.find('.') != std::string::npos)
+	{
+		functionName = parser::join(std::begin(functionCallWords), std::end(functionCallWords), "");
+		functionName = methodToFunction(functionName);
+		functionCallWords = parser::split(
+			functionName, parser::isAnyOf(" "), parser::isAnyOf("+-*/%=!<>,()"), {}, {{'"', '"'},
+																			 {'{', '}'}});
+		functionName = functionCallWords[0];
+		NLOG(code_generator, logger::BASIC, "Name of method after converting to function: ", functionName);
+	}
+	auto functions = _module->findFunction(functionName);
 	if (functions.empty())
 	{
 		if (generateFunction(functionCallWords))
 		{
 			return callFunction(functionCallWords, commands);
 		}
-		NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL function '", functionCallWords[0],
+		NCRITICAL(code_generator, errors::DOESNT_EXIST, "CRITICAL function '", functionName,
 				  "' not found");
 	}
 	auto argsString = parser::join(functionCallWords.begin() + 2, functionCallWords.end() - 1, "");
@@ -361,7 +372,7 @@ naobi::code_generator::callFunction(const std::vector<std::string>& functionCall
 	commands.emplace_back(
 		command::createCommand(
 			naobi::command::names::CALL,
-			{functionCallWords[0],
+			{functionName,
 			 std::to_string((*functionIterator)->getNumber())}));
 	return (*functionIterator)->getReturnType();
 }
@@ -1011,4 +1022,31 @@ naobi::code_generator::assignmentLogic(const std::vector<std::string>& words, st
 	commands.emplace_back(
 		naobi::command::createCommand(
 			naobi::command::names::SAVE, {words[0]}));
+}
+
+std::string naobi::code_generator::methodToFunction(const std::string& method)
+{
+	auto findWithIgnoringInner = [](const auto& begin, const auto& end, char character) -> std::size_t {
+		int innerLevel{};
+		for (auto it = begin ; it != end ; it++)
+		{
+			if (*it == '(') innerLevel++;
+			else if (*it  == ')') innerLevel--;
+			else if (innerLevel == 0 && *it == character)
+			{
+				return static_cast<size_t>(std::abs(std::distance(it, end)));
+			}
+		}
+		return std::string::npos;
+	};
+	std::size_t lastDot = findWithIgnoringInner(std::rbegin(method), std::rend(method), '.');
+	std::size_t bracketBegin = method.find('(', lastDot);
+	std::string_view body = std::string_view(method).substr(bracketBegin + 1, method.find(')', bracketBegin) - bracketBegin - 1);
+	std::string temp = method.substr(lastDot, method.find('(', lastDot) - lastDot + 1) + method.substr(0, lastDot - 1);
+	if (!body.empty())
+	{
+		temp += ", ";
+	}
+	temp += method.substr(method.find('(', lastDot) + 1);
+	return temp;
 }
