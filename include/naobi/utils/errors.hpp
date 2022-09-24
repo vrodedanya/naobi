@@ -20,6 +20,7 @@ namespace naobi
 		UNKNOWN_OPERATOR = 55,
 		INCORRECT_BRACKETS = 56,
 		INVALID_ARGUMENT = 57,
+		NOT_INITIALIZED = 58,
 // Runtime errors 90-99
 		EXCEPTION = 90,
 // Other 110-119
