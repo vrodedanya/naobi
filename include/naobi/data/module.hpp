@@ -62,6 +62,8 @@ namespace naobi
 		[[nodiscard]] std::string name() const
 		{ return _name; }
 
+		friend std::ostream& operator << (std::ostream& stream, const module& module);
+		friend const std::ostream& operator >> (const std::ostream& stream, module& module);
 
 	private:
 		std::string _name;
@@ -72,6 +74,9 @@ namespace naobi
 		std::vector<naobi::exception> _exceptions;
 		std::vector<naobi::event> _events;
 	};
+
+	std::ostream& operator << (std::ostream& stream, const module& module);
+	const std::ostream& operator >> (const std::ostream& stream, module& module);
 }
 
 #endif //NAOBI_MODULE_HPP

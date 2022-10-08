@@ -28,6 +28,9 @@ namespace naobi
 		[[nodiscard]] std::vector<workflow::sptr> getWorkflows() const
 		{ return _workflows; }
 
+		friend std::ostream& operator << (std::ostream& stream, const compiler& compiler);
+		friend const std::ostream& operator >> (const std::ostream& stream, compiler& compiler);
+
 	private:
 		void compile(const std::string& fileName, const naobi::module::sptr& parent);
 
@@ -46,6 +49,9 @@ namespace naobi
 		std::vector<workflow::sptr> _workflows;
 		naobi::module::sptr _root;
 	};
+
+	std::ostream& operator << (std::ostream& stream, const compiler& compiler);
+	const std::ostream& operator >> (const std::ostream& stream, compiler& compiler);
 }
 
 #endif //NAOBI_COMPILER_HPP

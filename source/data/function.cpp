@@ -1,6 +1,7 @@
 #include <naobi/data/function.hpp>
 
 #include <optional>
+#include "naobi/utils/indent_scope.hpp"
 
 
 naobi::function::function(std::string name) :
@@ -76,4 +77,42 @@ void naobi::function::setNumber(std::size_t n)
 void naobi::function::setArguments(const std::vector<argument_type>& arguments)
 {
 	_arguments = arguments;
+}
+
+std::ostream& naobi::operator <<(std::ostream& stream, const naobi::function& function)
+{
+	// comment block
+	stream << "{\n";
+	{
+		naobi::indent_scope indent(stream);
+		stream << "name: " << function.name() << "\n";
+		stream << "return: " << utils::type::fromNameToString(function._returnType.name) << "\n";
+		stream << "index: " << function._number <<  "\n";
+
+		std::size_t index{};
+		stream << "commands: [\n";
+		for (const auto& command : function._commands)
+		{
+			naobi::indent_scope inner_indent(stream);
+			stream << command::commandAsString(command.name) << ' ';
+			index = 0;
+			for (const auto& arg : command.arguments)
+			{
+				stream << arg;
+				if (++index < command.arguments.size())
+				{
+					stream << ' ';
+				}
+			}
+			stream << "\n";
+		}
+		stream << "]\n";
+	}
+	stream << "}";
+	return stream;
+}
+
+const std::ostream& naobi::operator >>(const std::ostream& stream, naobi::function& function)
+{
+	return stream;
 }

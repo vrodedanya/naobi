@@ -116,3 +116,13 @@ naobi::event::event(const naobi::event& e)
 	this->_arguments = e._arguments;
 	this->_name = e._name;
 }
+
+std::ostream& naobi::operator << (std::ostream& stream, const event& ev)
+{
+	stream << "// event "<<  ev._name;
+	return stream;
+}
+const std::ostream& naobi::operator >> (const std::ostream& stream, event& ev)
+{
+	return stream;
+}

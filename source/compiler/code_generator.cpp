@@ -560,7 +560,7 @@ bool naobi::code_generator::generateFunction(const std::vector<std::string>& fun
 			newFunction->setReturnType(utils::type::type(it->second));
 		}
 	}
-	_module->addFunction(newFunction);
+	templateFunction->parent()->addFunction(newFunction);
 	return true;
 }
 

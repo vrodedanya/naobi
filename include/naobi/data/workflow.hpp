@@ -42,6 +42,8 @@ namespace naobi
 		[[nodiscard]] naobi::module::sptr module() const
 		{ return _parentModule; }
 
+		friend std::ostream& operator << (std::ostream& stream, const workflow& flow);
+		friend const std::ostream& operator >> (const std::ostream& stream, workflow& flow);
 	private:
 		std::string _name;
 		naobi::event _target;
@@ -49,6 +51,9 @@ namespace naobi
 		std::vector<naobi::command> _commands;
 		int _invoke{-1};
 	};
+
+	std::ostream& operator << (std::ostream& stream, const workflow& flow);
+	const std::ostream& operator >> (const std::ostream& stream, workflow& flow);
 }
 
 #endif //NAOBI_WORKFLOW_HPP

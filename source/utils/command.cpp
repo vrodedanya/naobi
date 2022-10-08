@@ -600,3 +600,18 @@ naobi::command::createCommand(naobi::command::names com, const naobi::command::a
 	}
 	return command;
 }
+
+std::string naobi::command::commandAsString(naobi::command::names name)
+{
+	auto it = std::find_if(
+		std::begin(stringToCommand), std::end(stringToCommand),
+		[name](const auto& iterator)
+		{
+			return iterator.second == name;
+		});
+	if (it == std::end(stringToCommand))
+	{
+		NCRITICAL(command, errors::NOT_SPECIFIED, "CRITICAL can't find string interpretation of command: ", static_cast<std::size_t>(name));
+	}
+	return it->first;
+}

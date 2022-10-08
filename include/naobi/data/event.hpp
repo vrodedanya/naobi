@@ -53,10 +53,17 @@ namespace naobi
 
 		bool operator >=(const event& rhs) const;
 
+		friend std::ostream& operator <<(std::ostream& stream, const event& ev);
+
+		friend const std::ostream& operator >>(const std::ostream& stream, event& ev);
+
 	private:
 		std::string _name;
 		std::vector<argument> _arguments;
 	};
+
+	std::ostream& operator << (std::ostream& stream, const event& ev);
+	const std::ostream& operator >> (const std::ostream& stream, event& ev);
 }
 
 #endif //NAOBI_EVENT_HPP

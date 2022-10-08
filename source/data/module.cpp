@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include <naobi/utils/indent_scope.hpp>
+
 
 naobi::module::module(std::string name)
 	: _name(std::move(name))
@@ -245,4 +247,52 @@ std::optional<naobi::event> naobi::module::findEvent(const std::string& eventNam
 		if (temp.has_value()) return temp;
 	}
 	return {};
+}
+
+std::ostream& naobi::operator << (std::ostream& stream, const naobi::module& module)
+{
+	stream << "{\n";
+	{
+		naobi::indent_scope indent(stream);
+		stream << "name: " << module.name() << "\n";
+		if (!module._functions.empty())
+		{
+			stream << "functions: [\n";
+			for (const auto& function : module._functions)
+			{
+				naobi::indent_scope inner_indent(stream);
+				stream << *function << "\n";
+			}
+			stream << "]\n";
+		}
+		if (!module._events.empty())
+		{
+			stream << "events: [\n";
+			for (const auto& event : module._events)
+			{
+				naobi::indent_scope inner_indent(stream);
+				stream << event << "\n";
+			}
+			stream << "]\n";
+		}
+		if (!module._modules.empty())
+		{
+			stream << "modules: [\n";
+			for (const auto& childModule : module._modules)
+			{
+				naobi::indent_scope inner_indent(stream);
+				stream << *childModule << "\n";
+			}
+			stream << "]\n";
+		}
+	}
+
+	stream << "}";
+
+	return stream;
+}
+
+const std::ostream& naobi::operator >> (const std::ostream& stream, naobi::module& module)
+{
+	return stream;
 }

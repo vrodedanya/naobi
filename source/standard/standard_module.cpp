@@ -4,13 +4,13 @@
 naobi::standard::standard() : module("standard")
 {
 	{
-		auto templateFunction = std::make_shared<naobi::template_function>("println");
+		auto templateFunction = std::make_shared<naobi::template_function>("println", this);
 		templateFunction->addArgument("variable", "TYPE");
 		templateFunction->setCode("__insert LOAD variable;__insert PRINTLN;");
 		addTemplateFunction(templateFunction);
 	}
 	{
-		auto templateFunction = std::make_shared<naobi::template_function>("print");
+		auto templateFunction = std::make_shared<naobi::template_function>("print", this);
 		templateFunction->addArgument("variable", "TYPE");
 		templateFunction->setCode("__insert LOAD variable;__insert PRINT;");
 		addTemplateFunction(templateFunction);
@@ -133,7 +133,7 @@ naobi::standard::standard() : module("standard")
 		addFunction(function);
 	}
 	{
-		auto templateFunction = std::make_shared<naobi::template_function>("get");
+		auto templateFunction = std::make_shared<naobi::template_function>("get", this);
 		templateFunction->setReturnType("ELEMENT");
 		templateFunction->addArgument("variable", "CONTAINER<ELEMENT>");
 		templateFunction->addArgument("index", "integer");
@@ -155,7 +155,7 @@ naobi::standard::standard() : module("standard")
 		addFunction(function);
 	}
 	{
-		auto templateFunction = std::make_shared<naobi::template_function>("set");
+		auto templateFunction = std::make_shared<naobi::template_function>("set", this);
 		templateFunction->setReturnType("CONTAINER<ELEMENT>");
 		templateFunction->addArgument("variable", "CONTAINER<ELEMENT>");
 		templateFunction->addArgument("sub", "ELEMENT");
@@ -181,7 +181,7 @@ naobi::standard::standard() : module("standard")
 		addFunction(function);
 	}
 	{
-		auto templateFunction = std::make_shared<naobi::template_function>("len");
+		auto templateFunction = std::make_shared<naobi::template_function>("len", this);
 		templateFunction->setReturnType("integer");
 		templateFunction->addArgument("variable", "TYPE");
 		templateFunction->setCode("__insert LOAD variable;"
@@ -189,7 +189,7 @@ naobi::standard::standard() : module("standard")
 		addTemplateFunction(templateFunction);
 	}
 	{
-		auto templateFunction = std::make_shared<naobi::template_function>("append");
+		auto templateFunction = std::make_shared<naobi::template_function>("append", this);
 		templateFunction->setReturnType("TYPE");
 		templateFunction->addArgument("variable", "TYPE");
 		templateFunction->addArgument("additional", "TYPE2");

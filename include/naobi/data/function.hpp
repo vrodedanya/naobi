@@ -50,6 +50,10 @@ namespace naobi
 		[[nodiscard]] const std::vector<naobi::command>& commands() const
 		{ return _commands; }
 
+		friend std::ostream& operator <<(std::ostream& stream, const function& function);
+
+		friend const std::ostream& operator >>(const std::ostream& stream, function& function);
+
 	private:
 		std::vector<naobi::command> _commands;
 		std::vector<argument_type> _arguments;
@@ -57,6 +61,9 @@ namespace naobi
 		std::string _name;
 		std::size_t _number{};
 	};
+
+	std::ostream& operator << (std::ostream& stream, const function& function);
+	const std::ostream& operator >> (const std::ostream& stream, function& function);
 }
 
 #endif //NAOBI_FUNCTION_HPP

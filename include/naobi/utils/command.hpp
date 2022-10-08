@@ -70,6 +70,8 @@ namespace naobi
 
 		static naobi::command createCommand(command::names com, const command::argumentsList& arguments);
 
+		static std::string commandAsString(command::names name);
+
 		names name;
 		implementation impl;
 		argumentsList arguments;

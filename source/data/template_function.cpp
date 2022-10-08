@@ -1,8 +1,13 @@
 #include <naobi/data/template_function.hpp>
+
 #include <algorithm>
 
+#include <naobi/data/module.hpp>
 
-naobi::template_function::template_function(std::string name) : _name(std::move(name))
+
+naobi::template_function::template_function(std::string name, module* parent) :
+	_name(std::move(name)),
+	m_parent(parent)
 {}
 
 const std::string& naobi::template_function::getName() const

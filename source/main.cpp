@@ -18,6 +18,9 @@ int main(int argc, char* argv[])
 			return EXIT_SUCCESS;
 		}
 
+		bool isOnlyCompile = arguments.find_flag("--compile");
+		bool isOnlyExecute = arguments.find_flag("--execute");
+
 		auto tempLevel = arguments.find_int("--level");
 		if (tempLevel.has_value()) naobi::logger::setLevel(tempLevel.value());
 		else naobi::logger::setLevel(naobi::logger::CRITICAL);
@@ -42,6 +45,14 @@ int main(int argc, char* argv[])
 		if (arguments.find_flag("--print-compile-end"))
 		{
 			std::cerr << "compile_end" << std::endl;
+		}
+
+		if (isOnlyCompile)
+		{
+			std::ofstream file(argv[argc - 1] + std::string(".byte"), std::ios::out);
+			file << compiler;
+			file.close();
+			return EXIT_SUCCESS;
 		}
 
 		naobi::event beginEvent;

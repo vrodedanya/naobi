@@ -9,6 +9,7 @@
 
 namespace naobi
 {
+	class module;
 	class template_function
 	{
 	public:
@@ -18,7 +19,7 @@ namespace naobi
 		using argument_type = std::pair<std::string, std::string>; // name - type
 
 	public:
-		explicit template_function(std::string name);
+		explicit template_function(std::string name, module* parent);
 
 		[[nodiscard]] const std::string& getName() const;
 
@@ -44,8 +45,10 @@ namespace naobi
 
 		void setCode(const std::string& code);
 
+		module* parent(){return m_parent;}
 	private:
 		std::string _name;
+		module* m_parent = nullptr;
 		std::vector<argument_type> _arguments;
 		std::string _returnType{"undefined"};
 		std::string _code;

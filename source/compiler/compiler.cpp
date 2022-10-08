@@ -7,6 +7,7 @@
 #include <naobi/utils/parser.hpp>
 #include <naobi/utils/logger.hpp>
 #include <naobi/utils/keywords.hpp>
+#include <naobi/utils/indent_scope.hpp>
 #include <naobi/compiler/code_generator.hpp>
 #include <naobi/standard/standard_module.hpp>
 #include <naobi/interpreter/event_manager.hpp>
@@ -301,7 +302,7 @@ naobi::compiler::compiler() :
 			 [](const std::vector<std::string>& line, const naobi::module::sptr& module)
 			 {
 				 std::string name = line[2];
-				 auto templateFunction = std::make_shared<naobi::template_function>(name);
+				 auto templateFunction = std::make_shared<naobi::template_function>(name, module.get());
 				 if (module->addTemplateFunction(templateFunction))
 				 {
 					 NLOG(compiler.compile, logger::IMPORTANT, "Added template function with name ",
@@ -466,3 +467,29 @@ naobi::compiler::compiler() :
 		}
 		  )
 {}
+
+std::ostream& naobi::operator << (std::ostream& stream, const naobi::compiler& compiler)
+{
+	stream << "root: " << *compiler._root << "\n";
+	stream << "workflows: [\n";
+	{
+		naobi::indent_scope indent{ stream };
+		for (const auto& workflow : compiler._workflows)
+		{
+			stream << *workflow << "\n";
+		}
+	}
+	stream << "]\n";
+	return stream;
+}
+
+const std::ostream& naobi::operator >> (const std::ostream& stream, naobi::compiler& compiler)
+{
+	stream >> *compiler._root;
+	for (auto& workflow : compiler._workflows)
+	{
+		stream >> *workflow;
+	}
+	return stream;
+	return stream;
+}
