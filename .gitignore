@@ -5,3 +5,6 @@ __pycache__/
 venv/
 site/
 cmake-build-release/
+build/
+.cache/
+
